@@ -1,0 +1,56 @@
+/* Footer.scss */
+
+/* Khai báo biến màu */
+$background-color: #796752;
+$text-color: white;
+
+.footer {
+    background-color: $background-color;
+    padding: 40px 0;
+    border-top: 1px solid #e8e8e8;
+    color: $text-color; /* Sử dụng biến màu cho chữ */
+}
+
+.footer .content {
+  
+    margin: 0 auto;
+}
+
+.footer .logo {
+    margin-bottom: 20px;
+}
+
+.footer .heading {
+    display: block;
+    font-size: 23px;
+    font-weight: bold;
+    color: $text-color; /* Sử dụng biến màu */
+}
+
+.footer .contact-info {
+    display: block;
+    margin: 10px 0;
+    color: $text-color; /* Sử dụng biến màu */
+}
+
+.footer .social-heading {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
+    font-size: 19px;
+    color: $text-color; /* Sử dụng biến màu */
+}
+
+.footer .payment-heading {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
+    font-size: 19px;
+    color: $text-color; /* Sử dụng biến màu */
+}
+
+.footer .copyright {
+    margin-top: 20px;
+    text-align: center;
+    color: $text-color; /* Sử dụng biến màu */
+}

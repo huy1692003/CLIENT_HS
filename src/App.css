@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+* {
+  margin: 0; /* Tắt margin mặc định */
+  padding: 0; /* Tắt padding mặc định */
+  box-sizing: border-box; /* Đảm bảo padding và border không làm tăng kích thước tổng thể */
+}
+
+
+
