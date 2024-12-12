@@ -1,7 +1,9 @@
 import AmenitiesManager from "../pages/admin/AmenitiesManager/AmenitiesManager";
 import  ArticleManager  from "../pages/admin/ArticleManager/ArticleManager";
+import AdminstratorManager from "../pages/admin/AdminstratorManager/AdminstratorManager";
 import  CategoryArticleManager  from "../pages/admin/CategoryArticleManager/CategoryArticleManager";
 import  HomeStayCensor  from "../pages/admin/HomeStayCensor/HomeStayCensor";
+import Login from "../pages/admin/Login/login";
 import  PartnershipRegManager  from "../pages/admin/ParnershipRegManager/ParnershipRegManager";
 import  RoleManager  from "../pages/admin/RoleManager/RoleManager";
 import  UserManager  from "../pages/admin/UserManager/UserManager";
@@ -21,6 +23,11 @@ import  HomeStayOverview  from "../pages/user/HomeStayOverview";
 import  LoginUser  from "../pages/user/LoginUser";
 import  PartnerShipReg  from "../pages/user/PartnerShipReg";
 import  ResultSearchHomeStay  from "../pages/user/ResultSearchHomeStay";
+import AdvetisementManager from "../pages/owner/Advertisement/AdvetisementManager";
+import CreateAdvertisement from "../pages/owner/Advertisement/CreateAdvertisement";
+import AdvertisementManager from "../pages/admin/AdvertisementManager/AdvertisementManager";
+import BookingHistory from "../pages/user/BookingHistory";
+import ReviewManager from "../pages/owner/ReviewManager";
 
 export const routers = [
     // customer
@@ -33,11 +40,13 @@ export const routers = [
     { path: "/partnership-reg", element: <PartnerShipReg /> },
     { path: "/booking", element: <Booking /> },
     { path: "/favorites", element: <Favorites /> },
+    { path: "/history-booking", element: <BookingHistory /> },
     { path: "/about", element: <About /> },
     { path: "/result-homestay-search", element: <ResultSearchHomeStay /> },
 
     // admin
     { path: "/admin/user-manager", element: <UserManager /> },
+    { path: "/admin/login", element: <Login /> },
     { path: "/admin/partnership-manager", element: <PartnershipRegManager /> },
     { path: "/admin/amenities-manager", element: <AmenitiesManager /> },
     { path: "/admin/homestay-censor-pending", element: <HomeStayCensor status={0} /> },
@@ -47,18 +56,20 @@ export const routers = [
     { path: "/admin/customer-manager", element: <HomeStayCensor status={2} /> },
     { path: "/admin/article-manager", element: <ArticleManager /> },
     { path: "/admin/category-article-manager", element: <CategoryArticleManager /> },
-
+    { path: "/admin/adminstrator-manager", element: <AdminstratorManager /> },
+    { path: "/admin/advertisement-manager", element: <AdvertisementManager /> },
     // Owner Layout
     { path: "/owner/dashboard", element: <Overview /> },
     { path: "/owner/homestay-waiting", element: <HomeStayManager status={0} /> },
     { path: "/owner/homestay", element: <WriteHomeStay /> },
     { path: "/owner/promotion-manager", element: <PromotionManager /> },
+    { path: "/owner/review-manager", element: <ReviewManager /> },
     { path: "/owner/homestay-current", element: <HomeStayManager status={1} /> },
     { path: "/owner/homestay-reject", element: <HomeStayManager status={2} /> },
-    { path: "/owner/booking-pending", element: <BookingManager status={0} /> },
-    { path: "/owner/booking-waiting", element: <BookingManager status={1} /> },
-    { path: "/owner/booking-success", element: <BookingManager status={2} /> },
-    { path: "/owner/booking-reject", element: <BookingManager status={3} /> },
-
+    { path: "/owner/booking-manager", element: <BookingManager /> },   
+    { path: "/owner/advertisement/write", element: <CreateAdvertisement  /> },
+    { path: "/owner/advertisement-manager", element: <AdvetisementManager /> },
+   
+    
 
 ]   

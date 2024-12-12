@@ -20,10 +20,10 @@ const Footer = () => {
                                 Địa chỉ: Tầng 2, TTTM HPC Landmark 105, đường Tố Hữu, Q.Hà Đông, TP. Hà Nội.
                             </Text>
                             <Text className="block text-white">
-                                Email: <a className="text-white hover:text-gray-300" href="mailto:gostay.services@gmail.com">gostay.services@gmail.com</a>
+                                Email: <a  className="text-white hover:text-gray-300"  style={{ color: "white", textDecoration: "none" }}href="mailto:daohuy1692003@gmail.com">Daohuy1692003@gmail.com</a>
                             </Text>
                             <Text className="block text-white">
-                                Điện thoại: 19002167 / Đường dây nóng: 056.728.8999
+                                Điện thoại: 19002167 / Đường dây nóng: 056.728.8999 
                             </Text>
                         </div>
                     </div>

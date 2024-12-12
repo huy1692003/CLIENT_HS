@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Form, Input, Upload, Image, Select, message } from 'antd';
+import { Modal, Form, Input, Upload, Image, Select, message, Button, InputNumber } from 'antd';
 import amenitiesService from '../../services/amenitiesService';
 import homestayService from '../../services/homestayService';
 import { URL_SERVER } from '../../constant/global';
+import { propFormatterNumber } from '../../utils/propState';
 
 export const ViewHomeStayModal = ({ visible, idHomeStay, setVisible }) => {
     const [form] = Form.useForm();
@@ -55,113 +56,118 @@ export const ViewHomeStayModal = ({ visible, idHomeStay, setVisible }) => {
     return (
         <Modal
             visible={visible}
+            closable={false}
             onCancel={() => setVisible({ show: false, idHomeStay: null })}
-            title={<h3 className='text-2xl'>{`Chi tiết Homestay | Mã: ${idHomeStay}`}</h3>}
+            title={
+                <div className="flex justify-between items-center rounded-lg border-b bg-blue-600">
+                    <h3 className='text-2xl text-white p-3' style={{width: '95%'}}>
+                        {`Thông tin chi tiết Homestay | Mã Homestay: ${idHomeStay}`}
+                    </h3>
+                    <Button 
+                        type="default"
+                        className="mr-3 hover:bg-red-500 hover:text-white text-xl h-full transition-colors"
+                        icon={<i className="fa-solid fa-xmark mr-1"></i>}
+                        onClick={() => setVisible({ show: false, idHomeStay: null })}
+                    >
+                        Đóng
+                    </Button>
+                </div>
+            }
             footer={null}
             width={1300}
         >
             <Form form={form} layout="vertical">
-                <div className="grid grid-cols-1 gap-5">
+                <div className="grid grid-cols-2 gap-4">
                     <Form.Item name="homestayName" label={<strong className="text-black">Tên Homestay</strong>}>
-                        <Input disabled className="text-black disabled:text-black" />
+                        <Input readOnly className="text-black disabled:text-black" />
                     </Form.Item>
 
                     <Form.Item name="country" label={<strong className="text-black">Quốc Gia</strong>}>
-                        <Input disabled className="text-black disabled:text-black" />
+                        <Input readOnly className="text-black disabled:text-black" />
                     </Form.Item>
 
                     <Form.Item name="province" label={<strong className="text-black">Tỉnh / Thành Phố</strong>}>
-                        <Input disabled className="text-black disabled:text-black" />
+                        <Input readOnly className="text-black disabled:text-black" />
                     </Form.Item>
 
                     <Form.Item name="district" label={<strong className="text-black">Quận / Huyện</strong>}>
-                        <Input disabled className="text-black disabled:text-black" />
+                        <Input readOnly className="text-black disabled:text-black" />
                     </Form.Item>
 
                     <Form.Item name="wardOrCommune" label={<strong className="text-black">Phường / Xã</strong>}>
-                        <Input disabled className="text-black disabled:text-black" />
+                        <Input readOnly className="text-black disabled:text-black" />
                     </Form.Item>
 
                     <Form.Item name="addressDetail" label={<strong className="text-black">Địa Chỉ Chi Tiết</strong>}>
-                        <Input disabled className="text-black disabled:text-black" />
+                        <Input readOnly className="text-black disabled:text-black" />
                     </Form.Item>
 
                     <Form.Item name="linkGoogleMap" label={<strong className="text-black">Link GoogleMap</strong>}>
-                        <Input disabled className="text-black disabled:text-black" />
+                        <Input readOnly className="text-black disabled:text-black" />
                     </Form.Item>
-                </div>
 
-                <Form.Item label={<strong className="text-black">Ảnh Homestay</strong>}>
-                    <div className="flex gap-2 flex-wrap mb-4 mt-3">
-                        {fileList.map((file) => (
-                            <Image
-                                key={file.uid}
-                                src={file.url}
-                                alt="preview"
-                                style={{
-                                    width: '25vw',
-                                    height: '33vh',
-                                    objectFit: 'cover',
-                                    borderRadius: '8px',
-                                    maxHeight: '33vh',
-                                }}
-                            />
-                        ))}
-                    </div>
-                </Form.Item>
-
-                <div className="grid grid-cols-2 gap-5">
                     <Form.Item name="pricePerNight" label={<strong className="text-black">Giá/Đêm</strong>}>
-                        <Input type="number" disabled className="text-black disabled:text-black" />
+                        <InputNumber  readOnly {...propFormatterNumber} addonAfter="VNĐ" className="text-black disabled:text-black w-full" />
                     </Form.Item>
 
                     <Form.Item name="discountSecondNight" label={<strong className="text-black">Giảm Giá Đêm Thứ Hai</strong>}>
-                        <Input type="number" disabled className="text-black disabled:text-black" />
+                        <InputNumber type='number' readOnly {...propFormatterNumber} addonAfter="VNĐ" className="text-black disabled:text-black w-full" />
                     </Form.Item>
 
                     <Form.Item name="minPerson" label={<strong className="text-black">Số Người Tối Thiểu</strong>}>
-                        <Input type="number" disabled className="text-black disabled:text-black" />
+                        <Input type="number" readOnly className="text-black disabled:text-black" />
                     </Form.Item>
 
                     <Form.Item name="maxPerson" label={<strong className="text-black">Số Người Tối Đa</strong>}>
-                        <Input type="number" disabled className="text-black disabled:text-black" />
+                        <Input type="number" readOnly className="text-black disabled:text-black" />
                     </Form.Item>
-                </div>
 
-                <div className="grid grid-cols-2 gap-5">
                     <Form.Item name="numberOfBedrooms" label={<strong className="text-black">Số Phòng Ngủ</strong>}>
-                        <Input type="number" disabled className="text-black disabled:text-black" />
+                        <Input type="number" readOnly className="text-black disabled:text-black" />
                     </Form.Item>
 
                     <Form.Item name="numberOfLivingRooms" label={<strong className="text-black">Số Phòng Khách</strong>}>
-                        <Input type="number" disabled className="text-black disabled:text-black" />
+                        <Input type="number" readOnly className="text-black disabled:text-black" />
                     </Form.Item>
 
                     <Form.Item name="numberOfBathrooms" label={<strong className="text-black">Số Phòng Tắm</strong>}>
-                        <Input type="number" disabled className="text-black disabled:text-black" />
+                        <Input type="number" readOnly className="text-black disabled:text-black" />
                     </Form.Item>
 
                     <Form.Item name="numberOfKitchens" label={<strong className="text-black">Số Phòng Bếp</strong>}>
-                        <Input type="number" disabled className="text-black disabled:text-black" />
+                        <Input type="number" readOnly className="text-black disabled:text-black" />
                     </Form.Item>
                 </div>
 
                 <Form.Item label={<strong className="text-black">Tiện Nghi</strong>}>
                     <Select
-
                         mode="multiple"
-                        allowClear
+                        disabled
                         value={selectedAmenities}
                         placeholder="Chọn tiện nghi"
                         options={amenitiesList.map(amenity => ({
                             label: amenity.name,
                             value: amenity.amenityID
                         }))}
-
                     />
                 </Form.Item>
+
                 <Form.Item label={<strong className="text-black">Ghi chú hoặc mô tả thêm về HomeStay</strong>} name="note">
-                    <Input.TextArea  disabled className="text-black disabled:text-black" />
+                    <Input.TextArea readOnly rows={10} className="text-black disabled:text-black" />
+                </Form.Item>
+                
+                <Form.Item label={<strong className="text-black">Ảnh Homestay</strong>}>
+                    <div className="grid grid-cols-4 gap-4">
+                        {fileList.map((file) => (
+                            <Image
+                                height={200}
+                                key={file.uid}
+                                src={file.url}
+                                alt="preview"
+                                className="object-cover rounded-lg"
+                            />
+                        ))}
+                    </div>
                 </Form.Item>
             </Form>
         </Modal>

@@ -1,12 +1,12 @@
 import { Button, Form, Input, message, notification, Select } from "antd";
 import { memo, useEffect, useState } from "react";
-import imageBanner from '~/assets/Banner/banner1.jpg'; // Đảm bảo đường dẫn là chính xác
+import imageBanner from '~/assets/Banner/banner2.jpg'; // Đảm bảo đường dẫn là chính xác
 import CustomerService from "../../services/customerService";
 import { json, useNavigate } from "react-router-dom";
 import { useSetRecoilState } from "recoil";
 import { userState } from "../../recoil/atom";
 
- const LoginUser = () => {
+const LoginUser = () => {
     const navigate = useNavigate()
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
@@ -78,6 +78,13 @@ import { userState } from "../../recoil/atom";
                                         <Select.Option value="0">Nữ</Select.Option>
                                         <Select.Option value="2">Khác</Select.Option>
                                     </Select>
+                                </Form.Item>
+                                <Form.Item
+                                    name="email"
+                                    label="Email"
+                                    rules={[{ required: true, message: 'Vui lòng nhập email để chúng tôi liên hệ với bạn khi cần thiết!' }]}
+                                >
+                                    <Input placeholder="Nhập tài khoản của bạn" />
                                 </Form.Item>
                             </>
                         }

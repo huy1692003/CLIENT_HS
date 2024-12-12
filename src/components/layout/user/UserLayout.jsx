@@ -5,7 +5,7 @@ const UserLayout = ({ children }) => {
     return (
         <div>
             <Header />
-            <main style={{ margin: "20px 10px" }}>
+            <main style={{ margin: "20px 10px" }} className="pt-20">
                 {children}
             </main>
             <Footer />

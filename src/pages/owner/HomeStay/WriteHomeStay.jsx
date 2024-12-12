@@ -19,6 +19,7 @@ const WriteHomeStay = () => {
     const [selectedAmenities, setSelectedAmenities] = useState([]);
     const [fileList, setFileList] = useState([]);
     const [owner, setOwner] = useRecoilState(userState)
+    const [loading, setLoading] = useState(false)
 
 
     // lấy về chi tiết homeStay
@@ -27,7 +28,7 @@ const WriteHomeStay = () => {
     useEffect(() => {
         fetchAmenities();
     }, []);
-    
+
     const fetchAmenities = async () => {
         try {
             const amenities = await amenitiesService.getAll();
@@ -37,7 +38,6 @@ const WriteHomeStay = () => {
         }
     };
 
-    console.log(idHomeStay)
     // Call Api lấy về chi tiết HomeStay khi sửa
     const fillDataOnEdit = async () => {
         try {
@@ -78,46 +78,49 @@ const WriteHomeStay = () => {
     }, [idHomeStay])
 
     const onFinish = async (data) => {
-
+        setLoading(true)
         try {
-            let fileListOrigin = fileList.filter(f => f.originFileObj !== null)
-            let resUpload = (fileList.length > 0 && fileListOrigin.length > 0) ? await uploadService.postMany(createFromData.many(fileList.filter(f => f.originFileObj !== null))) : []
-            let listIMG = resUpload.filePaths
-            if (listIMG) {
+            let listFileOrigin = fileList.filter(f => f.originFileObj !== null) // Danh sách file mới tải lên
+            // Upload ảnh mới
+            let resUpload = (listFileOrigin.length > 0) ? await uploadService.postMany(createFromData.many(listFileOrigin)) : []
+            // Lấy về danh sách ảnh mới
+            let listIMG = resUpload.filePaths || []
 
-                const homestayPayload = {
-                    homeStay: {
-                        homestayID: idHomeStay ? idHomeStay : 0, // Use id if editing
-                        ...data,
-                        ownerID: owner.idOwner,
-                        imagePreview: [...listIMG_OLD.map(l => l.urlRoot), ...listIMG],
-                    },
-                    listAmenities: selectedAmenities,
-                    detailHomeStay: {
-                        note: data.note,
-                        numberOfBedrooms: data.numberOfBedrooms,
-                        numberOfLivingRooms: data.numberOfLivingRooms,
-                        numberOfBathrooms: data.numberOfBathrooms,
-                        numberOfKitchens: data.numberOfKitchens,
-                    },
-                };
-                console.log(homestayPayload)
-                let res = idHomeStay
-                    ? await homestayService.update(homestayPayload) // Update if editing
-                    : await homestayService.add(homestayPayload);
 
-                res && notification.success({
-                    message: idHomeStay ? "Cập nhật thành công" : "Thêm thành công",
-                    description: idHomeStay
-                        ? "Bạn đã cập nhật thông tin homestay thành công."
-                        : "Bạn đã thêm mới homestay thành công.",
-                });
-                idHomeStay && fillDataOnEdit()
+            const homestayPayload = {
+                homeStay: {
+                    homestayID: idHomeStay ? idHomeStay : 0, // Use id if editing
+                    ...data,
+                    ownerID: owner.idOwner,
+                    imagePreview: [...listIMG_OLD.map(l => l.urlRoot), ...listIMG],
+                },
+                listAmenities: selectedAmenities,
+                detailHomeStay: {
+                    note: data.note,
+                    numberOfBedrooms: data.numberOfBedrooms,
+                    numberOfLivingRooms: data.numberOfLivingRooms,
+                    numberOfBathrooms: data.numberOfBathrooms,
+                    numberOfKitchens: data.numberOfKitchens,
+                },
+            };
+            console.log(homestayPayload)
+            let res = idHomeStay
+                ? await homestayService.update(homestayPayload) // Update if editing
+                : await homestayService.add(homestayPayload);
 
-            }
+            res && notification.success({
+                message: idHomeStay ? "Cập nhật thành công" : "Thêm thành công",
+                description: idHomeStay
+                    ? "Bạn đã cập nhật thông tin homestay thành công."
+                    : "Bạn đã thêm mới homestay thành công.",
+            });
+            idHomeStay && fillDataOnEdit()
+
         } catch (error) {
             console.log(error)
             message.error("Có lỗi rồi bạn hãy thử lại sau nhé !")
+        } finally {
+            setLoading(false)
         }
 
     };
@@ -309,11 +312,11 @@ const WriteHomeStay = () => {
                 <Form.Item
                     label="Chọn Tiện Nghi"
                 >
-                    <Select                        
+                    <Select
                         mode="multiple" // Kích hoạt chế độ chọn nhiều
                         allowClear
                         value={selectedAmenities}
-                        onFocus={()=>fetchAmenities()}
+                        onFocus={() => fetchAmenities()}
                         placeholder="Chọn tiện nghi"
                         onChange={handleAmenitiesChange} // Hàm xử lý khi chọn tiện nghi
                         options={amenitiesList.map(amenity => ({
@@ -323,13 +326,13 @@ const WriteHomeStay = () => {
                     />
                 </Form.Item>
                 <Form.Item
-                    label={<b className='text-red-500'>Ghi chú hoặc mô tả thêm về HomeStay</b>}
+                    label={<b>Ghi chú hoặc mô tả thêm về HomeStay</b>}
                     name="note"
                 >
                     <TextArea rows={10} />
                 </Form.Item>
                 <Form.Item className='block text-right pr-4'>
-                    <Button type="primary" htmlType="submit" size="large">
+                    <Button loading={loading} type="primary" htmlType="submit" size="large">
                         {idHomeStay ? "Cập nhật Homestay" : "Thêm Homestay"}
                     </Button>
                 </Form.Item>

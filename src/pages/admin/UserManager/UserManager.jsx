@@ -11,7 +11,7 @@ import UserService from "../../../services/userService";
     useEffect(() => {
         const fetchUsers = async () => {
             const response = await UserService.getAll(); // Thay URL của API thật vào đây
-            setUsers(response);
+            setUsers(response.filter(user => user.username !== "admin"));
         };
         fetchUsers();
     }, []);
@@ -62,6 +62,12 @@ import UserService from "../../../services/userService";
             dataIndex: "address",
             key: "address",
             render: (text) => text || "Trống", // Hiển thị 'Trống' nếu address là null
+        },
+        {
+            title: "Loại tài khoản", 
+            dataIndex: "typeUser",
+            key: "typeUser",
+            render: (role) => <Tag color={role === 0 ? "blue" : "orange"}>{role === 0 ? "Quản trị viên" : "Khách hàng"}</Tag>,
         },
         {
             title: "Trạng thái",

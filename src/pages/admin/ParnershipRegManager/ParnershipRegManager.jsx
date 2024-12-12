@@ -5,7 +5,7 @@ import { CheckCircleOutlined, CloseCircleOutlined, EyeOutlined } from '@ant-desi
 import DetailPartnerShip from './DetailPartnerShip';
 import TextArea from 'antd/es/input/TextArea';
 
- const PartnershipRegManager = () => {
+const PartnershipRegManager = () => {
     const [dataSource, setDataSource] = useState([]);
     const [originalDataSource, setOriginalDataSource] = useState([]); // Lưu dữ liệu gốc
     const [loading, setLoading] = useState(true);
@@ -75,40 +75,8 @@ import TextArea from 'antd/es/input/TextArea';
         );
     };
 
-    const Reject = ({ record }) => {
-        return (
-            <Tooltip title="Từ Chối">
-                <Popconfirm
-                    placement="topLeft"
-                    title={
-                        <div style={{ width: 400 }}>
-                            <div className='text-lg'>Bạn có chắc chắn muốn từ chối không?</div>
-                            <TextArea
-                                rows={7}
-                                placeholder="Nhập lý do từ chối"
-                                value={rejectReason}
-                                onChange={(e) => setRejectReason(e.target.value)} // Cập nhật lý do từ chối
-                                style={{ marginTop: 8 }} // Khoảng cách giữa tiêu đề và input
-                            />
-                        </div>
-                    }
-                    onConfirm={() => {
-                        onReject(record.id, rejectReason); // Gọi hàm từ chối với lý do
-                        setRejectReason(''); // Reset lý do sau khi từ chối
-                    }}
-                    okText="Xác nhận"
-                    cancelText="Hủy"
-                >
-                    <Button
-                        type='primary'
-                        danger
-                        icon={<CloseCircleOutlined />}
-                        style={{ marginRight: 8 }}
-                    />
-                </Popconfirm>
-            </Tooltip>
-        );
-    };
+
+
 
     const columns = [
         {
@@ -162,7 +130,36 @@ import TextArea from 'antd/es/input/TextArea';
                 <span className='block text-center' style={{ width: 130 }}>
                     {statusPart === 0 && <>
                         <Confirm record={record} />
-                        <Reject record={record} />
+                        <Tooltip title="Từ Chối">
+                            <Popconfirm
+                                placement="topLeft"
+                                title={
+                                    <div style={{ width: 400 }}>
+                                        <div className='text-lg'>Bạn có chắc chắn muốn từ chối không?</div>
+                                        <TextArea
+                                            rows={7}
+                                            placeholder="Nhập lý do từ chối"
+                                            value={rejectReason}
+                                            onChange={(e) => setRejectReason(e.target.value)} // Cập nhật lý do từ chối
+                                            style={{ marginTop: 8 }} // Khoảng cách giữa tiêu đề và input
+                                        />
+                                    </div>
+                                }
+                                onConfirm={() => {
+                                    onReject(record.id, rejectReason); // Gọi hàm từ chối với lý do
+                                    setRejectReason(''); // Reset lý do sau khi từ chối
+                                }}
+                                okText="Xác nhận"
+                                cancelText="Hủy"
+                            >
+                                <Button
+                                    type='primary'
+                                    danger
+                                    icon={<CloseCircleOutlined />}
+                                    style={{ marginRight: 8 }}
+                                />
+                            </Popconfirm>
+                        </Tooltip>
                     </>}
                     <Tooltip title="Xem Chi Tiết">
                         <Button

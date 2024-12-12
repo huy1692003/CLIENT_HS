@@ -1,15 +1,18 @@
-import { useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import SearchHomeStay from "../../components/user/SearchHomeStay";
 import { memo, useEffect, useState } from "react";
-import { Button, Col, Image, Space, Table, Modal, Tag, DatePicker, InputNumber, Row, message, notification } from "antd";
+import { Button, Col, Image, Space, Table, Modal, Tag, DatePicker, InputNumber, Row, message, notification, Spin, Breadcrumb } from "antd";
 import { HeartOutlined, ShoppingCartOutlined } from "@ant-design/icons";
 import { formatPrice } from './../../utils/formatPrice';
 import HomeStayReviews from "../../components/user/HomeStayReviews";
 import homestayService from "../../services/homestayService";
 import bookingService from "../../services/bookingService";
 import moment from "moment";
-import  CreateDetailBooking  from "../../components/user/CreateDetailBooking";
+import CreateDetailBooking from "../../components/user/CreateDetailBooking";
 import { URL_SERVER } from "../../constant/global";
+import favoritesService from "../../services/favoritesService";
+import { useRecoilValue } from "recoil";
+import { userState } from "../../recoil/atom";
 
 
 export const getDisabledDates = (bookedDates) => {
@@ -27,22 +30,25 @@ export const getDisabledDates = (bookedDates) => {
         disabledDates.push(end.clone());
     });
 
+
     return disabledDates;
 };
 
- const DetailHomeStay = () => {
+const DetailHomeStay = () => {
     const [param] = useSearchParams();
     const id = param.get('id');
     const [detail, setDetail] = useState();
     const [bookedDate, setBookedDate] = useState([]);
     const [showCreateBooking, setShowCreateBooking] = useState(false)
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [booking, setBooking] = useState({
         numberofGuest: null,
         dateIn: null,
         dateOut: null
     });
-
+    const cus = useRecoilValue(userState)
+    const navigate = useNavigate()
     // Hàm tạo các ngày đã đặt phòng rồi
 
 
@@ -51,7 +57,7 @@ export const getDisabledDates = (bookedDates) => {
         const disabledDates = getDisabledDates(bookedDate)
 
         // Kiểm tra nếu ngày hiện tại là ngày trước hôm nay
-        const isPastDate = current && current < moment().startOf('day');
+        const isPastDate = current && current <= moment().startOf('day');
 
         // Kiểm tra xem ngày hiện tại có trong danh sách tùy chọn không
         const isDisabledDate = disabledDates.some(date => current.isSame(date, 'day'));
@@ -61,15 +67,34 @@ export const getDisabledDates = (bookedDates) => {
 
     };
 
+    const addFavorites = async () => {
+        if (!cus) {
+            notification.error({ showProgress: true, message: "Yêu cầu đăng nhập !", description: "Bạn cần đăng nhập để sử dụng chức năng này", btn: <Button onClick={() => navigate('/login-user')}>Đăng nhập ngay</Button>, duration: 4 })
+        }
+        else {
+            try {
+                await favoritesService.addFavorites(detail.homeStay.homestayID, cus.idCus)
+                notification.success({ message: 'Thông báo', description: "Thêm thành công HomeStay vào danh sách yêu thích của bạn" })
+            } catch (error) {
+                notification.error({ message: "Thông báo", description: "Bạn đã thêm HomeStay này vào danh sách yêu thích rồi" })
+            }
+        }
+    }
 
     useEffect(() => {
         const getDataDetail = async () => {
-            let result = await homestayService.viewDetailHomeStay(id);
-            result && setDetail(result);
-            // Lay ve cac ngay ma booking da dc dat
-            let resDateBooking = await bookingService.getBookingDateExisted(id);
-            console.log(resDateBooking)
-            resDateBooking && setBookedDate(resDateBooking)
+            try {
+                let result = await homestayService.viewDetailHomeStay(id);
+                result && setDetail(result);
+                // Lay ve cac ngay ma booking da dc dat
+                let resDateBooking = await bookingService.getBookingDateExisted(id);
+                console.log(resDateBooking)
+                resDateBooking && setBookedDate(resDateBooking)
+            } catch (error) {
+                message.error("Có lỗi khi tải dữ liệu");
+            } finally {
+                setLoading(false);
+            }
         };
         id && getDataDetail();
     }, [id]);
@@ -90,13 +115,35 @@ export const getDisabledDates = (bookedDates) => {
         setIsModalVisible(false);
     };
 
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <Spin size="large" />
+            </div>
+        );
+    }
+
     return (
         <>
+
             {detail ? <div>
                 <div style={{ backgroundColor: "#F5F5F5", padding: 20 }}>
                     <SearchHomeStay />
                 </div>
+
                 <div className="p-5">
+                    <div className="px-4 py-2 bg-gray-100 mb-5">
+                        <Breadcrumb
+                            items={[
+                                {
+                                    title: <Link to="/">Trang chủ</Link>,
+                                },
+                                {
+                                    title: 'Chi tiết về HomeStay #' + id,
+                                },
+                            ]}
+                        />
+                    </div>
                     <div className="flex justify-between">
                         <div>
                             <h1 className="name-homestay text-2xl font-bold">{detail.homeStay.homestayName}</h1>
@@ -111,12 +158,12 @@ export const getDisabledDates = (bookedDates) => {
                     {/* Image Gallery Section */}
                     <div className="flex justify-between mt-4 relative" style={{ height: 400 }}>
                         <div style={{ width: "51.3%", maxWidth: "51.3%" }} >
-                            <Image height={400} width={"100%"} className="rounded-xl" src={URL_SERVER + detail.homeStay.imagePreview[0]} />
+                            <Image height={400} width={"100%"} className="rounded-xl object-cover" src={URL_SERVER + detail.homeStay.imagePreview[0]} />
                         </div>
                         <div style={{ width: "48%" }} className="grid grid-cols-2 gap-1 ">
 
                             {detail.homeStay.imagePreview.map((src, index) => (
-                                index > 0 && index < 5 && <Image key={index} width={"100%"} height={198} className="rounded-xl" src={URL_SERVER + src} />
+                                index > 0 && index < 5 && <Image key={index} width={"100%"} height={198} className="rounded-xl object-cover" src={URL_SERVER + src} />
                             ))}
                         </div>
                         <Button className="absolute inline bottom-2 right-1 bg-white p-1 text-blue-900" type="link" onClick={showModal}>
@@ -245,6 +292,7 @@ export const getDisabledDates = (bookedDates) => {
 
                             <Button
                                 icon={<HeartOutlined />}
+                                onClick={addFavorites}
                                 type="primary" danger
                                 style={{ height: 40 }}
                                 className=" w-full font-medium rounded-2xl"
@@ -284,7 +332,7 @@ export const getDisabledDates = (bookedDates) => {
                     >
                         <Image.PreviewGroup>
                             {detail.homeStay.imagePreview.map((src, index) => (
-                                <Image width={"100%"} height={"45vh"} key={index} src={URL_SERVER + src} />
+                                <Image width={"100%"} className="object-cover" height={"45vh"} key={index} src={URL_SERVER + src} />
                             ))}
                         </Image.PreviewGroup>
                     </Modal>

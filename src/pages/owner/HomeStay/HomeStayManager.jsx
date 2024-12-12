@@ -15,6 +15,7 @@ const HomeStayManager = ({ status }) => {
     const navigate = useNavigate()
 
     useEffect(() => {
+
         const fetchHomeStays = async () => {
             setLoading(true);
             try {
@@ -25,6 +26,7 @@ const HomeStayManager = ({ status }) => {
                 console.error("Error fetching homestays:", error);
             } finally {
                 setLoading(false);
+                
             }
         };
 
@@ -184,6 +186,10 @@ const HomeStayManager = ({ status }) => {
                 bordered
                 columns={columns}
                 dataSource={homeStays}
+                pagination={{
+                    pageSize: 10
+                  
+                }}
             />
         </>
     );

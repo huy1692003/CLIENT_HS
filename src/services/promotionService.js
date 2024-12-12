@@ -9,6 +9,14 @@ const promotionService = {
             throw error;
         }
     },
+    getAllByOwnwer: async (stringOwner) => {
+        try {
+            let res = await API.get("/promotion/getbyOwnerID?owner="+stringOwner);
+            return res?.data;
+        } catch (error) {
+            throw error;
+        }
+    },
     getById: async (id) => {
         try {
             let res = await API.get(`/promotion/getByID/${id}`);

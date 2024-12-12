@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { message, Spin } from "antd"; // Import Ant Design's loading spinner
+import { Link, useSearchParams } from "react-router-dom";
+import { Breadcrumb, message, Spin } from "antd"; // Import Ant Design's loading spinner
 import articleService from "../../services/articleService";
 
 const DetailArticle = () => {
@@ -41,7 +41,22 @@ const DetailArticle = () => {
 
     return (
         <div className="container mx-auto p-4">
-            <h1 className="text-3xl font-bold mb-4">{article?.title}</h1>
+              <div className="px-4 py-2 bg-gray-100">
+                <Breadcrumb
+                    items={[
+                        {
+                            title: <Link to="/">Trang chủ</Link>,
+                        },
+                        {
+                            title: 'Chi tiết bài viết',
+                        },
+                        {
+                            title: article?.title,
+                        },
+                    ]}
+                />
+            </div>
+            <h1 className="text-3xl font-bold mb-4 mt-4">{article?.title}</h1>
             <h2 className="text-base font-bold mb-4">{formatDate(article?.publishDate)}</h2>
             {/* Sử dụng dangerouslySetInnerHTML để hiển thị nội dung HTML */}
             <div className="prose lg:prose-xl">

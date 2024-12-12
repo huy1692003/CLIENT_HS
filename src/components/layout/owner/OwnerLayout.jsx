@@ -6,21 +6,23 @@ import {
     MenuUnfoldOutlined,
 
 } from '@ant-design/icons';
-import { Button, Image, Layout, Menu, message, notification, theme } from 'antd';
+import { Button, Image, Layout, Menu, message, notification, theme, Spin } from 'antd';
 import avatar from "../../../assets/Avatar/avatarboy.png";
 import  MenuOwner  from './Menu';
 import { useRecoilState } from 'recoil';
-import { userState } from '../../../recoil/atom';
-import { useNavigate } from 'react-router-dom';
+import { userState, isLoadingOwner } from '../../../recoil/atom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import  NotFoundPage  from '../../../pages/NotFoundPage';
 
 
 const { Header, Sider, Content } = Layout;
 
 const OwnerLayout = ({ children }) => {
+    const router = useLocation()
     const [collapsed, setCollapsed] = useState(false);
     const navigate = useNavigate()
     const [owner, setOwner] = useRecoilState(userState)
+    const [loading, setLoading] = useRecoilState(isLoadingOwner)
     console.log(owner)
     const {
         token: { colorBgContainer, borderRadiusLG },
@@ -29,6 +31,7 @@ const OwnerLayout = ({ children }) => {
 
     useEffect(() => {
         document.title = "Huystay - Kênh Chủ HomeStay"
+      
         if (!owner.idOwner) {
 
             notification.error({ message: "Bạn chưa phải là đối tác của HuyStay", description: "Bạn sẽ được chuyển hướng về trang chủ sau 5 giây nữa!", duration: 5, showProgress: true })
@@ -37,13 +40,18 @@ const OwnerLayout = ({ children }) => {
             }, 5000)
             return () => clearTimeout(redirect)
         }
-    }, [owner])
+    }, [owner,router.pathname])
 
+    
     return (
         <>
+            {loading && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+                    <Spin  size="large" />
+                </div>
+            )}
 
             {
-
                 (owner && owner.idOwner) ? 
                 <Layout  >
                     <Sider width={250}  trigger={null} theme="light" collapsible collapsed={collapsed} >
@@ -82,12 +90,12 @@ const OwnerLayout = ({ children }) => {
                                     color: "white"
                                 }}
                             />
-                            <div className='infor-user flex gap-3  ' style={{ width: "30%", textAlign: "right" ,backgroundColor:"#040548"}} >
+                            <div className='infor-user flex gap-3  ' style={{ textAlign: "right" ,backgroundColor:"#040548"}} >
                                 <CommentOutlined style={{ fontSize: 24 }} /> |
                                 <BellFilled size={""} style={{ fontSize: 24 }} /> |
                                 <h3 style={{ fontSize: 18 }} >
                                     <Image src={avatar} preview={false} className='relative top-2 right-1' />
-                                    <span className='ml-2'>{owner.username} - Chủ HomeStay</span> </h3>
+                                    <span className='ml-2'>{owner.fullname} - Chủ HomeStay</span> </h3>
                             </div>
                         </Header>
                         <Content

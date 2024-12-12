@@ -1,13 +1,26 @@
 import React, { memo } from 'react';
-import { Typography, Row, Col, Card, Space, Divider,Image } from 'antd';
+import { Typography, Row, Col, Card, Space, Divider,Image, Breadcrumb } from 'antd';
 import { HomeOutlined, TeamOutlined, SafetyCertificateOutlined, CustomerServiceOutlined } from '@ant-design/icons';
 import image from '~/assets/Image/partnership.png';
+import { Link } from 'react-router-dom';
 
 const { Title, Paragraph } = Typography;
 
 const About = () => {
     return (
         <div className="container mx-auto px-4 py-8">
+             <div className="px-4 py-2 bg-gray-100">
+                <Breadcrumb
+                    items={[
+                        {
+                            title: <Link to="/">Trang chủ</Link>,
+                        },
+                        {
+                            title: 'Thông tin về HuyStay',
+                        },
+                    ]}
+                />
+            </div>
             <Typography>
                 <Title level={1} className="text-center mb-8">Về HuyStay</Title>
                 <div className="mb-12">

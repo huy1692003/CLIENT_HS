@@ -1,4 +1,4 @@
-import { Button, Image } from "antd";
+import { Button, Dropdown, Image, notification } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import Logo from "../../../assets/Logo/logo.png";
 import { memo, useEffect, useState } from "react";
@@ -9,121 +9,184 @@ const Header = () => {
     const navigate = useNavigate()
     const [showInfor, setShowInfor] = useState(false);
     const [user, setUser] = useRecoilState(userState)
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         document.title = "Huystay - Kết nối đến mọi người"
     }, [])
-    console.log(user)
+
     const onSelectMenu = (url) => {
         setShowInfor(false)
+        setIsMobileMenuOpen(false)
         navigate(url)
     }
 
+    const navigationItems = [
+        { to: "/", label: "Trang chủ" },
+        { to: "/homestay", label: "HomeStay" },
+        { to: "/partnership-reg", label: "Hợp tác" },
+        { to: "/article", label: "Bài viết" },
+        { to: "/about", label: "Về chúng tôi" }
+    ];
+    
     return (
-        <div className="mb-3">
+        <div className="fixed top-0 left-0 bg-white right-0 border-b border-gray-200 rounded-lg" style={{zIndex:100}}>
             <div className="container mx-auto px-4">
-                <div className="flex flex-col lg:flex-row items-center justify-between py-4">
+                <div className="flex items-center justify-between py-4">
+                    {/* Mobile Menu Button */}
+                    <button 
+                        className="lg:hidden p-2 rounded-full bg-gray-100 hover:bg-gray-200"
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    >
+                        <i className="fa-solid fa-bars text-lg"></i>
+                    </button>
+
                     {/* Logo */}
-                    <div className="w-full lg:w-auto mb-4 lg:mb-0 flex justify-center lg:justify-start">
+                    <div className="flex items-center justify-center flex-1 lg:flex-none">
                         <Link to={"/"}>
                             <Image src={Logo} preview={false} width={80} height={55} className="object-contain" />
                         </Link>
                     </div>
 
-                    {/* Navigation Links */}
-                    <nav className="w-full lg:w-auto mb-4 lg:mb-0">
-                        <ul className="flex flex-wrap justify-center gap-2 lg:gap-6">
-                            <li>
-                                <Link className="block font-bold px-3 py-2 text-sm lg:text-base rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors" to={"/"}>Trang chủ</Link>
-                            </li>
-                            <li>
-                                <Link className="block font-bold px-3 py-2 text-sm lg:text-base rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors" to={"/homestay"}>HomeStay</Link>
-                            </li>
-                            <li>
-                                <Link className="block font-bold px-3 py-2 text-sm lg:text-base rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors" to={"/partnership-reg"}>Hợp tác</Link>
-                            </li>
-                            <li>
-                                <Link className="block font-bold px-3 py-2 text-sm lg:text-base rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors" to={"/article"}>Bài viết</Link>
-                            </li>
-                            <li>
-                                <Link className="block font-bold px-3 py-2 text-sm lg:text-base rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors" to={"/about"}>Về chúng tôi</Link>
-                            </li>
+                    {/* Desktop Navigation */}
+                    <nav className="hidden lg:block">
+                        <ul className="flex gap-6">
+                            {navigationItems.map((item, index) => (
+                                <li key={index}>
+                                    <Link 
+                                        className="block font-bold px-3 py-2 text-base rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors" 
+                                        to={item.to}
+                                    >
+                                        {item.label}
+                                    </Link>
+                                </li>
+                            ))}
                         </ul>
                     </nav>
 
                     {/* User Actions */}
                     <div className="flex items-center gap-3">
-                        <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
+                        <button className="hidden lg:block p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
                             <i className="fa-solid fa-bell text-lg"></i>
                         </button>
 
-                        <button className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
+                        <button className="hidden lg:flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
                             <i className="fa-solid fa-comments text-lg"></i>
                             <span className="text-sm font-semibold">Hỗ trợ</span>
                         </button>
 
-                        <div className="relative group">
-                            <button 
-                                className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-                            >
-                                <i className="fa-solid fa-bars text-lg"></i>
-                                <i className={`fa-solid fa-user text-lg ${user ? "text-blue-500" : "text-gray-700"}`}></i>
-                            </button>
-
-                            <div style={{zIndex: 1000 , border:"1px solid"}} className="absolute invisible group-hover:visible top-9 right-0 mt-2 w-64 rounded-lg bg-white shadow-xl border border-gray-100 overflow-hidden">
-                                {user ? (
-                                    <div className="py-2">
-                                        <div className="px-4 py-2 text-center border-b">
-                                            <p>Xin chào, <span className="font-semibold">{user.username}</span></p>
-                                        </div>
-                                        
-                                        {user.idOwner && (
-                                            <button onClick={() => window.open("/owner/dashboard")} className="w-full px-4 py-2 text-left hover:bg-gray-50">
+                        <Dropdown
+                            menu={{
+                                items: user ? [
+                                    {
+                                        key: '1',
+                                        label: (
+                                            <div className="px-4 py-2 text-center border-b">
+                                                <p>Xin chào, <span className="font-semibold">{user?.fullname||"Khách hàng "}</span></p>
+                                            </div>
+                                        )
+                                    },
+                                    user.idOwner && {
+                                        key: '2',
+                                        label: (
+                                            <div onClick={() => window.open("/owner/dashboard")}>
                                                 <i className="fa-solid fa-house-user text-teal-500 mr-2"></i>
                                                 Kênh chủ HomeStay
-                                            </button>
-                                        )}
-                                        
-                                        <button className="w-full px-4 py-2 text-left hover:bg-gray-50">
-                                            <i className="fa-solid fa-user text-blue-600 mr-2"></i>
-                                            Thông tin của tôi
-                                        </button>
-                                        
-                                        <button className="w-full px-4 py-2 text-left hover:bg-gray-50">
-                                            <i className="fa-solid fa-clock-rotate-left text-orange-500 mr-2"></i>
-                                            Lịch sử đặt phòng
-                                        </button>
-                                        
-                                        <button onClick={() => navigate('/favorites')} className="w-full px-4 py-2 text-left hover:bg-gray-50">
-                                            <i className="fa-solid fa-heart text-red-500 mr-2"></i>
-                                            Danh sách yêu thích
-                                        </button>
-                                        
-                                        <button 
-                                            onClick={() => {
+                                            </div>
+                                        )
+                                    },
+                                    {
+                                        key: '3',
+                                        label: (
+                                            <div>
+                                                <i className="fa-solid fa-user text-blue-600 mr-2"></i>
+                                                Thông tin của tôi
+                                            </div>
+                                        )
+                                    },
+                                    {
+                                        key: '4',
+                                        label: (
+                                            <div  onClick={() => navigate('/history-booking')}>
+                                                <i className="fa-solid fa-clock-rotate-left text-orange-500 mr-2" ></i>
+                                                Lịch sử đặt phòng
+                                            </div>
+                                        )
+                                    },
+                                    {
+                                        key: '5',
+                                        label: (
+                                            <div onClick={() => navigate('/favorites')}>
+                                                <i className="fa-solid fa-heart text-red-500 mr-2"></i>
+                                                Danh sách yêu thích
+                                            </div>
+                                        )
+                                    },
+                                    {
+                                        key: '6',
+                                        label: (
+                                            <div onClick={() => {
                                                 setUser(null)
                                                 sessionStorage.removeItem("user")
                                                 setShowInfor(false)
-                                            }}
-                                            className="w-full px-4 py-2 text-left hover:bg-gray-50"
-                                        >
-                                            <i className="fa-solid fa-right-from-bracket text-blue-600 mr-2"></i>
-                                            Đăng xuất
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <button 
-                                        onClick={() => onSelectMenu("/login-user")}
-                                        className="w-full px-4 py-2 text-left hover:bg-gray-50"
-                                    >
-                                        <i className="fa-solid fa-right-to-bracket mr-2"></i>
-                                        Đăng nhập
-                                    </button>
-                                )}
-                            </div>
-                        </div>
+                                                notification.success({message:"Đăng xuất thành công"})
+                                            }}>
+                                                <i className="fa-solid fa-right-from-bracket text-blue-600 mr-2"></i>
+                                                Đăng xuất
+                                            </div>
+                                        )
+                                    }
+                                ] : [
+                                    {
+                                        key: '1',
+                                        label: (
+                                            <div onClick={() => onSelectMenu("/login-user")}>
+                                                <i className="fa-solid fa-right-to-bracket mr-2"></i>
+                                                Đăng nhập
+                                            </div>
+                                        )
+                                    }
+                                ]
+                            }}
+                            trigger={['hover']}
+                        >
+                            <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
+                                <i className={`fa-solid fa-user text-lg ${user ? "text-blue-500" : "text-gray-700"}`}></i>
+                            </button>
+                        </Dropdown>
                     </div>
                 </div>
+
+                {/* Mobile Navigation Menu */}
+                {isMobileMenuOpen && (
+                    <div className="lg:hidden pb-4">
+                        <ul className="flex flex-col gap-2">
+                            {navigationItems.map((item, index) => (
+                                <li key={index}>
+                                    <Link 
+                                        className="block font-bold px-3 py-2 text-base rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                                        to={item.to}
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                    >
+                                        {item.label}
+                                    </Link>
+                                </li>
+                            ))}
+                            <li>
+                                <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors">
+                                    <i className="fa-solid fa-bell text-lg"></i>
+                                    <span className="font-bold">Thông báo</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors">
+                                    <i className="fa-solid fa-comments text-lg"></i>
+                                    <span className="font-bold">Hỗ trợ</span>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                )}
             </div>
         </div>
     );

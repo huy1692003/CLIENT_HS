@@ -4,8 +4,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 
  const NotFoundPage = () => {
     const navigate = useNavigate()
+    
     return (
         <>
+            {/* Result component displays 404 error page */}
             <Result
 
                 status="404"

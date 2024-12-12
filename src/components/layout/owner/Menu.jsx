@@ -2,6 +2,7 @@ import {
     AuditOutlined,
     BarChartOutlined,
     CarryOutOutlined,
+    CommentOutlined,
     CreditCardFilled,
     CreditCardOutlined,
     FileProtectOutlined,
@@ -16,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 
 const { SubMenu } = Menu;
 
- const MenuOwner = () => {
+const MenuOwner = () => {
     const navigate = useNavigate();
 
     // Lấy trạng thái mở và key của menu đã chọn từ sessionStorage nếu có
@@ -40,8 +41,9 @@ const { SubMenu } = Menu;
 
     return (
         <Menu
-            style={{ fontWeight: '700', marginTop: 40 ,width:"100%"}}
-            theme="light"
+            style={{ fontWeight: '700', paddingTop: 20, width: "100%" }}
+
+
             mode="inline"
 
             selectedKeys={[selectedKey]} // Set menu đang chọn từ state
@@ -72,29 +74,17 @@ const { SubMenu } = Menu;
                 </Menu.Item>
             </SubMenu>
 
-            <SubMenu key="sub3" icon={<AuditOutlined />} title="Quản lý đặt phòng">
-                <Menu.Item key="3-1" onClick={() => handleMenuClick("3-1", "/owner/booking-pending")}>
-                    Đang chờ xác nhận
-                </Menu.Item>
-                <Menu.Item key="3-2" onClick={() => handleMenuClick("3-2", "/owner/booking-waiting")}>
-                    Đang chờ nhận phòng
-                </Menu.Item>
-                <Menu.Item key="3-3" onClick={() => handleMenuClick("3-3", "/owner/booking-reject")}>
-                    Bị Hủy
-                </Menu.Item>
-                <Menu.Item key="3-4" onClick={() => handleMenuClick("3-4", "/owner/booking-success")}>
-                    Đã hoàn thành
-                </Menu.Item>
-            </SubMenu>
 
-            <SubMenu key="sub4" icon={<FileProtectOutlined />} title="Quản lý đánh giá">
-                <Menu.Item key="4-1" onClick={() => handleMenuClick("4-1", "/owner/review-manager")}>
-                    Xem đánh giá
-                </Menu.Item>
-                <Menu.Item key="4-2" onClick={() => handleMenuClick("4-2", "/owner/review-settings")}>
-                    Cài đặt đánh giá
-                </Menu.Item>
-            </SubMenu>
+            <Menu.Item icon={<AuditOutlined />} key="3-1" onClick={() => handleMenuClick("3-1", "/owner/booking-manager")}>
+                Quản lý đặt phòng
+            </Menu.Item>
+
+
+
+            <Menu.Item key="4-1" icon={<CommentOutlined />} onClick={() => handleMenuClick("4-1", "/owner/review-manager")}>
+                Quản lý đánh giá
+            </Menu.Item>
+
             <Menu.Item key="24454" icon={<CreditCardOutlined />} onClick={() => handleMenuClick('24454', "/owner/promotion-manager")}>
                 Quản lý khuyến mãi
             </Menu.Item>
@@ -103,15 +93,14 @@ const { SubMenu } = Menu;
             {/* <Menu.Item key="5-1" onClick={() => handleMenuClick("5-1", "/owner/promotion-manager")}>
                     Quản lý khuyến mãi
             </Menu.Item> */}
-
-
             <SubMenu key="sub6" icon={<VideoCameraOutlined />} title="Quản lý quảng cáo">
-                <Menu.Item key="6-1" onClick={() => handleMenuClick("6-1", "/owner/advertising-manager")}>
-                    Xem quảng cáo
+                <Menu.Item key="6-1" onClick={() => handleMenuClick("6-1", "/owner/advertisement/write")}>
+                    Tạo quảng cáo mới
                 </Menu.Item>
-                <Menu.Item key="6-2" onClick={() => handleMenuClick("6-2", "/owner/advertising-settings")}>
-                    Cài đặt quảng cáo
+                <Menu.Item key="6-2" onClick={() => handleMenuClick("6-2", "/owner/advertisement-manager")}>
+                    Danh sách
                 </Menu.Item>
+
             </SubMenu>
 
             <SubMenu key="sub7" icon={<InteractionOutlined />} title="Phản hồi hỗ trợ">

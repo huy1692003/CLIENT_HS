@@ -8,6 +8,7 @@ import { formatPrice } from '../../utils/formatPrice';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { userState } from '../../recoil/atom';
 import bookingService from '../../services/bookingService';
+import { convertDateTime } from '../../utils/convertDate';
 
 const { Option } = Select;
 
@@ -72,6 +73,8 @@ const { Option } = Select;
             if (totalBill && totalBill > 0) {
                 var booking = {
                     ...dataForm,
+                    dateIn:convertDateTime(dataForm.dateIn),
+                    dateOut:convertDateTime(dataForm.dateOut),
                     totalPrice: totalBill,
                     originalPrice: totalBill,
                     bookingID: 0,
@@ -85,6 +88,8 @@ const { Option } = Select;
                 try {
                     let res = await bookingService.create(booking)
                     res && notification.success({ message: "Đặt phòng thành công !", description: "Thông tin đặt phòng của bạn đã được ghi lại và đang được chờ xử lý ", showProgress: true, duration: 9 })
+                    onClose()
+                    form.resetFields()
                 } catch (error) {
                     message.error('Đặt phòng không thành công thông tin đặt phòng không hợp lệ hoặc đã có người đặt vào thời điểm hãy thử lại sau ít phút')
                 } finally {
@@ -99,6 +104,7 @@ const { Option } = Select;
                     placement: "topRight", // vị trí của thông báo (có thể thay đổi)
                     duration: 5, // thời gian hiển thị (giây)
                 });
+              
             }
         }
         else {
@@ -110,6 +116,7 @@ const { Option } = Select;
                 duration: 5, // thời gian hiển thị (giây)
             });
         }
+        setLoading(false)
     };
 
     return (
@@ -204,7 +211,7 @@ const { Option } = Select;
                             </Form.Item>
 
                             <Form.Item
-                                label="Số người sử dụng"
+                                label={"Số người sử dụng -- "+ "Từ "+data.homeStay.minPerson+" Đến "+data.homeStay.maxPerson+" Người"}
                                 name="numberOfGuests"
                                 rules={[{ required: true, message: 'Vui lòng nhập số người!' }]}
                             >
@@ -218,10 +225,10 @@ const { Option } = Select;
                             </Form.Item>
                         </Form>
                     </Col>
-                    <Col className='text-center bg-gray-50 border py-6 pt-3 rounded-2xl'>
+                    <Col className='w-3/12 text-center bg-gray-50 border py-6 pt-3 rounded-2xl'>
                         <Tag color='blue' className='w-11/12 text-xl text-center font-medium p-2'>Thông tin HomeStay</Tag>
                         <div className='text-center'>
-                            <CardHomeStay data={data} />
+                            <CardHomeStay data={data} width="100%" />
                         </div>
                     </Col>
                     <div className=' w-full mt-10'>

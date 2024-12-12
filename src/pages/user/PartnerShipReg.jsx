@@ -1,5 +1,5 @@
 import React, { memo, useState } from 'react';
-import { Form, Input, Button, Row, Col, Upload, message, Image, notification } from 'antd';
+import { Form, Input, Button, Row, Col, Upload, message, Image, notification, Breadcrumb } from 'antd';
 import Icon, { PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import image from '~/assets/Image/partnership.png';
 import { uploadService } from '../../services/uploadService';
@@ -7,6 +7,7 @@ import createFromData from '../../utils/createFormData';
 import partnerShipService from './../../services/partnerShipService';
 import { useRecoilValue } from 'recoil';
 import { userState } from './../../recoil/atom';
+import { Link } from 'react-router-dom';
 
  const PartnerShipReg = () => {
     const [fileList, setFileList] = useState([]);
@@ -52,12 +53,23 @@ import { userState } from './../../recoil/atom';
     };
 
     return (
-        <div className="p-8 bg-gray-100">
-            <h2 className="text-2xl font-bold mb-4 pt-4 border-t-2 border-gray-400">Đăng Ký Hợp Tác Chủ Home Stay</h2>
+        <div className="p-8 ">
+             <div className="px-4 py-2 bg-gray-100">
+                <Breadcrumb
+                    items={[
+                        {
+                            title: <Link to="/">Trang chủ</Link>,
+                        },
+                        {
+                            title: 'Đăng Ký Hợp Tác',
+                        },
+                    ]}
+                />
+            </div>
+            <h2 className="text-2xl font-bold mb-4 pt-4 ">Đăng Ký Hợp Tác Chủ Home Stay</h2>
             <p className="mb-4 italic">
                 Chào mừng bạn đến với hệ thống đăng ký hợp tác Home Stay của chúng tôi! Bằng cách hợp tác, bạn sẽ có cơ hội tiếp cận thị trường rộng lớn hơn và tối ưu hóa lợi nhuận kinh doanh. Chúng tôi luôn cam kết đồng hành và hỗ trợ bạn trong suốt quá trình hợp tác, với các công cụ quản lý hiện đại và dịch vụ chuyên nghiệp. Hãy điền đầy đủ thông tin dưới đây để hoàn tất quá trình đăng ký. Chúng tôi rất mong chờ được hợp tác với bạn!
             </p>
-
 
 
             <div className="text-center mb-6">
@@ -67,7 +79,7 @@ import { userState } from './../../recoil/atom';
                 style={{ maxWidth: "1000px", margin: "0 auto" }}
                 layout="vertical"
                 onFinish={onFinish}
-                className="bg-white p-6 rounded-lg shadow-md w-full"
+                className="bg-white p-6 rounded-lg shadow-md border border-gray-500 w-full"
             >
                 <h2 className="text-2xl text-center font-bold mb-4 pt-3 pb-6 border-b-2 border-gray-300">Phiếu đăng kí</h2>
                 <Row gutter={16}>

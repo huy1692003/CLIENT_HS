@@ -1,9 +1,12 @@
 import { memo, useEffect, useState } from "react";
 import homestayService from "../../services/homestayService";
 import CardHomeStay from "../../components/user/CardHomeStay";
-import { Spin } from "antd"; // Import Ant Design's loading spinner
+import { Spin, Breadcrumb } from "antd"; // Import Ant Design's loading spinner
+import SearchHomeStay from "../../components/user/SearchHomeStay";
+import { Link } from "react-router-dom";
+import { HomeOutlined } from "@ant-design/icons";
 
- const HomeStayOverview = () => {
+const HomeStayOverview = () => {
     const [homeStays, setHomeStays] = useState([]);
     const [loading, setLoading] = useState(true); // Khởi tạo trạng thái loading
 
@@ -34,10 +37,23 @@ import { Spin } from "antd"; // Import Ant Design's loading spinner
 
     return (
         <div>
-            <h2 className="text-3xl font-bold text-center mt-8 border-t-2 border-gray-200 pt-10">
-                Rất nhiều HomeStay giá cả phù hợp cho bạn
+            <SearchHomeStay />
+            <div className="px-4 py-2 bg-gray-100">
+                <Breadcrumb
+                    items={[
+                        {
+                            title: <Link to="/">Trang chủ</Link>,
+                        },
+                        {
+                            title: 'Danh sách HomeStay',
+                        },
+                    ]}
+                />
+            </div>
+            <h2 className="text-3xl font-bold text-center mt-8 mb-4 border-gray-200 pt-10 flex items-center justify-center gap-2">
+                <HomeOutlined className="text-yellow-200" /> Rất nhiều HomeStay giá cả phù hợp cho bạn
             </h2>
-            <div className="box-list-homestay flex flex-wrap p-5 gap-10 gap-y-6 pl-20">
+            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 justify-items-center">
                 {homeStays.map((homestay) => (
                     <CardHomeStay key={homestay.id} data={homestay} /> // Thêm key cho mỗi CardHomeStay
                 ))}

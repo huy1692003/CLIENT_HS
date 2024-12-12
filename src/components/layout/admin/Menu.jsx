@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useState } from 'react';
-import { ApartmentOutlined, BookOutlined, CarryOutOutlined, ClusterOutlined, FileProtectOutlined, FlagOutlined, FormOutlined, PropertySafetyOutlined, UsergroupAddOutlined, UserOutlined } from "@ant-design/icons";
+import { ApartmentOutlined, BookOutlined, CarryOutOutlined, ClusterOutlined, FileProtectOutlined, FlagOutlined, FormOutlined, PropertySafetyOutlined, UsergroupAddOutlined, UserOutlined, VideoCameraOutlined } from "@ant-design/icons";
 import { Menu } from "antd";
 import { useNavigate } from "react-router-dom";
 
@@ -44,8 +44,8 @@ import { useNavigate } from "react-router-dom";
             <Menu.Item key="1" icon={<UserOutlined />} onClick={() => handleMenuClick('1', "/admin/user-manager")}>
                 Quản lý người dùng
             </Menu.Item>
-            <Menu.Item key="2" icon={<UsergroupAddOutlined />} onClick={() => handleMenuClick('2', "/admin/staff-manager")}>
-                Quản lý nhân viên
+            <Menu.Item key="2" icon={<UsergroupAddOutlined />} onClick={() => handleMenuClick('2', "/admin/adminstrator-manager")}>
+                Quản lý nhân sự
             </Menu.Item>
             <Menu.Item key="42432" icon={<PropertySafetyOutlined />} onClick={() => handleMenuClick('42432', "/admin/role-manager")}>
                 Quản lý chức vụ
@@ -79,6 +79,9 @@ import { useNavigate } from "react-router-dom";
 
             <Menu.Item key="24454" icon={<FormOutlined />} onClick={() => handleMenuClick('24454', "/admin/article-manager")}>
                 Quản lý bài viết
+            </Menu.Item>
+            <Menu.Item key="24457" icon={<VideoCameraOutlined />} onClick={() => handleMenuClick('24457', "/admin/advertisement-manager")}>
+                Quản lý quảng cáo
             </Menu.Item>
 
         </Menu>
