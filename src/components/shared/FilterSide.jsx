@@ -19,14 +19,12 @@ const FilterSide = ({ showSideFilter, setShowSideFilter, refeshData, setPaginate
     }, [])
     
  
-    useEffect(() => {
-        console.log("gt")
-        console.log(priceRange)
-        if (priceRange.length == 2 && priceRange[0]!==0 && priceRange[1]!==20000000) {
+    useEffect(() => {       
+        if (priceRange.length == 2 && priceRange[0]!==0 || priceRange[1]!==20000000) {
             setSearchParams((prev) => ({ ...prev, priceRange: priceRange[0] + "-" + priceRange[1], isCallAPI: false }))
         }
         else{
-            setSearchParams((prev) => ({ ...prev, priceRange: null, isCallAPI: true }))
+            setSearchParams((prev) => ({ ...prev, priceRange: null, isCallAPI: false}))
         }
 
     }, [priceRange])
@@ -57,7 +55,6 @@ const FilterSide = ({ showSideFilter, setShowSideFilter, refeshData, setPaginate
                             setPaginate(prev=>({...prev,page:1}))
                             setPriceRange([0, 20000000])
                             setSearchParams(initParamseach)
-                            refeshData()
                             refeshData()
                             setShowSideFilter(false)
 

@@ -18,6 +18,10 @@ import promotionService from "../../services/promotionService";
 import VoucherCard from "../../components/shared/VoucherCard";
 import reviewRatingService from "../../services/reviewRatingService";
 import ReviewItem from "../../components/user/ReviewItem";
+import useSignalR from "../../hooks/useSignaIR";
+
+// Khởi tạo sign ai
+
 
 
 export const getDisabledDates = (bookedDates) => {
@@ -31,7 +35,7 @@ export const getDisabledDates = (bookedDates) => {
         for (let date = start; date.isBefore(end); date.add(1, 'days')) {
             disabledDates.push(date.clone());
         }
-       
+
     });
 
 
@@ -57,12 +61,19 @@ const DetailHomeStay = () => {
     const navigate = useNavigate()
 
 
+
+
     useEffect(() => {
-        detail && getPromotion()
+        detail && getPromotion(detail)
         getReviews()
     }, [detail])
 
-    const getPromotion = async () => {
+
+    useSignalR("RefeshDateHomeStay",(idHomeStay)=>{
+        alert("Vừa đặt "+idHomeStay)
+        idHomeStay===id && handleDateDisabled(id)
+    })
+    const getPromotion = async (detail) => {
         // Lấy danh sách các voucher từ dịch vụ
         let res = await promotionService.getAllByOwnwer(detail.homeStay.ownerID);
         // Lấy ngày hiện tại
@@ -80,6 +91,7 @@ const DetailHomeStay = () => {
     }
     // Hàm tạo các ngày đã đặt phòng rồi
 
+    console.log(typeof id)
     const getReviews = async () => {
         try {
             let res = await reviewRatingService.getReviewByHomeStay(id)
@@ -105,6 +117,7 @@ const DetailHomeStay = () => {
 
     };
 
+    
     const addFavorites = async () => {
         if (!cus) {
             notification.error({ showProgress: true, message: "Yêu cầu đăng nhập !", description: "Bạn cần đăng nhập để sử dụng chức năng này", btn: <Button onClick={() => navigate('/login-user')}>Đăng nhập ngay</Button>, duration: 4 })
@@ -124,19 +137,26 @@ const DetailHomeStay = () => {
             let result = await homestayService.viewDetailHomeStay(id);
             result && setDetail(result);
             // Lay ve cac ngay ma booking da dc dat
-            let resDateBooking = await bookingService.getBookingDateExisted(id);
-            resDateBooking && setBookedDate(resDateBooking)
+            await handleDateDisabled(id)
         } catch (error) {
             message.error("Có lỗi khi tải dữ liệu");
         } finally {
             setLoading(false);
         }
     };
+
+
     useEffect(() => {
         getDataDetail();
     }, []);
 
 
+    //Cập nhật trạng thái date disabled 
+
+    const handleDateDisabled = async (id) => {
+        let resDateBooking = await bookingService.getBookingDateExisted(id);
+        resDateBooking && setBookedDate(resDateBooking)
+    }
 
 
 

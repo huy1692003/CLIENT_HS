@@ -300,6 +300,7 @@ const HomeStayManager = ({ status }) => {
                 columns={columns}
                 dataSource={homeStays}
                 pagination={false}
+                className="w-full overflow-x-scroll"
 
             />
             <PaginateShared align="end" page={paginate.page} pageSize={paginate.pageSize} setPaginate={setPaginate} totalRecord={total} />

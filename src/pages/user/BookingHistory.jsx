@@ -1,4 +1,4 @@
-import { Breadcrumb, Empty, Card, Tag, Button, Steps, notification, Tabs } from "antd";
+import { Breadcrumb, Empty, Card, Tag, Button, Steps, notification, Tabs, Modal, Input } from "antd";
 import React, { memo, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import bookingService from "../../services/bookingService";
@@ -19,6 +19,8 @@ const BookingHistory = () => {
     const [status, setStatus] = useState(10);
     const [selectedBooking, setSelectedBooking] = useState(null)
     const [showCreateReview, setShowCreateReview] = useState(false)
+    const [reason, setReason] = useState("")
+    const [loading, setLoading] = useState(false)
 
     useEffect(() => {
         getBookingByUser();
@@ -44,7 +46,7 @@ const BookingHistory = () => {
         if (status) {
             return (
                 <Tag
-                    className={`text-xs font-medium ${status.color} ${status.backgroundColor} px-3 py-1 rounded-xl`}
+                    className={`text-lg font-medium ${status.color} ${status.backgroundColor} px-3 py-1 rounded-2xl`}
                 >
                     {status.des}
                 </Tag>
@@ -54,6 +56,42 @@ const BookingHistory = () => {
     }
 
 
+
+    const handleReject = (id) => {
+        setReason("")
+        Modal.confirm({
+            width: 700,
+            title: 'Xác Nhận Hủy Đơn Đặt Phòng #' + id,
+            content: (
+                <div >
+                    <p>Vui lòng nhập lý do hủy đơn</p>
+                    <Input.TextArea className="w-full"
+                        rows={6}
+                        onChange={(e) => setReason(e.target.value)}
+                    />
+                </div>
+            ),
+            onOk: async () => {
+                setLoading(true);
+                try {
+                    await bookingService.cancel(id, reason); // Truyền lý do từ chối vào service
+                    notification.success({
+                        message: "Đã hủy đơn đặt phòng",
+                        description: `Hủy đơn đặt phòng #${id} thành công!`,
+                    });
+                    getBookingByUser();
+                } catch (error) {
+                    notification.error({
+                        message: "Lỗi",
+                        description: `Có lỗi khi hủy đơn đặt phòng #${id}. Hãy thử lại sau!`,
+                    });
+                } finally {
+                    setLoading(false);
+                }
+            },
+            onCancel() { },
+        });
+    }
 
 
     const handlePayment = async (data) => {
@@ -117,8 +155,14 @@ const BookingHistory = () => {
                         {bookings.map((booking, index) => (
                             <Card
                                 key={index}
-                                title={<div className="bg-blue-400 w-[20%] my-2 p-3 rounded-lg text-white"> {`Booking ID: ${booking.bookingID}`}</div>}
-                                extra={<RenderStatus statusCurrent={booking.status} />}
+                                title={<div className="bg-blue-400 w-[20%] my-2 p-3 mt-7 rounded-lg text-white"> {`Booking ID: ${booking.bookingID}`}</div>}
+                                extra={
+                                    <div className="flex gap-2">
+                                        <RenderStatus statusCurrent={booking.status} />
+                                        {booking.isConfirm !== 1 && booking.isCancel !== 1 && <Button type="primary" loading={loading} className="text-xl mt-auto p-5 rounded-3xl" onClick={() => { handleReject(booking.bookingID) }} danger>
+                                            Hủy đơn đặt phòng
+                                        </Button>}
+                                    </div>}
 
                                 className="shadow-xl mb-4 rounded-lg border-2 border-gray-300"
                             >
@@ -185,7 +229,8 @@ const BookingHistory = () => {
                                     </div>
                                     {
 
-                                        booking.isConfirm === 1 && <div className="w-[54%] bg-gray-100 p-4 rounded-lg shadow-lg">
+                                        booking.isConfirm === 1 &&
+                                        <div className="w-[54%] bg-gray-100 p-4 rounded-lg shadow-lg">
                                             <h3 className="text-lg font-semibold mb-2">Quy trình đặt phòng</h3>
                                             <Steps
                                                 direction="vertical"

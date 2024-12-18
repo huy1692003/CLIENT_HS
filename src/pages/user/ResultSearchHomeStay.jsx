@@ -24,9 +24,12 @@ const ResultSearchHomeStay = () => {
 
     useEffect(() => {
         paramSearch.isCallAPI && getData();
-    }, [paginate, paramSearch.isCallAPI]);
+    }, [paramSearch.isCallAPI]);
 
-    console.log(paramSearch.isCallAPI)
+    useEffect(() => {
+        getData();
+    }, [paginate]);
+
     const getData = async () => {
         setLoading(true);
         try {
@@ -109,7 +112,7 @@ const ResultSearchHomeStay = () => {
                     </div>
                 )}
             </Spin>
-            <PaginateShared page={paginate.page} pageSize={paginate.pageSize} setPaginate={setPaginate} totalRecord={total} />
+            {total && total > paginate.pageSize && <PaginateShared page={paginate.page} pageSize={paginate.pageSize} setPaginate={setPaginate} totalRecord={total} />}
 
         </div>
     );
