@@ -115,7 +115,7 @@ const ArticleManager = () => {
                 notification.success({ message: 'Thêm bài viết thành công!' });
             }
             fetchArticles(); // Tải lại danh sách bài viết
-            setIsModalVisible(false);
+            // setIsModalVisible(false);
         } catch (error) {
             notification.error({ message: 'Có lỗi xảy ra!' });
         }
@@ -250,6 +250,13 @@ const ArticleManager = () => {
                         label="Tiêu Đề"
                         name="title"
                         rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}
+                    >
+                        <Input />
+                    </Form.Item>
+                    <Form.Item
+                        label="Mô tả ngắn"
+                        name="description"
+                        rules={[{ required: true, message: 'Vui lòng nhập mô tả ngắn chọn cho bài viết!' }]}
                     >
                         <Input />
                     </Form.Item>

@@ -28,6 +28,11 @@ import CreateAdvertisement from "../pages/owner/Advertisement/CreateAdvertisemen
 import AdvertisementManager from "../pages/admin/AdvertisementManager/AdvertisementManager";
 import BookingHistory from "../pages/user/BookingHistory";
 import ReviewManager from "../pages/owner/ReviewManager";
+import CheckoutManager from "../pages/owner/Checkout/CheckoutManager";
+import CheckInManager from "../pages/owner/Checkin/CheckInManager";
+import FAQManager from "../pages/admin/FAQManager";
+import TransactionManager from "../pages/admin/TransactionManager";
+import PaymentBooking from "../pages/owner/PaymentBooking";
 
 export const routers = [
     // customer
@@ -58,6 +63,9 @@ export const routers = [
     { path: "/admin/category-article-manager", element: <CategoryArticleManager /> },
     { path: "/admin/adminstrator-manager", element: <AdminstratorManager /> },
     { path: "/admin/advertisement-manager", element: <AdvertisementManager /> },
+    { path: "/admin/FAQ-manager", element: <FAQManager /> },
+    { path: "/admin/transaction-management-booking", element: <TransactionManager type={1}/> },
+    { path: "/admin/transaction-management-advertisement", element: <TransactionManager type={2} /> },
     // Owner Layout
     { path: "/owner/dashboard", element: <Overview /> },
     { path: "/owner/homestay-waiting", element: <HomeStayManager status={0} /> },
@@ -69,6 +77,9 @@ export const routers = [
     { path: "/owner/booking-manager", element: <BookingManager /> },   
     { path: "/owner/advertisement/write", element: <CreateAdvertisement  /> },
     { path: "/owner/advertisement-manager", element: <AdvetisementManager /> },
+    { path: "/owner/checkin-manager", element: <CheckInManager /> },
+    { path: "/owner/checkout-manager", element: <CheckoutManager /> },
+    { path: "/owner/history-payment-booking", element: <PaymentBooking /> },
    
     
 

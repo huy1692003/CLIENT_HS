@@ -10,9 +10,9 @@ const advertisementService = {
         }
     },
 
-    getAdvertisementManager: async (status=-1,owner="",search) => {
+    getAdvertisementManager: async (status = -1, owner = "", search) => {
         try {
-            let res = await API.post(`/Advertisement/getAdvertisementManager?status=${status}&owner=${owner}`,search)
+            let res = await API.post(`/Advertisement/getAdvertisementManager?status=${status}&owner=${owner}`, search)
             return res?.data
         } catch (error) {
             throw error
@@ -65,8 +65,7 @@ const advertisementService = {
         }
     }
 
-    ,updateStatusAdver:async(id,status,reasonReject="")=>
-    {
+    , updateStatusAdver: async (id, status, reasonReject = "") => {
         try {
             let res = await API.put(`/Advertisement/updateStatus?idAd=${id}&status=${status}&reasonReject=${reasonReject}`)
             return res?.data
@@ -74,6 +73,16 @@ const advertisementService = {
             throw error
         }
     }
+    ,
+    updateClick: async (id) => {
+        try {
+            let res = await API.get(`/Advertisement/updateView/` + id)
+            return res?.data
+        } catch (error) {
+            throw error
+        }
+    }
+
 }
 
 export default advertisementService

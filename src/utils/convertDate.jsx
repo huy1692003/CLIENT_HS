@@ -1,4 +1,3 @@
-import moment from "moment";
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -6,6 +5,11 @@ import timezone from 'dayjs/plugin/timezone';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+/**
+ * Chuyển đổi ngày về định dạng DD/MM/YYYY
+ * @param {string | Date} date - Ngày cần chuyển đổi
+ * @returns {string} Ngày theo định dạng DD/MM/YYYY
+ */
 export const convertDate = (date) => {
     const dateObj = new Date(date);
 
@@ -17,17 +21,18 @@ export const convertDate = (date) => {
     return `${day}/${month}/${year}`;
 };
 
+/**
+ * Chuyển đổi ngày giờ về định dạng DD/MM/YYYY HH:mm:ss
+ * @param {string | Date} date - Ngày giờ cần chuyển đổi
+ * @returns {string} Ngày giờ theo định dạng DD/MM/YYYY HH:mm:ss
+ */
 export const convertDateTime = (date) => {
-   
-        return moment(date).format('DD/MM/YYYY HH:mm:ss');
-    
-    
+    return dayjs(date).format('DD/MM/YYYY HH:mm:ss');
 };
-
 
 /**
  * Chuyển đổi giá trị ngày giờ về định dạng ISO 8601 theo múi giờ Việt Nam
- * @param {dayjs} date - Giá trị ngày giờ từ DatePicker (dayjs object)
+ * @param {string | Date | dayjs} date - Giá trị ngày giờ từ DatePicker (dayjs object)
  * @returns {string} Chuỗi ngày giờ theo định dạng ISO 8601 (UTC+7)
  */
 export const convertTimezoneToVN = (date) => {

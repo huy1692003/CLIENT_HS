@@ -4,19 +4,29 @@ import { Card, Button, Tooltip } from "antd";
 import { useNavigate } from "react-router-dom";
 import { URL_SERVER } from "../../constant/global";
 import Meta from "antd/es/card/Meta";
+import advertisementService from "../../services/advertisementService";
 
 const CardAdvertisement = ({ item, index ,classNames=""}) => {
     const navigate = useNavigate();
 
+    const handleClick=async()=>{
+        try {
+            await advertisementService.updateClick(item.adID)
+             window.open(item.urlClick, "_blank")
+        } catch (error) {
+            window.open(item.urlClick, "_blank")
+        }
+    }
     return (
-        <Card
-            style={{ width: 400 }}
-            onClick={() => window.open(item.urlClick, "_blank")}
+        <Card 
+            
+            style={{ maxWidth: 350 }}
+            onClick={() => handleClick()}
             key={index}
             hoverable
             cover={
                 <img
-                    style={{ width: "100%", height: "280px", objectFit: "cover" }}
+                    style={{ maxWidth: 350, height: "280px", objectFit: "cover" }}
                     alt={item.adTitle}
                     src={URL_SERVER + item.adPicture}
                 />
@@ -41,7 +51,7 @@ const CardAdvertisement = ({ item, index ,classNames=""}) => {
                     <Button
                         type="primary"
                         icon={<LinkOutlined />}
-                        onClick={() => window.open(item.urlClick, "_blank")}
+                        onClick={() =>handleClick()}
                     >
                         Truy cập
                     </Button>

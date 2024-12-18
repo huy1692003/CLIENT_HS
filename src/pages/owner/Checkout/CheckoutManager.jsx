@@ -1,4 +1,4 @@
-import { Table, Tooltip, Space, Tag, message, Button, notification, Modal, Input, Descriptions, Spin, Steps, Select, InputNumber, DatePicker } from "antd";
+import { Table, Tooltip, Space, Tag, message, Button, notification, Modal, Input, Descriptions, Spin, Steps, Select, InputNumber, DatePicker, Empty } from "antd";
 import { memo, useEffect, useState } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { isLoadingOwner, userState } from "../../../recoil/atom";
@@ -18,7 +18,7 @@ const initSearch = {
     email: '',
     phone: '',
     startDate: null,
-    endDate: null
+    endDate: new Date()
 }
 export const statusBooking = [
     { index: 10, des: "Tất cả đơn", color: "black", backgroundColor: "" },
@@ -37,9 +37,9 @@ const getStatus = (index) => {
 }
 
 
-const BookingManager = () => {
+const CheckoutManager = () => {
     const [bookings, setBookings] = useState([]);
-    const [status, setStatus] = useState(1);
+    const [status, setStatus] = useState(5);
     const [search, setSearch] = useState(initSearch);
     const [searchLocal, setSearchLocal] = useState(initSearch);
     const [loadingTable, setLoadingTable] = useState(true)
@@ -47,7 +47,6 @@ const BookingManager = () => {
     const [paginate, setPaginate] = useState({ page: 1, pageSize: 10 });
     const [inforStatus, setInforStatus] = useState(getStatus(10));
     const [owner, _] = useRecoilState(userState);
-    const [reason, setReason] = useState("");
     const [showHandleBooking, setShowHandleBooking] = useState(false);
     const [selectedBooking, setSelectedBooking] = useState(null); // Booking được chọn để xem chi tiết
     const [isModalVisible, setIsModalVisible] = useState(false);  // Trạng thái hiển thị Modal
@@ -61,6 +60,7 @@ const BookingManager = () => {
 
 
 
+    console.log(search)
 
     useEffect(() => {
         if (selectedBooking) {
@@ -82,33 +82,14 @@ const BookingManager = () => {
         setLoadingTable(true)
         try {
             let data = await bookingService.getBookingByOwner(owner.idOwner, status, paginate.page, paginate.pageSize, search);
+
             data && setBookings(data.items);
             data && setTotalRecord(data.totalRecords);
+
         } catch (error) {
             message.error("Có lỗi khi lấy dữ liệu từ máy chủ, hãy thử lại sau!");
         } finally {
             setLoadingTable(false)
-        }
-    };
-    const handleConfirm = async (record) => {
-
-        // Logic xác nhận đơn đặt phòng
-        setLoading(true);
-        try {
-            await bookingService.confirm(record.bookingID);
-            notification.success({
-                message: "Thành Công",
-                description: `Xác nhận đơn đặt phòng #${record.bookingID} thành công!`,
-            });
-            getData()
-
-        } catch (error) {
-            notification.error({
-                message: "Lỗi",
-                description: `Có lỗi khi xác nhận đơn đặt phòng #${record.bookingID}. Hãy thử lại sau!`,
-            });
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -150,41 +131,6 @@ const BookingManager = () => {
     }
 
 
-    const handleReject = (record) => {
-        setReason("")
-        Modal.confirm({
-            width: 500,
-            title: 'Xác Nhận Từ Chối',
-            content: (
-                <div >
-                    <p>Vui lòng nhập lý do từ chối đơn đặt phòng <span className="font-bold">#{record.bookingID}</span>:</p>
-                    <Input.TextArea className="w-full"
-                        rows={4}
-                        onChange={(e) => setReason(e.target.value)}
-                    />
-                </div>
-            ),
-            onOk: async () => {
-                setLoading(true);
-                try {
-                    await bookingService.cancel(record.bookingID, reason); // Truyền lý do từ chối vào service
-                    notification.success({
-                        message: "Đã Từ Chối",
-                        description: `Từ chối đơn đặt phòng #${record.bookingID} thành công!`,
-                    });
-                    getData();
-                } catch (error) {
-                    notification.error({
-                        message: "Lỗi",
-                        description: `Có lỗi khi từ chối đơn đặt phòng #${record.bookingID}. Hãy thử lại sau!`,
-                    });
-                } finally {
-                    setLoading(false);
-                }
-            },
-            onCancel() { },
-        });
-    }
 
     const columns = [
         {
@@ -253,57 +199,28 @@ const BookingManager = () => {
             key: "action",
             render: (record) => (
                 <span className="flex gap-2 w-[100]">
-                    {status === 1 && <ButtonPending record={record} />}
-                    {status === 2 && <Tooltip title="Hủy Đơn Đặt Phòng">
-                        <Button
-                            type="primary"
-                            shape="circle"
-                            icon={<CloseSquareFilled />}
-                            onClick={() => handleReject(record)}
-                            style={{ backgroundColor: 'red', borderColor: 'red' }}
-                        />
-                    </Tooltip>}
+
                     {status > 2 && status < 6 && <ButtonWaiting record={record} />}
                     <ButtonViewDetail record={record} />
                 </span>
             ),
         },
     ];
-    const ButtonPending = ({ record }) => {
-        return (
-            <>
-                <Tooltip title="Xác Nhận">
-                    <Button
-                        type="primary"
-                        shape="circle"
-                        icon={<CheckCircleFilled />}
-                        onClick={() => handleConfirm(record)}
-                        style={{ backgroundColor: 'green', borderColor: 'green' }}
-                    />
-                </Tooltip>
-                <Tooltip title="Từ Chối">
-                    <Button
-                        type="primary"
-                        shape="circle"
-                        icon={<CloseSquareFilled />}
-                        onClick={() => handleReject(record)}
-                        style={{ backgroundColor: 'red', borderColor: 'red' }}
-                    />
-                </Tooltip>
-            </>)
-    }
+
     const ButtonWaiting = ({ record }) => {
         return (
             <>
 
-                <Tooltip title="Xử lý">
+                <Tooltip title="Xử lý đơn đặt phòng">
                     <Button
                         type="primary"
                         shape="circle"
                         icon={<ProfileTwoTone />}
                         onClick={() => handleBooking(record)}
                         style={{ backgroundColor: 'green', borderColor: 'green' }}
-                    />
+                    >
+                        Xử lý ngay
+                    </Button>
                 </Tooltip>
             </>)
     }
@@ -331,7 +248,7 @@ const BookingManager = () => {
 
             <h3 className=" mb-5 flex justify-between items-center">
 
-                <span className="text-xl font-bold text-gray-800">Quản lý đơn đặt phòng</span>
+                <span className="text-xl font-bold text-gray-800">Khách hàng CheckOut</span>
 
 
             </h3>
@@ -378,14 +295,11 @@ const BookingManager = () => {
             </div>
             <div className="text-center">
 
-                <Button className="m-auto" type="primary" onClick={() => {
-                    setPaginate({...paginate,pageSize:1})
-                    setSearch(searchLocal)
-                }}>Lọc kết quả</Button>
+                <Button className="m-auto" type="primary" onClick={() => setSearch(searchLocal)}>Lọc kết quả</Button>
             </div>
 
 
-            <div className="my-2 text-lg font-bold">Danh sách Đơn Đặt Phòng</div>
+            <div className="my-2 text-lg font-bold">Danh sách Khách Hàng Chờ Checkout</div>
             <Table
                 loading={loadingTable}
                 className="w-full"
@@ -395,8 +309,11 @@ const BookingManager = () => {
                 dataSource={bookings}
                 rowKey="bookingID"
                 pagination={false}
+                
+
             />
             <PaginateShared align="end" page={paginate.page} pageSize={paginate.pageSize} setPaginate={setPaginate} totalRecord={totalRecord} />
+
 
             <Modal
                 title={`Chi Tiết Đơn Đặt Phòng #${selectedBooking?.bookingID}`}
@@ -475,4 +392,4 @@ const BookingManager = () => {
         </div>
     );
 };
-export default memo(BookingManager)
+export default memo(CheckoutManager)

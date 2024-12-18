@@ -2,6 +2,7 @@ import React, { memo, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Breadcrumb, message, Spin } from "antd"; // Import Ant Design's loading spinner
 import articleService from "../../services/articleService";
+import { convertDate } from "../../utils/convertDate";
 
 const DetailArticle = () => {
     const [searchParams] = useSearchParams();
@@ -34,10 +35,7 @@ const DetailArticle = () => {
     }
 
     // Định dạng ngày tháng
-    const formatDate = (dateString) => {
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        return new Intl.DateTimeFormat('vi-VN', options).format(new Date(dateString));
-    };
+  
 
     return (
         <div className="container mx-auto p-4">
@@ -57,7 +55,7 @@ const DetailArticle = () => {
                 />
             </div>
             <h1 className="text-3xl font-bold mb-4 mt-4">{article?.title}</h1>
-            <h2 className="text-base font-bold mb-4">{formatDate(article?.publishDate)}</h2>
+            <h2 className="text-base font-bold mb-4">{convertDate(article?.publishDate)}</h2>
             {/* Sử dụng dangerouslySetInnerHTML để hiển thị nội dung HTML */}
             <div className="prose lg:prose-xl">
                 <div dangerouslySetInnerHTML={{ __html: article?.content }} />

@@ -97,6 +97,9 @@ const WriteHomeStay = () => {
                 listAmenities: selectedAmenities,
                 detailHomeStay: {
                     note: data.note,
+                    rules: data.rules,
+                    utilities: data.utilities,
+                    regulation: data.regulation,
                     numberOfBedrooms: data.numberOfBedrooms,
                     numberOfLivingRooms: data.numberOfLivingRooms,
                     numberOfBathrooms: data.numberOfBathrooms,
@@ -148,8 +151,9 @@ const WriteHomeStay = () => {
 
             >
                 {/* Thông tin cơ bản của homestay */}
-                <div className="grid grid-cols-1 gap-5">
+                <div className="grid grid-cols-2 gap-5">
                     <Form.Item
+                        className='col-span-2'
                         name="homestayName"
                         label="Tên Homestay"
                         rules={[{ required: true, message: 'Vui lòng nhập tên homestay!' }]}
@@ -201,42 +205,7 @@ const WriteHomeStay = () => {
                     </Form.Item>
                 </div>
 
-                <Form.Item
-                    label="Một số ảnh về HomeStay của bạn "
-                >
-                    <Upload
-                        accept=".jpg,.png,.webp,.jpeg"
-                        listType="picture-card"
-                        maxCount={10}
-                        multiple
-                        fileList={fileList}
-                        onChange={handleUploadChange}
-                        onRemove={handleRemove}
-                        beforeUpload={() => false}
-                    >
-                        <div className='block'>
-                            <PlusOutlined />
-                            <div style={{ marginTop: 8 }}>Tải lên</div>
-                        </div>
-                    </Upload>
 
-                    <div className="flex gap-2 flex-wrap mb-4 mt-3">
-                        {fileList.map((file) => (
-                            <Image
-                                key={file.uid}
-                                src={file.url || URL.createObjectURL(file.originFileObj)} // Kiểm tra nếu file có URL, nếu không thì dùng createObjectURL cho file cục bộ
-                                alt="preview"
-                                style={{
-                                    width: '25vw',
-                                    height: '33vh',
-                                    objectFit: 'cover',
-                                    borderRadius: '8px',
-                                    maxHeight: '33vh',
-                                }}
-                            />
-                        ))}
-                    </div>
-                </Form.Item>
 
                 <div className="grid grid-cols-2 gap-5">
                     <Form.Item
@@ -325,11 +294,66 @@ const WriteHomeStay = () => {
                         }))}
                     />
                 </Form.Item>
+
                 <Form.Item
-                    label={<b>Ghi chú hoặc mô tả thêm về HomeStay</b>}
+                    label={<span>Tiện ích miễn phí đi kèm</span>}
+                    name="utilities"
+                >
+                    <TextArea rows={4} />
+                </Form.Item>
+                <Form.Item
+                    label={<span>Nội quy HomeStay</span>}
+                    name="rules"
+                >
+                    <TextArea rows={4} />
+                </Form.Item>
+                <Form.Item
+                    label={<span>Quy định về độ tuổi</span>}
+                    name="regulation"
+                >
+                    <TextArea rows={2} />
+                </Form.Item>
+                <Form.Item
+                    label={<span>Ghi chú hoặc mô tả thêm về HomeStay</span>}
                     name="note"
                 >
-                    <TextArea rows={10} />
+                    <TextArea rows={7} />
+                </Form.Item>
+                <Form.Item
+                    label="Một số ảnh về HomeStay của bạn "
+                >
+                    <Upload
+                        accept=".jpg,.png,.webp,.jpeg"
+                        listType="picture-card"
+                        maxCount={10}
+                        multiple
+                        fileList={fileList}
+                        onChange={handleUploadChange}
+                        onRemove={handleRemove}
+                        beforeUpload={() => false}
+                    >
+                        <div className='block'>
+                            <PlusOutlined />
+                            <div style={{ marginTop: 8 }}>Tải lên</div>
+                        </div>
+                    </Upload>
+
+                    <div className="flex gap-2 flex-wrap mb-4 mt-3">
+                        {fileList.map((file) => (
+                            <Image
+                                key={file.uid}
+                                src={file.url || URL.createObjectURL(file.originFileObj)} // Kiểm tra nếu file có URL, nếu không thì dùng createObjectURL cho file cục bộ
+                                alt="preview"
+                                style={{
+                                    width: '25vw',
+                                    height: '33vh',
+                                    objectFit: 'cover',
+                                    borderRadius: '8px',
+                                    maxHeight: '33vh',
+                                }}
+                            />
+                        ))}
+                    </div>
                 </Form.Item>
                 <Form.Item className='block text-right pr-4'>
                     <Button loading={loading} type="primary" htmlType="submit" size="large">

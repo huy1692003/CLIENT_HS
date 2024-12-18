@@ -25,10 +25,16 @@ const AmenitiesManager = () => {
             render: (text) => <p style={{ width: 350 }}>{text}</p>
         },
         {
+            title: 'Hình minh họa',
+            dataIndex: 'icon',
+            key: 'icon',
+            render: (text) => <span className='pl-4'><i className={text +" text-center"}></i></span>
+        },
+        {
             title: 'Hành động',
             key: 'action',
             render: (_, record) => (
-                <span className='inline-block w-1/2'>
+                <span className='inline-block w-[100px]'>
                     <Button type='primary' icon={<EditOutlined />} onClick={() => showModal(record)} style={{ marginRight: 10 }} />
                     <Popconfirm
                         title="Bạn có chắc chắn muốn xóa tiện nghi này?"
@@ -60,7 +66,7 @@ const AmenitiesManager = () => {
     const showModal = (item = null) => {
         setEditItem(item);
         if (item) {
-            form.setFieldsValue({ name: item.name });
+            form.setFieldsValue({ name: item.name, icon:item.icon });
         } else {
             form.resetFields();
         }
@@ -134,6 +140,13 @@ const AmenitiesManager = () => {
                         name="name"
                         label="Tên tiện nghi"
                         rules={[{ required: true, message: 'Vui lòng nhập tên tiện nghi!' }]}
+                    >
+                        <Input />
+                    </Form.Item>
+                    <Form.Item
+                        name="icon"
+                        label="Hình minh họa"
+                        rules={[{ required: true, message: 'Vui lòng nhập icon minh họa !' }]}
                     >
                         <Input />
                     </Form.Item>

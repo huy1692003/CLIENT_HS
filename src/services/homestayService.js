@@ -21,9 +21,18 @@ const homestayService = {
             throw error
         }
     },
-    getByOwnerID: async (status, idOwner, paginate = { page: 1, pageSize: 10 }) => {
+    getHomeStayByOwner: async (status, idOwner,search, paginate = { page: 1, pageSize: 10 }) => {
         try {
-            let res = await API.post(`/HomeStay/getBy_idOwner?idOwner=${idOwner}&status=${status}`, paginate)
+            let res = await API.post(`/HomeStay/getHomeStayByAdminOrOwner?idOwner=${idOwner}&status=${status}&Page=${paginate.page}&PageSize=${paginate.pageSize}`, search)
+            return res?.data
+        }
+        catch (error) {
+            throw error
+        }
+    },
+    getHomeStayByAdmin: async (status,search, paginate = { page: 1, pageSize: 10 }) => {
+        try {
+            let res = await API.post(`/HomeStay/getHomeStayByAdminOrOwner?status=${status}&Page=${paginate.page}&PageSize=${paginate.pageSize}`, search)
             return res?.data
         }
         catch (error) {

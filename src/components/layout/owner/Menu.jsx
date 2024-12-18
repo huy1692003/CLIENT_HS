@@ -8,6 +8,9 @@ import {
     FileProtectOutlined,
     HomeOutlined,
     InteractionOutlined,
+    LoginOutlined,
+    LogoutOutlined,
+    PayCircleFilled,
     VideoCameraOutlined,
 
 } from "@ant-design/icons";
@@ -74,12 +77,28 @@ const MenuOwner = () => {
                 </Menu.Item>
             </SubMenu>
 
+            <SubMenu key="sub6" icon={<VideoCameraOutlined />} title="Quản lý quảng cáo">
+                <Menu.Item key="6-1" onClick={() => handleMenuClick("6-1", "/owner/advertisement/write")}>
+                    Tạo quảng cáo mới
+                </Menu.Item>
+                <Menu.Item key="6-2" onClick={() => handleMenuClick("6-2", "/owner/advertisement-manager")}>
+                    Danh sách
+                </Menu.Item>
 
+            </SubMenu>
             <Menu.Item icon={<AuditOutlined />} key="3-1" onClick={() => handleMenuClick("3-1", "/owner/booking-manager")}>
                 Quản lý đặt phòng
             </Menu.Item>
+            <Menu.Item icon={<PayCircleFilled />} key="3-34" onClick={() => handleMenuClick("3-34", "owner/history-payment-booking")}>
+                Lịch sử thanh toán
+            </Menu.Item>
 
-
+            <Menu.Item key="6-3" icon={<LoginOutlined/>} onClick={() => handleMenuClick("6-3", "/owner/checkin-manager")}>
+               Check In
+            </Menu.Item>
+            <Menu.Item key="6-4" icon={<LogoutOutlined/>} onClick={() => handleMenuClick("6-4", "/owner/checkout-manager")}>
+                Check Out
+            </Menu.Item>
 
             <Menu.Item key="4-1" icon={<CommentOutlined />} onClick={() => handleMenuClick("4-1", "/owner/review-manager")}>
                 Quản lý đánh giá
@@ -93,15 +112,12 @@ const MenuOwner = () => {
             {/* <Menu.Item key="5-1" onClick={() => handleMenuClick("5-1", "/owner/promotion-manager")}>
                     Quản lý khuyến mãi
             </Menu.Item> */}
-            <SubMenu key="sub6" icon={<VideoCameraOutlined />} title="Quản lý quảng cáo">
-                <Menu.Item key="6-1" onClick={() => handleMenuClick("6-1", "/owner/advertisement/write")}>
-                    Tạo quảng cáo mới
-                </Menu.Item>
-                <Menu.Item key="6-2" onClick={() => handleMenuClick("6-2", "/owner/advertisement-manager")}>
-                    Danh sách
-                </Menu.Item>
+           
 
-            </SubMenu>
+
+         
+
+
 
             <SubMenu key="sub7" icon={<InteractionOutlined />} title="Phản hồi hỗ trợ">
                 <Menu.Item key="7-1" onClick={() => handleMenuClick("7-1", "/owner/support-feedback")}>

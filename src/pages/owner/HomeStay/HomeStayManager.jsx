@@ -1,39 +1,60 @@
 import { memo, useEffect, useState } from "react";
-import { Table, Tag, Button, Tooltip, notification, message } from "antd";
+import { Table, Tag, Tooltip, notification, message, Form, Input, InputNumber, Select, Button, Image } from "antd";
+import { ClearOutlined, DeleteFilled, EditOutlined, EyeOutlined, SearchOutlined } from "@ant-design/icons";
 import { useRecoilValue } from "recoil";
 import { userState } from "../../../recoil/atom";
 import homestayService from "../../../services/homestayService";
-import { DeleteFilled, EditOutlined, EyeOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { data } from "autoprefixer";
 import { formatPrice } from "../../../utils/formatPrice";
+import { Option } from "antd/es/mentions";
+import PaginateShared from "../../../components/shared/PaginateShared";
+import { URL_SERVER } from "../../../constant/global";
+
+const initSearch = {
+    location: "", // Địa điểm
+    priceRange: "", // Khoảng giá (ví dụ: "100000-500000")
+    name: "", // Tên HomeStay
+    numberOfBedrooms: null, // Số phòng ngủ
+    numberOfLivingRooms: null, // Số phòng khách
+    numberOfBathrooms: null, // Số phòng tắm
+    numberOfKitchens: null, // Số phòng bếp
+    numberofGuest: null, // Số lượng khách
+};
 
 const HomeStayManager = ({ status }) => {
     const owner = useRecoilValue(userState);
     const [homeStays, setHomeStays] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchParams, setSearchParams] = useState(initSearch)
+    const [paginate, setPaginate] = useState({ page: 1, pageSize: 10 });
+    const [total, setTotal] = useState(0); // Tổng số mục
     const navigate = useNavigate()
-
+    const [form] = Form.useForm();
     useEffect(() => {
 
         const fetchHomeStays = async () => {
             setLoading(true);
             try {
-                const data = await homestayService.getByOwnerID(status, owner.idOwner, { page: 1, pageSize: 10 });
+                const data = await homestayService.getHomeStayByOwner(status, owner.idOwner, searchParams, paginate);
                 console.log(data)
                 setHomeStays(data.items);
+                setTotal(data.totalCount)
             } catch (error) {
                 console.error("Error fetching homestays:", error);
             } finally {
                 setLoading(false);
-                
+
             }
         };
 
         fetchHomeStays();
-    }, [status, owner.id]);
+    }, [status, owner.id, searchParams, paginate]);
 
 
+    const handleSearch = (searchParams) => {
+        setPaginate({ ...paginate, page: 1 })
+        setSearchParams(searchParams)
+    };
 
     const columns = [
         {
@@ -43,16 +64,31 @@ const HomeStayManager = ({ status }) => {
             render: (h) => <span>{h.homeStay.homestayID}</span>, // Hiển thị Homestay ID
         },
         {
+            title: 'Ảnh preview',
+
+            key: 'image',
+            render: (h) => <Image width={140} height={100} className="rounded-xl object-cover" src={URL_SERVER + h.homeStay.imagePreview[0] || ""}></Image>, // Hiển thị Tên HomeStay
+        },
+        {
             title: 'Tên',
 
             key: 'homestayName',
-            render: (h) => <b>{h.homeStay.homestayName}</b>, // Hiển thị Tên HomeStay
+            render: (h) => <span>{h.homeStay.homestayName}</span>, // Hiển thị Tên HomeStay
         },
         {
-            title: 'Địa chỉ',
-
+            title: 'Thành phố/Tỉnh',
+            key: 'province',
+            render: (h) => <span>{h.homeStay.province}</span>, // Hiển thị Địa chỉ chi tiết
+        },
+        {
+            title: 'Phường/Huyện',
             key: 'addressDetail',
-            render: (h) => <span>{h.homeStay.addressDetail}</span>, // Hiển thị Địa chỉ chi tiết
+            render: (h) => <span>{h.homeStay.district}</span>, // Hiển thị Địa chỉ chi tiết
+        },
+        {
+            title: 'Địa chỉ CT',
+            key: 'addressDetail',
+            render: (h) => <span>{h.homeStay.district}</span>, // Hiển thị Địa chỉ chi tiết
         },
         {
             title: 'Giá/đêm',
@@ -161,8 +197,11 @@ const HomeStayManager = ({ status }) => {
     return (
         <>
             <h3 className="text-xl font-bold mb-5 flex justify-between items-center">
-                <span className="flex items-center space-x-3">
-                    <span className="text-gray-800">Danh sách HomeStay</span>
+                <span className="text-gray-800">Quản lý HomeStay</span>
+
+
+
+                <span className="">
                     {status === 0 && (
                         <span className="text-lg bg-red-100 text-red-600 px-3 py-1 rounded-md shadow-sm">
                             Đang chờ phê duyệt
@@ -181,16 +220,90 @@ const HomeStayManager = ({ status }) => {
                 </span>
             </h3>
 
+            <div >
+                <Form form={form} className="grid grid-cols-4 gap-2 gap-y-0" layout="vertical" onFinish={handleSearch}>
+                    {/* Địa điểm */}
+                    <Form.Item className="mb-2" name="Location" label="Địa điểm">
+                        <Input placeholder="Nhập địa điểm muốn tìm" />
+                    </Form.Item>
+
+                    {/* Giá */}
+                    <Form.Item className="mb-2" name="PriceRange" label="Khoảng giá" >
+                        <Select placeholder="Chọn khoảng giá" allowClear>
+                            <Select.Option value="100000-500000">Từ 100k đến 500k</Select.Option>
+                            <Select.Option value="500000-1000000">Từ 500k đến 1tr</Select.Option>
+                            <Select.Option value="1000000-3000000">Từ 1tr đến 3tr</Select.Option>
+                            <Select.Option value="3000000-5000000">Từ 3tr đến 5tr</Select.Option>
+                            <Select.Option value="5000000-10000000000000000000000000">Trên 5tr</Select.Option>
+                        </Select>
+                    </Form.Item>
+
+                    {/* Tên */}
+                    <Form.Item className="mb-2" name="Name" label="Tên HomeStay">
+                        <Input placeholder="Nhập tên HomeStay" />
+                    </Form.Item>
+
+                    {/* Số phòng ngủ */}
+                    <Form.Item className="mb-2" name="NumberOfBedrooms" label="Số phòng ngủ">
+                        <InputNumber min={0} placeholder="Nhập số phòng ngủ" style={{ width: "100%" }} />
+                    </Form.Item>
+
+                    {/* Số phòng khách */}
+                    <Form.Item className="mb-2" name="NumberOfLivingRooms" label="Số phòng khách">
+                        <InputNumber min={0} placeholder="Nhập số phòng khách" style={{ width: "100%" }} />
+                    </Form.Item>
+
+                    {/* Số phòng tắm */}
+                    <Form.Item className="mb-2" name="NumberOfBathrooms" label="Số phòng tắm">
+                        <InputNumber min={0} placeholder="Nhập số phòng tắm" style={{ width: "100%" }} />
+                    </Form.Item>
+
+                    {/* Số bếp */}
+                    <Form.Item className="mb-2" name="NumberOfKitchens" label="Số bếp">
+                        <InputNumber min={0} placeholder="Nhập số bếp" style={{ width: "100%" }} />
+                    </Form.Item>
+
+                    {/* Số người */}
+                    <Form.Item className="mb-2" name="NumberofGuest" label="Số người tối đa">
+                        <InputNumber min={0} placeholder="Nhập số người tối đa" style={{ width: "100%" }} />
+                    </Form.Item>
+
+                    {/* Nút tìm kiếm */}
+                    <div className="col-span-4  mb-2 mt-4" >
+                        <div className="w-full flex gap-3 justify-between">
+                            <span className="text-2xl font-bold">Danh sách</span>
+                            <span className="flex gap-2">
+                                <Form.Item className="mb-2" >
+                                    <Button type="primary" htmlType="submit" block icon={<SearchOutlined />}>
+                                        Tìm kiếm
+                                    </Button>
+                                </Form.Item>
+                                <Form.Item className="mb-2" >
+                                    <Button type="primary" className="bg-blue-900" onClick={() => {
+                                        setSearchParams(initSearch)
+                                        form.resetFields()
+                                    }} block icon={<ClearOutlined />}>
+                                        Xóa tìm kiếm
+                                    </Button>
+                                </Form.Item>
+                            </span>
+
+                        </div>
+                    </div>
+                </Form>
+            </div>
+
+
             <Table
                 loading={loading}
                 bordered
                 columns={columns}
                 dataSource={homeStays}
-                pagination={{
-                    pageSize: 10
-                  
-                }}
+                pagination={false}
+
             />
+            <PaginateShared align="end" page={paginate.page} pageSize={paginate.pageSize} setPaginate={setPaginate} totalRecord={total} />
+
         </>
     );
 };

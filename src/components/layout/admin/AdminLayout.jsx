@@ -44,16 +44,19 @@ const AdminLayout = ({ children }) => {
 
     useEffect(() => {
       
-        if (!admin) {
-            
+        if (!admin) {            
             navigate("/admin/login")
         }
     }, [admin,router.pathname])
 
+    if(router.pathname.includes("login") || !admin)
+    {
+        return <div>{children}</div>
+    }
     return (
         <>
             {
-                !router.pathname.includes("login")  ?
+                
                     < Layout >
                         <Sider  width={"18%"} trigger={null} theme="light" collapsible collapsed={collapsed}>
                             <div className="flex" style={{ backgroundColor: "#1A3A99", color: "white", height: 64, justifyContent: "center", alignItems: 'center' }}>
@@ -80,7 +83,7 @@ const AdminLayout = ({ children }) => {
                             >
                                 <Button
                                     type="text"
-                                    icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                                    icon={collapsed ? <MenuUnfoldOutlined style={{fontSize:26}}  /> : <MenuFoldOutlined  style={{fontSize:26}} />}
                                     onClick={() => setCollapsed(!collapsed)}
                                     style={{
                                         fontSize: '16px',
@@ -129,7 +132,7 @@ const AdminLayout = ({ children }) => {
                                 {children}
                             </Content>
                         </Layout>
-                    </Layout > : <div>{children}</div>
+                    </Layout > 
             }
         </>
 

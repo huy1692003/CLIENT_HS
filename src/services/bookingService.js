@@ -37,9 +37,9 @@ const bookingService = {
             throw error
         }
     },
-    getBookingByOwner: async (idOwner, status = 0,search) => {
+    getBookingByOwner: async (idOwner, status = 0, page, pageSize, search) => {
         try {
-            let res = await API.post(`/Booking/getBooking?idOwner=${idOwner}&status=${status}`,search)
+            let res = await API.post(`/Booking/getBooking?idOwner=${idOwner}&status=${status}&Page=${page}&PageSize=${pageSize}`, search)
             return res?.data
         }
         catch (error) {
@@ -47,8 +47,7 @@ const bookingService = {
         }
     },
 
-    getBookingByCus:async(idCus,status=1)=>
-    {
+    getBookingByCus: async (idCus, status = 1) => {
         try {
             let res = await API.get(`/Booking/getBooking_byCusID?cusID=${idCus}&status=${status}`)
             return res?.data
@@ -58,8 +57,7 @@ const bookingService = {
         }
     },
 
-    confirmCheckIn:async(idBooking)=>
-    {
+    confirmCheckIn: async (idBooking) => {
         try {
             let res = await API.get(`/Booking/confirmCheckIn?bookingID=${idBooking}`)
             return res?.data
@@ -69,8 +67,7 @@ const bookingService = {
         }
     },
 
-    confirmCheckOut:async(idBooking)=>
-    {
+    confirmCheckOut: async (idBooking) => {
         try {
             let res = await API.get(`/Booking/confirmCheckOut?bookingID=${idBooking}`)
             return res?.data

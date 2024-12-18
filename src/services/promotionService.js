@@ -17,9 +17,9 @@ const promotionService = {
             throw error;
         }
     },
-    getById: async (id) => {
+    getByCode: async (code) => {
         try {
-            let res = await API.get(`/promotion/getByID/${id}`);
+            let res = await API.get(`/promotion/getByCode/${code}`);
             return res?.data;
         } catch (error) {
             throw error;

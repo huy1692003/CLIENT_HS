@@ -124,17 +124,69 @@ const BookingHistory = () => {
                             >
                                 <div className="flex justify-between ">
                                     <div className="space-y-2 w-[45%]">
-                                        <p><strong>Tên khách hàng:</strong> {booking.name}</p>
-                                        <p><strong>Email:</strong> {booking.email}</p>
-                                        <p><strong>Ngày nhận phòng:</strong> {new Date(booking.checkInDate).toLocaleDateString()}</p>
-                                        <p><strong>Ngày trả phòng:</strong> {new Date(booking.checkOutDate).toLocaleDateString()}</p>
-                                        <p><strong>Số lượng khách:</strong> {booking.numberOfGuests}</p>
-                                        <p><strong>Tổng giá:</strong> {new Intl.NumberFormat().format(booking.totalPrice)} VNĐ</p>
+                                        <table className="min-w-full table-auto text-sm text-left text-gray-500">
+                                            <thead>
+                                                <tr className="border-b bg-gray-100">
+                                                    <th className="px-4 py-2 font-semibold text-gray-700">Thông tin</th>
+                                                    <th className="px-4 py-2 font-semibold text-gray-700">Chi tiết</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr className="border-b hover:bg-gray-50">
+                                                    <td className="px-4 py-2 font-medium">Ngày đặt</td>
+                                                    <td className="px-4 py-2">{convertDateTime(booking.bookingTime)}</td>
+                                                </tr>
+                                                <tr className="border-b hover:bg-gray-50">
+                                                    <td className="px-4 py-2 font-medium">Tên khách hàng</td>
+                                                    <td className="px-4 py-2">{booking.name}</td>
+                                                </tr>
+                                                <tr className="border-b hover:bg-gray-50">
+                                                    <td className="px-4 py-2 font-medium">Số điện thoại</td>
+                                                    <td className="px-4 py-2">{booking.phone}</td>
+                                                </tr>
+                                                <tr className="border-b hover:bg-gray-50">
+                                                    <td className="px-4 py-2 font-medium">Email</td>
+                                                    <td className="px-4 py-2">{booking.email}</td>
+                                                </tr>
+                                                <tr className="border-b hover:bg-gray-50">
+                                                    <td className="px-4 py-2 font-medium">ID HomeStay</td>
+                                                    <td className="px-4 py-2">{booking.homeStayID}</td>
+                                                </tr>
+                                                <tr className="border-b hover:bg-gray-50">
+                                                    <td className="px-4 py-2 font-medium">Ngày nhận phòng</td>
+                                                    <td className="px-4 py-2">{new Date(booking.checkInDate).toLocaleDateString()}</td>
+                                                </tr>
+                                                <tr className="border-b hover:bg-gray-50">
+                                                    <td className="px-4 py-2 font-medium">Ngày trả phòng</td>
+                                                    <td className="px-4 py-2">{new Date(booking.checkOutDate).toLocaleDateString()}</td>
+                                                </tr>
+                                                <tr className="border-b hover:bg-gray-50">
+                                                    <td className="px-4 py-2 font-medium">Số lượng khách</td>
+                                                    <td className="px-4 py-2">{booking.numberOfGuests}</td>
+                                                </tr>
+                                                <tr className="border-b hover:bg-gray-50">
+                                                    <td className="px-4 py-2 font-medium">Giá gốc</td>
+                                                    <td className="px-4 py-2">{formatPrice(booking.originalPrice)}</td>
+                                                </tr>
+                                                <tr className="border-b hover:bg-gray-50">
+                                                    <td className="px-4 py-2 font-medium">Voucher</td>
+                                                    <td className="px-4 py-2">{booking.discountCode || "Không có"}</td>
+                                                </tr>
+                                                <tr className="border-b hover:bg-gray-50">
+                                                    <td className="px-4 py-2 font-medium">Giảm giá</td>
+                                                    <td className="px-4 py-2">{booking.discountPrice ? formatPrice(booking.discountPrice) : "Không có"}</td>
+                                                </tr>
+                                                <tr className="border-b hover:bg-gray-50">
+                                                    <td className="px-4 py-2 font-medium">Tổng hóa đơn</td>
+                                                    <td className="px-4 py-2">{new Intl.NumberFormat().format(booking.totalPrice)} VNĐ</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                     {
 
                                         booking.isConfirm === 1 && <div className="w-[54%] bg-gray-100 p-4 rounded-lg shadow-lg">
-                                            <h3 className="text-lg font-semibold mb-2">Thông tin chi tiết</h3>
+                                            <h3 className="text-lg font-semibold mb-2">Quy trình đặt phòng</h3>
                                             <Steps
                                                 direction="vertical"
                                                 size="small"

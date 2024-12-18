@@ -107,7 +107,7 @@ const PromotionManager = () => {
             title: 'Mã Code',
             dataIndex: 'discountCode',
             key: 'discountCode',
-            render: (data) => <Tag className="text-xl w-11/12" color="blue-inverse">{data}</Tag>,
+            render: (data) => <Tag className="text-xl w-11/12 text-center rounded-3xl" color="blue-inverse">{data}</Tag>,
         },
         {
             title: 'Giá Trị Giảm Giá',

@@ -29,7 +29,7 @@ const CreateReview = ({ show,onClose, cusID, IDHomeStay, refesh ,bookingID }) =>
         setLoading(false)
         const reviewData = {
             homestayID: IDHomeStay,
-            customerID: cusID,
+            cusID: cusID,
             rating: data.rating,
             comment: data.comment,
             reviewDate: new Date(),

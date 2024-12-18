@@ -44,7 +44,7 @@ const Header = () => {
                     {/* Logo */}
                     <div className="flex items-center justify-center flex-1 lg:flex-none">
                         <Link to={"/"}>
-                            <Image src={Logo} preview={false} width={80} height={55} className="object-contain" />
+                            <Image src={Logo} preview={false} width={100} height={62} className="object-contain" />
                         </Link>
                     </div>
 

@@ -6,7 +6,7 @@ import { useTypingEffect } from "../../hooks/useTypingEffect";
 import { useRecoilState } from "recoil";
 import { paramSearchHT } from "../../recoil/atom";
 import { useNavigate } from "react-router-dom";
-import { convertDateTime } from "../../utils/convertDate";
+import { convertDateTime, convertTimezoneToVN } from "../../utils/convertDate";
 
 const placeHolders = ["Nhập địa điểm muốn đến", "Hà Nội", "Hải Phòng", "Hồ Chí Minh", "Đà Nẵng"];
 
@@ -17,13 +17,18 @@ const SearchComponent = ({ title = "Bạn muốn tìm địa điểm HomeStay �
     const navigate = useNavigate()
 
     const handleSearch = () => {
-        if (formSearch.location || (formSearch.dateOut && formSearch.dateIn) || formSearch.numberofGuest) {
+
+
+        if (formSearch.location || (formSearch.dateOut && formSearch.dateIn) || formSearch.numberofGuest || formSearch.name) {
             setFormSearch(
-                { ...formSearch, 
-                    dateIn:convertDateTime(formSearch.dateIn),
-                    dateOut:convertDateTime(formSearch.dateOut),
-                    isCallAPI: true }
+                {
+                    ...formSearch,
+                    dateIn: formSearch.dateIn || null,
+                    dateOut: formSearch.dateOut || null,
+                    isCallAPI: true
+                }
             )
+
             navigate('/result-homestay-search?location=' + formSearch.location)
         } else {
             message.error("Vui lòng nhập thông tin để tìm kiếm", 5)
@@ -45,20 +50,25 @@ const SearchComponent = ({ title = "Bạn muốn tìm địa điểm HomeStay �
             <div className="mt-6 flex flex-col md:flex-row items-center justify-center gap-4 md:gap-5">
                 {/* Location Input */}
                 <div className="w-full md:w-auto">
-                    <div>
-                        <span className="mb-1 flex text-lg">Điểm đến</span>
-                        <div className="flex items-center border border-gray-300 rounded-xl px-3">
-                            <input
-                                type="text"
-                                className="w-full md:w-[240px] p-3 rounded-l outline-none text-lg"
-                                placeholder={placeholder}
-                                value={formSearch.location}
-                                onChange={(e) => setFormSearch({ ...formSearch, location: e.target.value, isCallAPI: false })}
-                            />
-                            {<i className="fa-solid fa-xmark cursor-pointer p-3 hover:bg-gray-100 text-lg border-l border-gray-300 flex items-center justify-center"
-                                onClick={() => setFormSearch({ ...formSearch, location: "", isCallAPI: false })}></i>}
-                        </div>
-                    </div>
+                    <span className="mb-1 flex text-lg">Điểm đến</span>
+                    <Input
+                        allowClear                         
+                        type="text"
+                        className="w-full md:w-[240px]  rounded-l outline-none text-lg"
+                        placeholder={placeholder}
+                        value={formSearch.location}
+                        onChange={(e) => setFormSearch({ ...formSearch, location: e.target.value, isCallAPI: false })}
+                    />
+                </div>
+                <div className="w-full md:w-auto">
+                    <span className="block mb-1 text-lg">Tên HomeStay</span>
+                    <Input
+                        allowClear
+                        type="text"
+                        className="w-full md:w-[240px] rounded-l outline-none text-lg"
+                        value={formSearch.name}
+                        onChange={(e) => setFormSearch({ ...formSearch, name: e.target.value, isCallAPI: false })}
+                    />
                 </div>
 
                 {/* Check-in Date */}
@@ -71,6 +81,7 @@ const SearchComponent = ({ title = "Bạn muốn tìm địa điểm HomeStay �
                         onChange={(date) => setFormSearch({ ...formSearch, dateIn: date, isCallAPI: false })}
                         format={"DD/MM/YYYY"}
                         size="large"
+                        disabledDate={(current) => current && current <= dayjs().startOf('day')}
                     />
                 </div>
 
@@ -93,6 +104,7 @@ const SearchComponent = ({ title = "Bạn muốn tìm địa điểm HomeStay �
                         onChange={(date) => setFormSearch({ ...formSearch, dateOut: date, isCallAPI: false })}
                         format={"DD/MM/YYYY"}
                         size="large"
+                        disabledDate={(current) => current && current <= dayjs().startOf('day')}
                     />
                 </div>
 
@@ -105,7 +117,7 @@ const SearchComponent = ({ title = "Bạn muốn tìm địa điểm HomeStay �
                         value={formSearch.numberofGuest}
                         placeholder="Chọn số người"
                         onChange={(vl) => {
-                            
+
                             setFormSearch({ ...formSearch, numberofGuest: vl, isCallAPI: false })
                         }}
                         size="large"
@@ -114,7 +126,7 @@ const SearchComponent = ({ title = "Bạn muốn tìm địa điểm HomeStay �
 
                 {/* Search Button */}
                 <Button
-                    className="w-full md:w-[160px] h-[70px] mt-4 md:mt-0 rounded-full font-semibold text-lg"
+                    className="w-full md:w-[160px] h-[70px] ml-3 mt-4 md:mt-0 rounded-full font-semibold text-2xl"
                     type="primary"
                     icon={<SearchOutlined className="text-2xl" />}
                     onClick={handleSearch}
@@ -122,7 +134,7 @@ const SearchComponent = ({ title = "Bạn muốn tìm địa điểm HomeStay �
                     Tìm ngay
                 </Button>
             </div>
-        </div>
+        </div >
     );
 };
 

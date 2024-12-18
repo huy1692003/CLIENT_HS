@@ -6,6 +6,10 @@ const articleService = {
         const response = await API.get(`Article/getAll`);
         return response.data;
     },
+    getNew: async () => {
+        const response = await API.get(`Article/getNew`);
+        return response.data;
+    },
 
     // Lấy bài viết theo ID
     getById: async (id) => {

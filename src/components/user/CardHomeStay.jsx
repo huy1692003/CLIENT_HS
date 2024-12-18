@@ -64,7 +64,7 @@ const CardHomeStay = ({ data , width="100%"}) => {
                 </Carousel>
             </div>
             <div style={{ cursor: "pointer" }} onClick={() => navigate(`/detail-homestay?id=${data.homeStay.homestayID}`)}>
-                <h3 className='name-homestay text-base font-bold leading-5 mb-2 '>{data.homeStay.homestayName} </h3>
+                <h3 className='name-homestay text-base font-bold leading-5 mb-2 '>{data.homeStay.homestayName}⚡ </h3>
                 <h4 className='name-homestay text-sm text-green-600 mb-1'><i className="fa-solid fa-location-crosshairs mr-1"></i>{data.homeStay.addressDetail}</h4>
                 <h4 className='name-homestay text-gray-500 text-xs font-medium '>{
                     data.detailHomeStay.numberOfBedrooms + ' phòng khách - ' +
