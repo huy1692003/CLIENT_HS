@@ -39,7 +39,6 @@ const FilterSide = ({ showSideFilter, setShowSideFilter, refeshData, setPaginate
             isCallAPI: false, // Cập nhật trạng thái là chưa gọi API
         }));
     };
-    console.log(searchParam)
     return (
         <Drawer
           
@@ -55,7 +54,7 @@ const FilterSide = ({ showSideFilter, setShowSideFilter, refeshData, setPaginate
                             setPaginate(prev=>({...prev,page:1}))
                             setPriceRange([0, 20000000])
                             setSearchParams(initParamseach)
-                            refeshData()
+                            refeshData(paramSearchHT)
                             setShowSideFilter(false)
 
                         }

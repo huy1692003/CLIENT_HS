@@ -13,6 +13,7 @@ import LabelField from "../../../components/shared/LabelField";
 import moment from 'moment-timezone';
 import dayjs from "dayjs";
 import PaginateShared from "../../../components/shared/PaginateShared";
+import useSignalR from "../../../hooks/useSignaIR";
 const initSearch = {
     name: '',
     email: '',
@@ -90,6 +91,14 @@ const BookingManager = () => {
             setLoadingTable(false)
         }
     };
+
+
+    useSignalR("ReseiverBookingNew",(idOwnerRes,notifi)=>{
+        if(idOwnerRes===owner.idOwner)
+        {
+           getData()
+        }
+    })
     const handleConfirm = async (record) => {
 
         // Logic xác nhận đơn đặt phòng
@@ -167,12 +176,21 @@ const BookingManager = () => {
             onOk: async () => {
                 setLoading(true);
                 try {
-                    await bookingService.cancel(record.bookingID, reason); // Truyền lý do từ chối vào service
-                    notification.success({
-                        message: "Đã Từ Chối",
-                        description: `Từ chối đơn đặt phòng #${record.bookingID} thành công!`,
+                    if(reason)
+                    {
+
+                        await bookingService.cancel(record.bookingID, reason); // Truyền lý do từ chối vào service
+                        notification.success({
+                            message: "Đã Từ Chối",
+                            description: `Từ chối đơn đặt phòng #${record.bookingID} thành công!`,
+                        });
+                        getData();
+                    }
+                    notification.error({
+                        message: "Lỗi",
+                        description: `Hãy nhập lý do hủy đơn!`,
                     });
-                    getData();
+                    return
                 } catch (error) {
                     notification.error({
                         message: "Lỗi",

@@ -19,6 +19,8 @@ const LoginUser = () => {
             let res = isLogin ? await CustomerService.login(data) : await CustomerService.register(data)
             if (isLogin) {
                 sessionStorage.setItem("user", JSON.stringify(res))
+                sessionStorage.setItem('token', res.tokenUser);
+
                 setUserState(JSON.parse(sessionStorage.getItem("user")))
                 navigate("/")
             }
@@ -44,11 +46,11 @@ const LoginUser = () => {
         <div className="relative h-screen">
             {/* Thiết lập ảnh nền */}
             <div
-                className="absolute inset-0 bg-cover bg-center rounded-lg"
+                className="absolute inset-0 bg-cover bg-center rounded-lg object-cover"
                 style={{ backgroundImage: `url(${imageBanner})` }}
             ></div>
-            <div className="flex items-center justify-center h-full">
-                <div style={{ opacity: "99%" }} className="w-full max-w-xl p-8 space-y-6 bg-white rounded-lg shadow-md ">
+            <div className="flex items-center justify-center h-full rounded-3xl">
+                <div style={{ opacity: "99%" }} className="w-full max-w-2xl p-8 space-y-6 bg-white rounded-3xl shadow-2xl ">
                     <h2 className="text-2xl font-bold text-center">
                         {isLogin ? 'Đăng Nhập' : 'Đăng Ký'}
                     </h2>
@@ -56,7 +58,7 @@ const LoginUser = () => {
                         form={form}
                         name="login"
                         onFinish={onFinish}
-                        layout={isLogin ? "vertical" : "horizontal"}
+                        layout="vertical"
                         size="large"
                     >
                         {

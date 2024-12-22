@@ -11,14 +11,13 @@ class SignalRService {
     startConnection() {
         this.connection.start()
             .then(() => console.log("Connected to SignalR Hub"))
-            .catch(err => console.error("Có lỗi khi kết nối đến realtime Sever", err));
+            .catch(err => console.error(err));
     }
 
     // Sự kiện reload Homestay nào vừa có lượt đặt lịch
     onSeverSendData(nameEvent,callback) {
         this.connection.on(nameEvent, callback);
     }
-
   
 }
 

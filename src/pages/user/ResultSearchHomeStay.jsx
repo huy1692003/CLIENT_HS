@@ -64,8 +64,8 @@ const ResultSearchHomeStay = () => {
                             title: 'Tìm kiếm HomeStay',
                         },
                         ...(locationParam ? [{
-                            title: locationParam,  // Hiển thị paramURL nếu có
-                        }] : []),
+                            title: locationParam||"",  // Hiển thị paramURL nếu có
+                        }] : ""),
                     ]}
                 />
             </div>

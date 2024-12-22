@@ -1,32 +1,50 @@
 import React, { memo, useEffect, useState } from 'react';
-import { Table, Input, Button, Modal, Form, notification, Space, Popconfirm } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Table, Input, Button, Modal, Form, notification, Space, Popconfirm, Checkbox } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, MenuOutlined } from '@ant-design/icons';
 import roleService from '../../../services/roleService';
+import menuService from '../../../services/menuService';
+import { useNavigate } from 'react-router-dom';
 
- const RoleManager = () => {
+const RoleManager = () => {
     const [roles, setRoles] = useState([]);
-    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [menus, setMenus] = useState([]);
+    const [isRoleModalVisible, setIsRoleModalVisible] = useState(false); // Modal cho thêm/sửa chức vụ
+    const [isMenuModalVisible, setIsMenuModalVisible] = useState(false); // Modal cho gán menu
     const [isEditing, setIsEditing] = useState(false);
     const [form] = Form.useForm(); // Khởi tạo form
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+    const [roleForMenu, setRoleForMenu] = useState(null); // Lưu role đang được gán menu
+    const [selectedMenus, setSelectedMenus] = useState([]); // Lưu danh sách menu được chọn
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchRoles();
+        fetchMenus(); // Lấy danh sách menu
     }, []);
 
     const fetchRoles = async () => {
         try {
-            const data = await roleService.getAll(); // Gọi API để lấy danh sách vai trò
+            const data = await roleService.getAll(); // Gọi API để lấy danh sách chức vụ
             setRoles(data);
         } catch (error) {
-            notification.error({ message: 'Lỗi khi tải danh sách vai trò' });
+            
+            notification.error({ message: 'Lỗi khi tải danh sách chức vụ' });
         }
     };
 
-    const showModal = (role = null) => {
+    const fetchMenus = async () => {
+        try {
+            const data = await menuService.getAll(); // Gọi API để lấy danh sách menu
+            setMenus(data);
+        } catch (error) {
+            notification.error({ message: 'Lỗi khi tải danh sách menu' });
+        }
+    };
+
+    const showRoleModal = (role = null) => {
         setIsEditing(!!role);
-        setIsModalVisible(true);
+        setIsRoleModalVisible(true);
 
         // Reset form values khi mở modal
         if (role) {
@@ -39,19 +57,25 @@ import roleService from '../../../services/roleService';
         }
     };
 
+    const showGranMenu = (role) => {
+        setRoleForMenu(role);
+        setSelectedMenus(role.listMenus || []); // Lấy danh sách menu hiện tại của role
+        setIsMenuModalVisible(true);
+    };
+
     const handleOk = async (values) => {
         try {
             if (isEditing) {
-                // Sửa vai trò
+                // Sửa chức vụ
                 await roleService.update(values);
-                notification.success({ message: 'Sửa vai trò thành công!' });
+                notification.success({ message: 'Sửa chức vụ thành công!' });
             } else {
-                // Thêm vai trò
+                // Thêm chức vụ
                 await roleService.create(values);
-                notification.success({ message: 'Thêm vai trò thành công!' });
+                notification.success({ message: 'Thêm chức vụ thành công!' });
             }
-            fetchRoles(); // Tải lại danh sách vai trò
-            setIsModalVisible(false);
+            fetchRoles(); // Tải lại danh sách chức vụ
+            setIsRoleModalVisible(false);
         } catch (error) {
             notification.error({ message: 'Có lỗi xảy ra!' });
         }
@@ -60,23 +84,38 @@ import roleService from '../../../services/roleService';
     const handleDelete = async (roleID) => {
         try {
             await roleService.delete(roleID);
-            notification.success({ message: 'Xóa vai trò thành công!' });
-            fetchRoles(); // Tải lại danh sách vai trò
+            notification.success({ message: 'Xóa chức vụ thành công!' });
+            fetchRoles(); // Tải lại danh sách chức vụ
         } catch (error) {
-            notification.error({ message: 'Có lỗi xảy ra khi xóa vai trò!' });
+            notification.error({ message: 'Có lỗi xảy ra khi xóa chức vụ!' });
         }
     };
 
     const handleDeleteMultiple = async () => {
         try {
-            // Gọi API để xóa nhiều vai trò
+            // Gọi API để xóa nhiều chức vụ
             await Promise.all(selectedRowKeys.map(roleID => roleService.delete(roleID)));
-            notification.success({ message: `Đã xóa ${selectedRowKeys.length} vai trò thành công!` });
+            notification.success({ message: `Đã xóa ${selectedRowKeys.length} chức vụ thành công!` });
             setSelectedRowKeys([]); // Reset selection
             fetchRoles(); // Tải lại danh sách
         } catch (error) {
-            notification.error({ message: 'Có lỗi xảy ra khi xóa các vai trò!' });
+            notification.error({ message: 'Có lỗi xảy ra khi xóa các chức vụ!' });
         }
+    };
+
+    const handleGrandMenu = async () => {
+        try {
+            await roleService.grandMenu(roleForMenu.roleID, selectedMenus);
+            notification.success({ message: 'Gán menu thành công!' });
+            setIsMenuModalVisible(false);
+            fetchRoles(); // Tải lại danh sách chức vụ
+        } catch (error) {
+            notification.error({ message: 'Có lỗi xảy ra khi gán menu!' });
+        }
+    };
+
+    const handleMenuChange = (checkedValues) => {
+        setSelectedMenus(checkedValues); // Cập nhật danh sách menu đã chọn
     };
 
     const filteredRoles = roles.filter(role =>
@@ -91,23 +130,32 @@ import roleService from '../../../services/roleService';
     return (
         <div>
             <h1 className="text-xl font-bold mb-4">
-                Quản Lý Vai Trò
+                Quản Lý chức vụ
                 <Space style={{ marginBottom: 16, float: "right" }}>
                     <Input
-                        placeholder="Tìm kiếm vai trò..."
+                        placeholder="Tìm kiếm chức vụ..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                     <Button
                         type="primary"
                         icon={<PlusOutlined />}
-                        onClick={() => showModal()}
+                        onClick={() => showRoleModal()}
                     >
-                        Thêm Vai Trò
+                        Thêm chức vụ
                     </Button>
+                    <Button
+                        type="primary"
+                        className="bg-green-700 text-white"
+                        icon={<MenuOutlined />}
+                        onClick={() => navigate("/admin/menu-manager")}
+                    >
+                        Quản lý Menu
+                    </Button>
+
                     {selectedRowKeys.length > 0 && (
                         <Popconfirm
-                            title={`Bạn có chắc chắn muốn xóa ${selectedRowKeys.length} vai trò đã chọn?`}
+                            title={`Bạn có chắc chắn muốn xóa ${selectedRowKeys.length} chức vụ đã chọn?`}
                             onConfirm={handleDeleteMultiple}
                             okText="Có"
                             cancelText="Không"
@@ -128,8 +176,9 @@ import roleService from '../../../services/roleService';
                         key: 'index',
                         render: (text, record, index) => index + 1,
                         width: '80px'
-                    },                   
-                    { title: 'Tên Vai Trò', dataIndex: 'nameRole', key: 'nameRole' },
+                    },
+                    { title: 'Tên chức vụ', dataIndex: 'nameRole', key: 'nameRole' },
+                 
                     {
                         title: 'Hành Động',
                         key: 'action',
@@ -137,12 +186,23 @@ import roleService from '../../../services/roleService';
                             <Space size="middle">
                                 <Button
                                     icon={<EditOutlined />}
-                                    onClick={() => showModal(record)}
+                                    onClick={() => showRoleModal(record)}
                                 />
+                                <Popconfirm
+                                    title="Bạn có chắc chắn muốn xóa chức vụ này?"
+                                    onConfirm={() => handleDelete(record.roleID)}
+                                    okText="Có"
+                                    cancelText="Không"
+                                >
+                                    <Button icon={<DeleteOutlined />} />
+                                </Popconfirm>
                                 <Button
-                                    icon={<DeleteOutlined />}
-                                    onClick={() => handleDelete(record.roleID)}
-                                />
+                                    type='primary'
+                                    icon={<MenuOutlined />}
+                                    onClick={() => showGranMenu(record)}
+                                >
+                                    Gán Menu
+                                </Button>
                             </Space>
                         ),
                     },
@@ -151,30 +211,31 @@ import roleService from '../../../services/roleService';
                 rowKey="roleID"
                 pagination={{ pageSize: 5 }}
             />
+
+            {/* Modal để thêm/sửa chức vụ */}
             <Modal
-                title={isEditing ? "Sửa Vai Trò" : "Thêm Vai Trò"}
-                visible={isModalVisible}
-                onCancel={() => setIsModalVisible(false)}
+                title={isEditing ? "Sửa chức vụ" : "Thêm chức vụ"}
+                visible={isRoleModalVisible}
+                onCancel={() => setIsRoleModalVisible(false)}
                 footer={null}
             >
                 <Form
-                    form={form} // Gán form
+                    form={form}
                     onFinish={handleOk}
                     layout="vertical"
                 >
                     {isEditing && (
                         <Form.Item
-                            label="Mã Vai Trò"
+                            label="Mã chức vụ"
                             name="roleID"
                         >
                             <Input disabled />
                         </Form.Item>
                     )}
                     <Form.Item
-                        label="Tên Vai Trò"
+                        label="Tên chức vụ"
                         name="nameRole"
-                        rules={[{ required: true, message: 'Vui lòng nhập tên vai trò!' }]}
-                    >
+                        rules={[{ required: true, message: 'Vui lòng nhập tên chức vụ!' }]} >
                         <Input />
                     </Form.Item>
                     <Form.Item>
@@ -184,7 +245,40 @@ import roleService from '../../../services/roleService';
                     </Form.Item>
                 </Form>
             </Modal>
+
+            {/* Modal để gán menu */}
+            <Modal
+                title="Gán Menu"
+                visible={isMenuModalVisible && roleForMenu}
+                onCancel={() => setIsMenuModalVisible(false)}
+                onOk={handleGrandMenu}
+            >
+                <Table
+                    rowKey="menuID"
+                    dataSource={menus}
+                    pagination={false}
+                    columns={[
+                        {
+                            title: 'Chọn',
+                            key: 'select',
+                            render: (_, menu) => (
+                                <Checkbox
+                                    value={menu.menuID}
+                                    checked={selectedMenus.includes(menu.menuID)} // Kiểm tra xem menu có được chọn không
+                                    onChange={(e) => handleMenuChange(e.target.checked ? [...selectedMenus, menu.menuID] : selectedMenus.filter(id => id !== menu.menuID))} // Cập nhật khi checkbox thay đổi
+                                />
+                            ),
+                        },
+                        {
+                            title: 'Tên Menu',
+                            dataIndex: 'name',
+                            key: 'name',
+                        },
+                    ]}
+                />
+            </Modal>
         </div>
     );
 };
-export default memo(RoleManager)
+
+export default memo(RoleManager);

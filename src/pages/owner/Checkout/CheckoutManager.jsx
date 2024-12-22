@@ -18,7 +18,7 @@ const initSearch = {
     email: '',
     phone: '',
     startDate: null,
-    endDate: new Date()
+    endDate: null
 }
 export const statusBooking = [
     { index: 10, des: "Tất cả đơn", color: "black", backgroundColor: "" },
@@ -214,12 +214,11 @@ const CheckoutManager = () => {
                 <Tooltip title="Xử lý đơn đặt phòng">
                     <Button
                         type="primary"
-                        shape="circle"
                         icon={<ProfileTwoTone />}
                         onClick={() => handleBooking(record)}
                         style={{ backgroundColor: 'green', borderColor: 'green' }}
                     >
-                        Xử lý ngay
+                        Xử lý
                     </Button>
                 </Tooltip>
             </>)

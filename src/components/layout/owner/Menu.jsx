@@ -3,6 +3,8 @@ import {
     BarChartOutlined,
     CarryOutOutlined,
     CommentOutlined,
+    ContactsFilled,
+    ContactsOutlined,
     CreditCardFilled,
     CreditCardOutlined,
     FileProtectOutlined,
@@ -55,11 +57,9 @@ const MenuOwner = () => {
         >
             <SubMenu key="sub1" icon={<BarChartOutlined />} title="Thống kê">
                 <Menu.Item key="1-1" onClick={() => handleMenuClick("1-1", "/owner/dashboard")}>
-                    Thống kê doanh thu
+                    Thống kê tổng quan
                 </Menu.Item>
-                <Menu.Item key="1-2" onClick={() => handleMenuClick("1-2", "/owner/stats-booking")}>
-                    Thống kê đặt phòng
-                </Menu.Item>
+                
             </SubMenu>
 
             <SubMenu key="sub2" icon={<HomeOutlined />} title="Quản lý HomeStay">
@@ -93,10 +93,10 @@ const MenuOwner = () => {
                 Lịch sử thanh toán
             </Menu.Item>
 
-            <Menu.Item key="6-3" icon={<LoginOutlined/>} onClick={() => handleMenuClick("6-3", "/owner/checkin-manager")}>
-               Check In
+            <Menu.Item key="6-3" icon={<LoginOutlined />} onClick={() => handleMenuClick("6-3", "/owner/checkin-manager")}>
+                Check In
             </Menu.Item>
-            <Menu.Item key="6-4" icon={<LogoutOutlined/>} onClick={() => handleMenuClick("6-4", "/owner/checkout-manager")}>
+            <Menu.Item key="6-4" icon={<LogoutOutlined />} onClick={() => handleMenuClick("6-4", "/owner/checkout-manager")}>
                 Check Out
             </Menu.Item>
 
@@ -112,22 +112,18 @@ const MenuOwner = () => {
             {/* <Menu.Item key="5-1" onClick={() => handleMenuClick("5-1", "/owner/promotion-manager")}>
                     Quản lý khuyến mãi
             </Menu.Item> */}
-           
-
-
-         
 
 
 
-            <SubMenu key="sub7" icon={<InteractionOutlined />} title="Phản hồi hỗ trợ">
-                <Menu.Item key="7-1" onClick={() => handleMenuClick("7-1", "/owner/support-feedback")}>
-                    Xem phản hồi
-                </Menu.Item>
-                <Menu.Item key="7-2" onClick={() => handleMenuClick("7-2", "/owner/support-settings")}>
-                    Cài đặt hỗ trợ
-                </Menu.Item>
-            </SubMenu>
-        </Menu>
+
+
+
+
+            <Menu.Item icon={<ContactsOutlined/>} key="7-1" onClick={() => handleMenuClick("7-1", "/owner/support-customer")}>
+                Hỗ trợ khách hàng
+            </Menu.Item>
+
+        </Menu >
     );
 };
 export default memo(MenuOwner)

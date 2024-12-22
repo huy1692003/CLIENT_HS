@@ -12,6 +12,7 @@ import moment from "moment";
 import TabPane from "antd/es/tabs/TabPane";
 import { statusBooking } from "../owner/Booking/BookingManager";
 import CreateReview from "../../components/user/CreateReview";
+import useSignalR from "../../hooks/useSignaIR";
 
 const BookingHistory = () => {
     const [bookings, setBookings] = useState([]);
@@ -40,6 +41,17 @@ const BookingHistory = () => {
         }
     };
 
+    useSignalR("ReseiverPaymentNew", (_, notifi, cusID) => {
+        if (cusID === cus.idCus) {
+            notification.info({
+                message: "Thanh toán thành công",
+                description: "Đơn hàng của bạn đã thanh toán thành công hãy chú ý thời điểm nhận phòng nhé !",
+                duration: 5,
+                showProgress: true
+            });
+            getBookingByUser()
+        }
+    });
     const RenderStatus = ({ statusCurrent }) => {
 
         const status = statusBooking.find(item => item.index === statusCurrent); // Tìm trạng thái theo index
@@ -117,7 +129,6 @@ const BookingHistory = () => {
         }
     }
 
-    console.log(bookings)
     const handleCreateReview = (booking) => {
         setSelectedBooking(booking)
         setShowCreateReview(true)
@@ -159,7 +170,7 @@ const BookingHistory = () => {
                                 extra={
                                     <div className="flex gap-2">
                                         <RenderStatus statusCurrent={booking.status} />
-                                        {booking.isConfirm !== 1 && booking.isCancel !== 1 && <Button type="primary" loading={loading} className="text-xl mt-auto p-5 rounded-3xl" onClick={() => { handleReject(booking.bookingID) }} danger>
+                                        {(booking.status<3 && booking.isCancel !== 1)  && <Button type="primary" loading={loading} className="text-xl mt-auto p-5 rounded-3xl" onClick={() => { handleReject(booking.bookingID) }} danger>
                                             Hủy đơn đặt phòng
                                         </Button>}
                                     </div>}
@@ -205,8 +216,8 @@ const BookingHistory = () => {
                                                     <td className="px-4 py-2">{new Date(booking.checkOutDate).toLocaleDateString()}</td>
                                                 </tr>
                                                 <tr className="border-b hover:bg-gray-50">
-                                                    <td className="px-4 py-2 font-medium">Số lượng khách</td>
-                                                    <td className="px-4 py-2">{booking.numberOfGuests}</td>
+                                                    <td className="px-4 py-2 font-medium">Số lượng người sử dụng</td>
+                                                    <td className="px-4 py-2">{booking.numberOfGuests} người</td>
                                                 </tr>
                                                 <tr className="border-b hover:bg-gray-50">
                                                     <td className="px-4 py-2 font-medium">Giá gốc</td>
@@ -223,6 +234,17 @@ const BookingHistory = () => {
                                                 <tr className="border-b hover:bg-gray-50">
                                                     <td className="px-4 py-2 font-medium">Tổng hóa đơn</td>
                                                     <td className="px-4 py-2">{new Intl.NumberFormat().format(booking.totalPrice)} VNĐ</td>
+                                                </tr>
+                                                <tr className="border-b hover:bg-gray-50">
+                                                    <td className="px-4 py-2 font-medium col-span-2"><b>Thông tin về gia chủ </b></td>                                                  
+                                                </tr>
+                                                <tr className="border-b hover:bg-gray-50">
+                                                    <td className="px-4 py-2 font-medium">Tên gia chủ :</td>
+                                                    <td className="px-4 py-2">{booking.nameOwner}</td>
+                                                </tr>
+                                                <tr className="border-b hover:bg-gray-50">
+                                                    <td className="px-4 py-2 font-medium">Số điện thoại liên hệ</td>
+                                                    <td className="px-4 py-2">{booking.phoneOwner||"0364174636"} </td>
                                                 </tr>
                                             </tbody>
                                         </table>

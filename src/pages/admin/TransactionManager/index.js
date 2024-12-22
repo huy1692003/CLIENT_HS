@@ -171,7 +171,6 @@ const TransactionManager = ({ type }) => {
                 <Form.Item label="Ngày kết thúc" name="DateEnd" className=" mb-0">
                     <DatePicker format="DD-MM-YYYY" className="w-full" />
                 </Form.Item>
-
             </Form>
 
             <div className="flex justify-between mt-4 mb-4">
@@ -192,7 +191,6 @@ const TransactionManager = ({ type }) => {
             <Table
                 bordered dataSource={payments} loading={loading} columns={columns}
                 className="w-full"
-
                 style={{ overflowX: "scroll" }}
                 pagination={false} />
             <PaginateShared align="end" page={paginate.page} pageSize={paginate.pageSize} setPaginate={setPaginate} totalRecord={totalRecord} />

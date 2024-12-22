@@ -17,10 +17,10 @@ import SignalRService from "../services/realtimeSignlR/signalService";
  * 
  * useSignalR("RefeshDateHomeStay", handleBookingUpdate);
  */
-const useSignalR = (eventName, callback) => {
+const useSignalRChat= (eventName, callback) => {
   useEffect(() => {
     // Khởi tạo SignalRService và bắt đầu kết nối
-    const signalRService = new SignalRService();
+    const signalRService = new SignalRService("chathub");
     signalRService.startConnection();
 
     // Đăng ký sự kiện với server
@@ -33,4 +33,4 @@ const useSignalR = (eventName, callback) => {
   }, [eventName, callback]); // Dependency array, hook chỉ chạy lại khi eventName hoặc callback thay đổi
 };
 
-export default useSignalR;
+export default useSignalRChat;

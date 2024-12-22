@@ -10,6 +10,8 @@ import { userState } from '../../../recoil/atom';
 import createFromData from '../../../utils/createFormData';
 import TextArea from 'antd/es/input/TextArea';
 import { URL_SERVER } from '../../../constant/global';
+import data_province from '../../../assets/Data/data_province.json';
+import { Option } from 'antd/es/mentions';
 
 const WriteHomeStay = () => {
     const [paramURL] = useSearchParams();
@@ -21,7 +23,8 @@ const WriteHomeStay = () => {
     const [owner, setOwner] = useRecoilState(userState)
     const [loading, setLoading] = useState(false)
 
-
+    const [selectedProvince, setSelectedProvince] = useState()
+    const [selectedDistrict, setSelectedDistrict] = useState()
     // lấy về chi tiết homeStay
     const [listIMG_OLD, setListIMG_OLD] = useState([])
 
@@ -92,7 +95,7 @@ const WriteHomeStay = () => {
                     homestayID: idHomeStay ? idHomeStay : 0, // Use id if editing
                     ...data,
                     ownerID: owner.idOwner,
-                    imagePreview: [...listIMG_OLD.map(l => l.urlRoot), ...listIMG],
+                    imagePreview: [...listIMG,...listIMG_OLD.map(l => l.urlRoot)],
                 },
                 listAmenities: selectedAmenities,
                 detailHomeStay: {
@@ -163,6 +166,7 @@ const WriteHomeStay = () => {
                     <Form.Item
                         name="country"
                         label="Quốc Gia"
+                        initialValue={"Việt Nam"}
                         rules={[{ required: true, message: 'Vui lòng nhập quốc gia!' }]}
                     >
                         <Input />
@@ -170,23 +174,34 @@ const WriteHomeStay = () => {
                     <Form.Item
                         name="province"
                         label="Tỉnh / Thành Phố"
+
                         rules={[{ required: true, message: 'Vui lòng nhập tỉnh/thành phố!' }]}
                     >
-                        <Input />
+                        <Select showSearch allowClear onChange={(s) => setSelectedProvince(s)}// Thêm nút xóa
+                        >
+                            {data_province.map((s) => <Option value={s.name}>{s.name}</Option>)}
+                        </Select>
                     </Form.Item>
                     <Form.Item
                         name="district"
                         label="Quận / Huyện"
                         rules={[{ required: true, message: 'Vui lòng nhập quận/huyện!' }]}
                     >
-                        <Input />
+                        <Select  showSearch allowClear onChange={(e)=>setSelectedDistrict(e)} // Thêm nút xóa
+                        >
+                            {data_province.find(s => s.name == selectedProvince)?.districts.map((s) => <Option value={s.name}>{s.name}</Option>)}
+                        </Select>
                     </Form.Item>
                     <Form.Item
                         name="wardOrCommune"
                         label="Phường / Xã"
                         rules={[{ required: true, message: 'Vui lòng nhập Phường/Xã!' }]}
                     >
-                        <Input />
+                        <Select  showSearch allowClear // Thêm nút xóa
+                        >
+                            {data_province.find(s => s.name == selectedProvince)?.districts.find(s=>s.name===selectedDistrict)?.wards.map((s) => <Option value={s.name}>{s.name}</Option>)}
+                        </Select>
+
                     </Form.Item>
                     <Form.Item
                         name="addressDetail"

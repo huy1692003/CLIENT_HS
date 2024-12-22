@@ -94,6 +94,15 @@ const homestayService = {
             throw error
         }
     },
+    getAutocompleteLocation: async (location) => {
+        try {
+            let res = await API.get('/HomeStay/getAutocompleteLocation?par='+location)
+            return res?.data
+        }
+        catch (error) {
+            throw error
+        }
+    },
     searchHomeStay: async (page, pageSize, data) => {
         try {
             let res = await API.post(`/HomeStay/searchByCustomer?Page=${page}&PageSize=${pageSize}`, data)

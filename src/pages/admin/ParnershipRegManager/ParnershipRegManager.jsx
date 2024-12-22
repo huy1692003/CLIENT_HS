@@ -183,21 +183,21 @@ const PartnershipRegManager = () => {
                 <span className='flex gap-2'>
                     <div className='flex gap-2'>
                         <Button
-                            style={statusPart === 0 && { border: "2px solid black" }}
+                            style={statusPart === 0 && { borderLeft: "6px solid gray" }}
                             className='bg-blue-500 text-white text-lg'
                             onClick={() => { setStatusPart(0) }}
                         >
                             Chưa duyệt
                         </Button>
                         <Button
-                            style={statusPart === 1 && { border: "2px solid black" }}
+                            style={statusPart === 1 && { borderLeft: "6px solid gray" }}
                             className='bg-green-500 text-white text-lg'
                             onClick={() => { setStatusPart(1) }}
                         >
                             Đã duyệt
                         </Button>
                         <Button
-                            style={statusPart === 2 && { border: "2px solid black" }}
+                            style={statusPart === 2 && { borderLeft: "6px solid gray" }}
                             className='bg-red-500 text-white text-lg'
                             onClick={() => { setStatusPart(2) }}
                         >

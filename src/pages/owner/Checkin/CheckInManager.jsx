@@ -4,7 +4,7 @@ import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { isLoadingOwner, userState } from "../../../recoil/atom";
 import bookingService from "../../../services/bookingService";
 import { CheckCircleFilled, CheckCircleOutlined, CheckOutlined, CloseOutlined, CloseSquareFilled, EyeFilled, FilterFilled, HomeOutlined, Loading3QuartersOutlined, ProfileTwoTone, SearchOutlined } from '@ant-design/icons';
-import { convertDate, convertDateTime } from "../../../utils/convertDate";
+import { convertDate, convertDateTime, convertTimezoneToVN } from "../../../utils/convertDate";
 import { use } from "react";
 import StepProcessBooking from "../../../components/shared/StepProcessBooking";
 import Search from "antd/es/transfer/search";

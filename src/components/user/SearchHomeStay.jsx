@@ -1,5 +1,5 @@
 import { memo, useEffect, useMemo, useState } from "react";
-import { Button, DatePicker, Input, InputNumber, message } from "antd";
+import { AutoComplete, Button, DatePicker, Input, InputNumber, message } from "antd";
 import dayjs from "dayjs";
 import { SearchOutlined } from "@ant-design/icons";
 import { useTypingEffect } from "../../hooks/useTypingEffect";
@@ -7,6 +7,7 @@ import { useRecoilState } from "recoil";
 import { paramSearchHT } from "../../recoil/atom";
 import { useNavigate } from "react-router-dom";
 import { convertDateTime, convertTimezoneToVN } from "../../utils/convertDate";
+import homestayService from "../../services/homestayService";
 
 const placeHolders = ["Nhập địa điểm muốn đến", "Hà Nội", "Hải Phòng", "Hồ Chí Minh", "Đà Nẵng"];
 
@@ -15,6 +16,19 @@ const SearchComponent = ({ title = "Bạn muốn tìm địa điểm HomeStay �
     const [formSearch, setFormSearch] = useRecoilState(paramSearchHT);
     const [totalNight, setTotalNight] = useState(1)
     const navigate = useNavigate()
+    const [dataAutocomplete, setDataAutoComplete] = useState([])
+
+    useEffect(() => {
+        const getAuto = async () => {
+            let res = await homestayService.getAutocompleteLocation(formSearch.location)
+            setDataAutoComplete(res)
+        }
+        formSearch.location && formSearch.location !== '' && getAuto()
+        if(!formSearch.location)
+        {
+            setDataAutoComplete([])
+        }
+    }, [formSearch.location])
 
     const handleSearch = () => {
 
@@ -51,14 +65,18 @@ const SearchComponent = ({ title = "Bạn muốn tìm địa điểm HomeStay �
                 {/* Location Input */}
                 <div className="w-full md:w-auto">
                     <span className="mb-1 flex text-lg ml-2">Điểm đến</span>
-                    <Input
+                    <AutoComplete
                         allowClear
-                        type="text"
-                        className="w-full md:w-[240px] md:h-[49px]  rounded-2xl outline-none text-lg"
+                        options={dataAutocomplete.map(location => ({ value: location }))}  // Tạo các option cho autocomplete từ mảng locations
+                        className="custom w-full md:w-[240px] md:h-[49px] rounded-2xl outline-none text-lg"
                         placeholder={placeholder}
                         value={formSearch.location}
-                        onChange={(e) => setFormSearch({ ...formSearch, location: e.target.value, isCallAPI: false })}
-                    />
+                        onChange={(value) => setFormSearch({ ...formSearch, location: value, isCallAPI: false })}
+
+                    >
+                        <Input className="w-full md:w-[240px] md:h-[49px]  rounded-2xl outline-none text-lg" />
+                    </AutoComplete>
+
                 </div>
                 <div className="w-full md:w-auto">
                     <span className="block mb-1 text-lg">Tên HomeStay</span>

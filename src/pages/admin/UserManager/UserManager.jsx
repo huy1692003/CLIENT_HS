@@ -1,4 +1,4 @@
-import { Table, Tag, Button, Popconfirm, Tooltip, Input, Space } from "antd"; // Import thêm Input và Space
+import { Table, Tag, Button, Popconfirm, Tooltip, Input, Space, notification } from "antd"; // Import thêm Input và Space
 import { DeleteOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons'; // Import các biểu tượng
 import React, { useState, useEffect, memo } from "react";
 import UserService from "../../../services/userService";
@@ -8,29 +8,21 @@ import UserService from "../../../services/userService";
     const [searchTerm, setSearchTerm] = useState(""); // Khởi tạo state cho tìm kiếm
 
     // Gọi API để lấy danh sách người dùng
+    const fetchUsers = async () => {
+        const response = await UserService.getAll(); // Thay URL của API thật vào đây
+        setUsers(response.filter(user => user.username !== "admin"));
+    };
     useEffect(() => {
-        const fetchUsers = async () => {
-            const response = await UserService.getAll(); // Thay URL của API thật vào đây
-            setUsers(response.filter(user => user.username !== "admin"));
-        };
         fetchUsers();
     }, []);
 
-    // Xử lý xóa người dùng
-    const handleDelete = async (userID) => {
-        // Gọi API để xóa người dùng
-        // await UserService.delete(userID); // Thay đổi để gọi API xóa người dùng
-        // setUsers(users.filter(user => user.userID !== userID)); // Cập nhật danh sách người dùng
-    };
 
     // Xử lý khóa người dùng
-    const handleToggleStatus = async (userID) => {
+    const handleToggleStatus = async (userID,statusCurrend) => {
         // Gọi API để khóa hoặc kích hoạt người dùng
-        // await UserService.toggleStatus(userID); // Thay đổi để gọi API khóa/kích hoạt người dùng
-        // const updatedUsers = users.map(user =>
-        //     user.userID === userID ? { ...user, status: user.status === 1 ? 0 : 1 } : user
-        // );
-        // setUsers(updatedUsers); // Cập nhật danh sách người dùng
+        await UserService.updateStatus(userID,statusCurrend===1?0:1); // Thay đổi để gọi API khóa/kích hoạt người dùng
+        notification.success({message:"Cập nhật trạng thái thành công"})
+        fetchUsers()
     };
 
     // Cấu hình các cột cho bảng
@@ -84,7 +76,7 @@ import UserService from "../../../services/userService";
             key: "action",
             render: (text, record) => (
                 <div>
-                    <Popconfirm
+                    {/* <Popconfirm
                         title="Bạn có chắc chắn muốn xóa người dùng này?"
                         onConfirm={() => handleDelete(record.userID)}
                         okText="Có"
@@ -99,14 +91,14 @@ import UserService from "../../../services/userService";
                                 style={{ marginRight: 8, width: 30, height: 30 }}
                             />
                         </Tooltip>
-                    </Popconfirm>
+                    </Popconfirm> */}
                     <Tooltip title={record.status === 1 ? "Khóa" : "Kích hoạt"}>
                         <Button
                             type={record.status === 1 ? "default" : "primary"}
                             size="large" // Thay đổi kích thước nút
                             icon={record.status === 1 ? <LockOutlined style={{ fontSize: '16px' }} /> : <UnlockOutlined style={{ fontSize: '20px' }} />} // Tăng kích thước biểu tượng
                             style={{ width: 30, height: 30, backgroundColor: record.status === 1 ? "#f5222d" : "#52c41a", color: "#fff" }} // Thay đổi màu nền cho nút
-                            onClick={() => handleToggleStatus(record.userID)}
+                            onClick={() => handleToggleStatus(record.userID,record.status)}
                         />
                     </Tooltip>
                 </div>
@@ -116,9 +108,9 @@ import UserService from "../../../services/userService";
 
     // Lọc danh sách người dùng dựa trên từ khóa tìm kiếm
     const filteredUsers = users.filter(user =>
-        user.username.toLowerCase().includes(searchTerm.toLowerCase()) || // Tìm theo tên đăng nhập
-        user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) || // Tìm theo họ tên
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()) // Tìm theo email
+        user.username?.toLowerCase().includes(searchTerm?.toLowerCase()) || // Tìm theo tên đăng nhập
+        user.fullName?.toLowerCase().includes(searchTerm?.toLowerCase()) || // Tìm theo họ tên
+        user.email?.toLowerCase().includes(searchTerm?.toLowerCase()) // Tìm theo email
     );
 
     return (
@@ -127,6 +119,7 @@ import UserService from "../../../services/userService";
                 <Space style={{ float: "right", marginBottom: 16 }}>
                     <Input
                         style={{ width: 400 }}
+                        className="font-semibold"
                         placeholder="Tìm kiếm người dùng..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)} // Cập nhật từ khóa tìm kiếm

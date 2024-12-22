@@ -9,11 +9,11 @@ import { useRecoilState } from 'recoil';
 const Login = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [admin,setAdmin] = useRecoilState(adminState)
-  const [form,setForm] = useState({
-    username:"",
-    password:""
-  })
+  const [admin, setAdmin] = useRecoilState(adminState);
+  const [form, setForm] = useState({
+    username: '',
+    password: '',
+  });
 
   const onFinish = async () => {
     if (!form.username || !form.password) {
@@ -23,17 +23,16 @@ const Login = () => {
       });
       return;
     }
-    
+
     try {
       setLoading(true);
-      let res = await adminService.login(form)
-      if(res)
-      {
-        sessionStorage.setItem("admin",JSON.stringify(res))
-        setAdmin(res)
-        navigate("/admin/user-manager")
+      let res = await adminService.login(form);
+      if (res) {
+        sessionStorage.setItem('admin', JSON.stringify(res));
+        sessionStorage.setItem('token', res.tokenUser);
+        setAdmin(res);
+        navigate('/admin/user-manager');
       }
-      
     } catch (error) {
       notification.error({
         message: 'Đăng nhập thất bại',
@@ -45,27 +44,29 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <Card className="w-96">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-200 to-blue-400">
+      <Card className="w-full max-w-xl p-6 rounded-xl shadow-lg">
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-blue-800">HuyStay Admin</h2>
-          <p className="text-gray-600">Đăng nhập vào hệ thống quản trị</p>
+          <h2 className="text-3xl font-bold text-blue-800">HuyStay Admin</h2>
+          <p className="text-gray-500">Đăng nhập vào hệ thống quản trị</p>
         </div>
 
         <Form
           name="login"
           onFinish={onFinish}
           layout="vertical"
+          className="space-y-6"
         >
           <Form.Item
             name="username"
             rules={[{ required: true, message: 'Vui lòng nhập tên đăng nhập!' }]}
           >
-            <Input 
-              prefix={<UserOutlined />} 
+            <Input
+              prefix={<UserOutlined className="text-blue-400" />}
               placeholder="Tên đăng nhập"
               size="large"
-              onChange={(e) => setForm({...form, username: e.target.value})}
+              className="rounded-md shadow-sm focus:ring-2 focus:ring-blue-500"
+              onChange={(e) => setForm({ ...form, username: e.target.value })}
             />
           </Form.Item>
 
@@ -74,18 +75,19 @@ const Login = () => {
             rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
           >
             <Input.Password
-              prefix={<LockOutlined />}
+              prefix={<LockOutlined className="text-blue-400" />}
               placeholder="Mật khẩu"
               size="large"
-              onChange={(e) => setForm({...form, password: e.target.value})}
+              className="rounded-md shadow-sm focus:ring-2 focus:ring-blue-500"
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
             />
           </Form.Item>
 
           <Form.Item>
-            <Button 
-              type="primary" 
-              htmlType="submit" 
-              className="w-full bg-blue-800"
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="w-full bg-blue-800 hover:bg-blue-600 text-white font-medium rounded-lg shadow-md"
               loading={loading}
               size="large"
             >

@@ -6,6 +6,13 @@
   padding: 0; /* Tắt padding mặc định */
   box-sizing: border-box; /* Đảm bảo padding và border không làm tăng kích thước tổng thể */
 }
+.custom .ant-select-selection-placeholder {
+  font-size: 18px; /* Placeholder chữ lớn hơn */
+}
+
+.custom .ant-select-item-option-content {
+  font-size: 18px; /* Tăng kích thước chữ của các options */
+}
 
 
 

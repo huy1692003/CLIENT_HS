@@ -8,6 +8,7 @@ import { formatPrice } from "../../../utils/formatPrice";
 import PaginateShared from "../../../components/shared/PaginateShared";
 import { useRecoilValue } from "recoil";
 import { userState } from "../../../recoil/atom";
+import useSignalR from "../../../hooks/useSignaIR";
 const { RangePicker } = DatePicker;
 const initSearch = {
     bookingID: null,
@@ -28,26 +29,31 @@ const PaymentBooking = ({ type =1}) => {
     const [form] = useForm()
     const user = useRecoilValue(userState)
 
-    useLayoutEffect(() => {
-        const getData = async () => {
-            setLoading(true)
-            try {
-                let res = await paymentService.getPaymentByOwner(paginate, searchParams,user.idOwner, type)
-                if (res) {
-                    setTotalRecord(res.totalCount)
-                    setPayments(res.items)
-                }
-                setLoading(false)
+    const getData = async () => {
+        setLoading(true)
+        try {
+            let res = await paymentService.getPaymentByOwner(paginate, searchParams,user.idOwner, type)
+            if (res) {
+                setTotalRecord(res.totalCount)
+                setPayments(res.items)
+            }
+            setLoading(false)
 
-            }
-            catch {
-                notification.error({ message: "Có lỗi xảy ra khi lấy dữ liệu" })
-                setLoading(false)
-            }
         }
+        catch {
+            notification.error({ message: "Có lỗi xảy ra khi lấy dữ liệu" })
+            setLoading(false)
+        }
+    }
+    useLayoutEffect(() => {
         getData()
     }, [searchParams, paginate, type])
 
+    useSignalR("ReseiverPaymentNew", (idOwnerRes, notifi) => {
+        if (idOwnerRes === user.idOwner) {
+            getData()
+        }
+    });
     const handleSearch = async (data) => {
         setPaginate({ ...paginate, page: 1 })
         setSearchParams(

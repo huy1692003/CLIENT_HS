@@ -93,22 +93,16 @@ const HomePage = () => {
                     </div>
                 )}
 
-                {/* Nội dung chính */}
-                <div className={windowWidth > 768 ? 'w-[69%]' : 'w-full'}>
-                    <div className="">
-                        <h1 className="text-2xl text-center font-bold">HomeStay được quan tâm nhiều nhất</h1>
-                        <p className="mt-2 text-center font-light" style={{ fontFamily: "Lexend, sans-serif" }}>
-                            Hơn 1.000+ homestay giá tốt, trải nghiệm chất Việt trong từng hành trình!
-                        </p>
+                <div>
+                    <p className="text-2xl text-center">Homestay nổi bật</p>
+                    {/* Nội dung chính */}
+                    <div className="grid grid-cols-5">
+
+                        {homeStayViewHight.map(s => {
+                            return <CardHomeStay data={s} />
+                        }
+                        )}
                     </div>
-                    <Skeleton loading={loading} active>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 justify-items-center">
-                            {homeStayViewHight.slice(0, windowWidth > 768 ? 12 : 8).map((homestay) => (
-                                <CardHomeStay key={homestay.id} data={homestay} />
-                            ))}
-                        </div>
-                    </Skeleton>
-                    <Button className="flex ml-auto" onClick={() => navigate('/homestay')}>Xem thêm</Button>
                 </div>
             </div>
 
@@ -124,7 +118,7 @@ const HomePage = () => {
                         </div>
                     ))}
                 </Skeleton>
-               <Button className="flex ml-auto col-span-4" onClick={() => navigate('/article')}>Xem thêm</Button>
+                <Button className="flex ml-auto col-span-4" onClick={() => navigate('/article')}>Xem thêm</Button>
             </div>
             {/* Địa điểm HomeStay Nổi bật */}
             <div className="text-2xl font-bold text-center mt-10 mb-5 py-5 rounded-2xl" style={{ backgroundColor: '#F5F5F5' }}>

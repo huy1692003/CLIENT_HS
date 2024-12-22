@@ -1,46 +1,50 @@
 import API from "./axiosConfig";
 
-
-const roleService = {
+const menuService = {
+    // Lấy tất cả menu
     getAll: async () => {
         try {
-            const res = await API.get('/Role/getAll');
+            const res = await API.get('/Menu');
             return res.data;
         } catch (error) {
             throw error;
         }
     },
 
+    // Lấy menu theo ID
     getByID: async (id) => {
         try {
-            const res = await API.get(`/Role/getByID/${id}`);
+            const res = await API.get(`/Menu/${id}`);
             return res.data;
         } catch (error) {
             throw error;
         }
     },
 
+    // Tạo menu mới
     create: async (data) => {
         try {
-            const res = await API.post('/Role/create', data);
+            const res = await API.post('/Menu', data);
             return res.data;
         } catch (error) {
             throw error;
         }
     },
 
-    grandMenu: async (id,data) => {
+    // Cập nhật menu
+    update: async (id, data) => {
         try {
-            const res = await API.put(`/Role/grandMenu/`+id, data);
+            const res = await API.put(`/Menu/${id}`, data);
             return res.data;
         } catch (error) {
             throw error;
         }
     },
 
-    delete: async (roleId) => {
+    // Xóa menu
+    delete: async (menuId) => {
         try {
-            const res = await API.delete(`/Role/delete/${roleId}`);
+            const res = await API.delete(`/Menu/${menuId}`);
             return res.data;
         } catch (error) {
             throw error;
@@ -48,4 +52,4 @@ const roleService = {
     },
 };
 
-export default roleService;
+export default menuService;

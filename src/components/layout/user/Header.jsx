@@ -26,7 +26,8 @@ const Header = () => {
         { to: "/homestay", label: "HomeStay" },
         { to: "/partnership-reg", label: "Hợp tác" },
         { to: "/article", label: "Bài viết" },
-        { to: "/about", label: "Về chúng tôi" }
+        { to: "/hoidap", label: "Câu hỏi thường gặp" },
+        { to: "/about", label: "Về chúng tôi" },
     ];
     
     return (
@@ -66,11 +67,11 @@ const Header = () => {
 
                     {/* User Actions */}
                     <div className="flex items-center gap-3">
-                        <button className="hidden lg:block p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
+                        <button className="hidden lg:block p-2 px-3 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
                             <i className="fa-solid fa-bell text-lg"></i>
                         </button>
 
-                        <button className="hidden lg:flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
+                        <button onClick={()=>navigate("/history-chat")} className="hidden lg:flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
                             <i className="fa-solid fa-comments text-lg"></i>
                             <span className="text-sm font-semibold">Hỗ trợ</span>
                         </button>
@@ -128,6 +129,7 @@ const Header = () => {
                                             <div onClick={() => {
                                                 setUser(null)
                                                 sessionStorage.removeItem("user")
+                                                sessionStorage.removeItem("token")
                                                 setShowInfor(false)
                                                 notification.success({message:"Đăng xuất thành công"})
                                             }}>

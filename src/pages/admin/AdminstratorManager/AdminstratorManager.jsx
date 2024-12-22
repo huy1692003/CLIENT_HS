@@ -203,7 +203,7 @@ const AdminstratorManager = () => {
     return (
         <div>
             <h3 className="text-xl font-bold mb-5">
-                Quản lý quản trị viên
+                Quản lý nhân sự
                 <Space style={{ float: "right", marginBottom: 16 }}>
                     <Input
                         placeholder="Tìm kiếm ..."
