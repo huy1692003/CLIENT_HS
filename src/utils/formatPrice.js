@@ -4,5 +4,5 @@ export const formatPrice = (value) => {
     let formattedPrice = value.toLocaleString('vi-VN');
 
     
-    return formattedPrice +" VNĐ";
+    return formattedPrice +" VND";
 };

@@ -75,6 +75,9 @@ const MenuOwner = () => {
                 <Menu.Item key="2-4" onClick={() => handleMenuClick("2-4", "/owner/homestay-reject")}>
                     HomeStay bị từ chối
                 </Menu.Item>
+                <Menu.Item key="2-5" onClick={() => handleMenuClick("2-4", "/owner/homestay-maintenance")}>
+                    HomeStay đang bảo trì
+                </Menu.Item>
             </SubMenu>
 
             <SubMenu key="sub6" icon={<VideoCameraOutlined />} title="Quản lý quảng cáo">
@@ -120,7 +123,7 @@ const MenuOwner = () => {
 
 
             <Menu.Item icon={<ContactsOutlined/>} key="7-1" onClick={() => handleMenuClick("7-1", "/owner/support-customer")}>
-                Hỗ trợ khách hàng
+                Khách hàng hỏi đáp
             </Menu.Item>
 
         </Menu >

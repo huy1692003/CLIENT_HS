@@ -206,7 +206,7 @@ const CreateAdvertisement = () => {
                     >
                         <div className="flex flex-col gap-4">
                             {/* Header */}
-                            <div style={{ backgroundColor: '#1890ff' }} className="h-16 flex text-white items-center justify-center text-center opacity-50 ">
+                            <div style={{ backgroundColor: '#1890ff' }} className="h-16 flex text-white items-center rounded-md justify-center text-center opacity-50 ">
                                 Phần Header (Thanh Menu)
                             </div>
 

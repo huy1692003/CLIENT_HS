@@ -32,7 +32,7 @@ const Header = () => {
     
     return (
         <div className="fixed top-0 left-0 bg-white right-0 border-b border-gray-200 rounded-lg" style={{zIndex:100}}>
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto">
                 <div className="flex items-center justify-between py-4">
                     {/* Mobile Menu Button */}
                     <button 
@@ -51,11 +51,11 @@ const Header = () => {
 
                     {/* Desktop Navigation */}
                     <nav className="hidden lg:block">
-                        <ul className="flex gap-6">
+                        <ul className="flex gap-3">
                             {navigationItems.map((item, index) => (
                                 <li key={index}>
                                     <Link 
-                                        className="block font-bold px-3 py-2 text-base rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors" 
+                                        className="block font-bold px-2 py-2 text-sm rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors" 
                                         to={item.to}
                                     >
                                         {item.label}

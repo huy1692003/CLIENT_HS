@@ -39,6 +39,7 @@ import RevenueManager from "../pages/admin/RevenueManager";
 import OwnerStayManager from "../pages/admin/OwnerStayManager";
 import MenuManager from "../pages/admin/RoleManager/MenuManager";
 import FAQ from "../pages/user/FAQ";
+import BookingAction from "../pages/owner/Booking/BookingAction";
 
 export const routers = [
     // customer
@@ -56,7 +57,7 @@ export const routers = [
     { path: "/hoidap", element: <FAQ /> },
     { path: "/result-homestay-search", element: <ResultSearchHomeStay /> },
     { path: "/history-chat", element: <div className="p-5"> <SupportCustomer type={1} /></div> },
-
+    { path: "/booking-action", element: <BookingAction /> },
     // admin
     { path: "/admin/user-manager", element: <UserManager /> },
     { path: "/admin/owner-manager", element: <OwnerStayManager /> },
@@ -66,7 +67,8 @@ export const routers = [
     { path: "/admin/amenities-manager", element: <AmenitiesManager /> },
     { path: "/admin/homestay-censor-pending", element: <HomeStayCensor status={0} /> },
     { path: "/admin/homestay-censor-current", element: <HomeStayCensor status={1} /> },
-    { path: "/admin/homestay-censor-reject", element: <HomeStayCensor status={2} /> },
+    { path: "/admin/homestay-censor-reject", element: <HomeStayCensor status={-1} /> },
+    { path: "/admin/homestay-censor-maintenance", element: <HomeStayCensor status={2} /> },
     { path: "/admin/role-manager", element: <RoleManager /> },
     { path: "/admin/menu-manager", element: <MenuManager /> },
     { path: "/admin/customer-manager", element: <HomeStayCensor status={2} /> },
@@ -85,7 +87,8 @@ export const routers = [
     { path: "/owner/promotion-manager", element: <PromotionManager /> },
     { path: "/owner/review-manager", element: <ReviewManager /> },
     { path: "/owner/homestay-current", element: <HomeStayManager status={1} /> },
-    { path: "/owner/homestay-reject", element: <HomeStayManager status={2} /> },
+    { path: "/owner/homestay-reject", element: <HomeStayManager status={-1} /> },
+    { path: "/owner/homestay-maintenance", element: <HomeStayManager status={2} /> },
     { path: "/owner/booking-manager", element: <BookingManager /> },
     { path: "/owner/advertisement/write", element: <CreateAdvertisement /> },
     { path: "/owner/advertisement-manager", element: <AdvetisementManager /> },

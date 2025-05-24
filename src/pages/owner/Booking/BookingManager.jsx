@@ -1,16 +1,13 @@
-import { Table, Tooltip, Space, Tag, message, Button, notification, Modal, Input, Descriptions, Spin, Steps, Select, InputNumber, DatePicker } from "antd";
+import { Table, Tooltip, Space, Tag, message, Button, notification, Modal, Input, Descriptions, Select, DatePicker } from "antd";
 import { memo, useEffect, useState } from "react";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilState, useSetRecoilState } from "recoil";
 import { isLoadingOwner, userState } from "../../../recoil/atom";
 import bookingService from "../../../services/bookingService";
-import { CheckCircleFilled, CheckCircleOutlined, CheckOutlined, CloseOutlined, CloseSquareFilled, EyeFilled, FilterFilled, HomeOutlined, Loading3QuartersOutlined, ProfileTwoTone, SearchOutlined } from '@ant-design/icons';
-import { convertDate, convertDateTime } from "../../../utils/convertDate";
-import { use } from "react";
+import { CheckCircleFilled, CloseSquareFilled, EyeFilled, ProfileTwoTone } from '@ant-design/icons';
+import { convertDate } from "../../../utils/convertDate";
 import StepProcessBooking from "../../../components/shared/StepProcessBooking";
-import Search from "antd/es/transfer/search";
 import { Option } from "antd/es/mentions";
 import LabelField from "../../../components/shared/LabelField";
-import moment from 'moment-timezone';
 import dayjs from "dayjs";
 import PaginateShared from "../../../components/shared/PaginateShared";
 import useSignalR from "../../../hooks/useSignaIR";
@@ -22,13 +19,13 @@ const initSearch = {
     endDate: null
 }
 export const statusBooking = [
-    { index: 10, des: "Tất cả đơn", color: "black", backgroundColor: "" },
-    { index: 1, des: "Đang chờ xác nhận", color: "text-white", backgroundColor: "bg-orange-400" },
-    { index: 2, des: "Đang chờ thanh toán", color: "text-black", backgroundColor: "bg-yellow-400" },
-    { index: 3, des: "Đang chờ nhận phòng", color: "text-white", backgroundColor: "bg-sky-400" },
-    { index: 4, des: "Đang chờ CheckIn", color: "text-white", backgroundColor: "bg-blue-400" },
-    { index: 5, des: "Đang chờ CheckOut", color: "text-white", backgroundColor: "bg-purple-400" },
-    { index: 6, des: "Đã hoàn thành", color: "text-white", backgroundColor: "bg-green-400" },
+    { index: 10, des: "Tất cả đơn", color: "text-gray-800", backgroundColor: "bg-gray-100" },
+    { index: 1, des: "Đang chờ xác nhận", color: "text-white", backgroundColor: "bg-orange-500" },
+    { index: 2, des: "Đang chờ thanh toán", color: "text-black", backgroundColor: "bg-yellow-300" },
+    { index: 3, des: "Đang chờ nhận phòng", color: "text-white", backgroundColor: "bg-sky-500" },
+    { index: 4, des: "Đang chờ CheckIn", color: "text-white", backgroundColor: "bg-blue-500" },
+    { index: 5, des: "Đang chờ CheckOut", color: "text-white", backgroundColor: "bg-purple-500" },
+    { index: 6, des: "Đã hoàn thành", color: "text-white", backgroundColor: "bg-green-500" },
     { index: -1, des: "Đã bị hủy", color: "text-white", backgroundColor: "bg-red-500" },
 ];
 
@@ -93,10 +90,9 @@ const BookingManager = () => {
     };
 
 
-    useSignalR("ReseiverBookingNew",(idOwnerRes,notifi)=>{
-        if(idOwnerRes===owner.idOwner)
-        {
-           getData()
+    useSignalR("ReseiverBookingNew", (idOwnerRes, notifi) => {
+        if (idOwnerRes === owner.idOwner) {
+            getData()
         }
     })
     const handleConfirm = async (record) => {
@@ -176,8 +172,7 @@ const BookingManager = () => {
             onOk: async () => {
                 setLoading(true);
                 try {
-                    if(reason)
-                    {
+                    if (reason) {
 
                         await bookingService.cancel(record.bookingID, reason); // Truyền lý do từ chối vào service
                         notification.success({
@@ -209,12 +204,14 @@ const BookingManager = () => {
             title: "Mã Đặt Phòng",
             dataIndex: "bookingID",
             key: "bookingID",
+            render: (text) => <span className="w-[30px] underline">{"#"+text || "Trống"}</span>,
 
         },
         {
-            title: "Mã HomeStay",
+            title: "Mã Homestay",
             dataIndex: "homeStayID",
             key: "homeStayID",
+            render: (text) => <span className="w-[30px]">{"#"+text || "Trống"}</span>,
         },
         {
             title: "Tên Khách",
@@ -257,7 +254,7 @@ const BookingManager = () => {
                 if (status) {
                     return (
                         <Tag
-                            className={`text-xs font-medium ${status.color} ${status.backgroundColor} px-3 py-1 rounded-xl`}
+                            className={`text-xs w-full text-center font-medium ${status.color} ${status.backgroundColor} px-3 py-1 rounded-xl`}
                         >
                             {status.des}
                         </Tag>
@@ -397,7 +394,7 @@ const BookingManager = () => {
             <div className="text-center">
 
                 <Button className="m-auto" type="primary" onClick={() => {
-                    setPaginate({...paginate,pageSize:1})
+                    setPaginate({ ...paginate, pageSize: 1 })
                     setSearch(searchLocal)
                 }}>Lọc kết quả</Button>
             </div>

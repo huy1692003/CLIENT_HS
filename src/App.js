@@ -5,30 +5,36 @@ import { HomePage } from './pages/user/HomePage';
 import { UpOutlined } from '@ant-design/icons';
 import NotFoundPage from './pages/NotFoundPage';
 import { routers } from './routers/routes';
-import { useEffect, useState } from 'react';
-import OwnerLayout from './components/layout/owner/OwnerLayout';
-import AdminLayout from './components/layout/admin/AdminLayout';
-import UserLayout from './components/layout/user/UserLayout';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import ResultPagePayment from './pages/user/ResultPagePayment';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import dayjs from 'dayjs';
 
+// Lazy load các layout
+const OwnerLayout = lazy(() => import('./components/layout/owner/OwnerLayout'));
+const AdminLayout = lazy(() => import('./components/layout/admin/AdminLayout')); 
+const UserLayout = lazy(() => import('./components/layout/user/UserLayout'));
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
 function App() {
   const location = useLocation();
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-  // Xác định layout dựa trên đường dẫn
-  let Layout;
-  if (location.pathname.startsWith('/owner')) {
-    Layout = OwnerLayout;
-  } else if (location.pathname.startsWith('/admin')) {
-    Layout = AdminLayout;
-  } else {
-    Layout = UserLayout;
-  }
+  // Xác định layout component dựa trên path
+  const getLayout = () => {
+    if (location.pathname.startsWith('/owner')) {
+      return OwnerLayout;
+    }
+    if (location.pathname.startsWith('/admin')) {
+      return AdminLayout;
+    }
+    return UserLayout;
+  };
+
+  const Layout = getLayout();
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -53,10 +59,12 @@ function App() {
   };
 
   return (
-    <>
+    <Suspense fallback={<div>Loading...</div>}>
       <Layout>
         <Routes>
-          {routers.map((r) => <Route path={r.path} element={<>{r.element}</>} />)}
+          {routers.map((r, index) => (
+            <Route key={index} path={r.path} element={r.element} />
+          ))}
           <Route path="*" element={<NotFoundPage />} />
           <Route path="/result-status-payment" element={<ResultPagePayment />} />
         </Routes>
@@ -85,7 +93,7 @@ function App() {
           <UpOutlined />
         </button>
       )}
-    </>
+    </Suspense>
   );
 }
 

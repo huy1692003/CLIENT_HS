@@ -38,7 +38,9 @@ const SupportCustomer = ({ type = 1 }) => {
         try {
             let res = await chatSupportService.getListConversation(user.idUser, type);
             if (res) {
-                setListConver(res);
+                console.log(res)
+                res.sort((a, b) => new Date(b.lastMessage?.timestamp) - new Date(a.lastMessage?.timestamp));
+                setListConver(res)
             }
         } catch (error) {
             message.error("Không thể lấy danh sách hội thoại");

@@ -1,8 +1,8 @@
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import SearchHomeStay from "../../components/user/SearchHomeStay";
 import { memo, useEffect, useRef, useState } from "react";
-import { Button, Col, Image, Space, Table, Modal, Tag, DatePicker, InputNumber, Row, message, notification, Spin, Breadcrumb, Empty, Affix } from "antd";
-import { HeartFilled, HeartOutlined, MessageOutlined, ShoppingCartOutlined } from "@ant-design/icons";
+import { Button, Col, Image, Space, Table, Modal, Tag, DatePicker, InputNumber, Row, message, notification, Spin, Breadcrumb, Empty, Affix, Card, Divider, Avatar, Carousel } from "antd";
+import { HeartFilled, HeartOutlined, MessageOutlined, ShoppingCartOutlined, UserOutlined, SmileOutlined, HomeOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import { formatPrice } from './../../utils/formatPrice';
 import HomeStayReviews from "../../components/user/HomeStayReviews";
 import homestayService from "../../services/homestayService";
@@ -22,10 +22,7 @@ import useSignalR from "../../hooks/useSignaIR";
 import ChatAppCard from "../../components/shared/ChatAppCard";
 import chatSupportService from "../../services/chatSupportService";
 import { convertTimezoneToVN } from "../../utils/convertDate";
-
-// Khởi tạo sign ai
-
-
+import CarouselButton from "../../components/shared/CarouselButton";
 
 export const getDisabledDates = (bookedDates) => {
     const disabledDates = [];
@@ -34,13 +31,10 @@ export const getDisabledDates = (bookedDates) => {
         const start = moment(checkInDate);
         const end = moment(checkOutDate);
 
-        // Duyệt qua từng ngày trong khoảng và thêm vào mảng disabledDates
         for (let date = start; date.isBefore(end); date.add(1, 'days')) {
             disabledDates.push(date.clone());
         }
-
     });
-
 
     return disabledDates;
 };
@@ -50,7 +44,8 @@ const DetailHomeStay = () => {
     const id = param.get('id');
     const [detail, setDetail] = useState();
     const [bookedDate, setBookedDate] = useState([]);
-    const [showCreateBooking, setShowCreateBooking] = useState(false)
+    const [showCreateBooking, setShowCreateBooking] = useState(false);
+    const [selectedRoom, setSelectedRoom] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [loading, setLoading] = useState(true);
     const [reviews, setReviews] = useState([]);
@@ -60,112 +55,77 @@ const DetailHomeStay = () => {
         dateIn: null,
         dateOut: null
     });
-    const cus = useRecoilValue(userState)
-    const navigate = useNavigate()
-    const ref = useRef(null)
-    const [height80, setHeight80] = useState(false);
-    const [showChat, setShowChat] = useState(false)
-    const [conversation, setConversation] = useState(null)
-    useEffect(() => {
-        const handleScroll = () => {
-            const scrollTop = document.documentElement.scrollTop;
-            const scrollHeight = document.documentElement.scrollHeight;
-            const clientHeight = document.documentElement.clientHeight;
-            const scrolledPercentage = (scrollTop / (scrollHeight - clientHeight)) * 100;
+    const cus = useRecoilValue(userState);
+    const navigate = useNavigate();
+    const ref = useRef(null);
+    const [showChat, setShowChat] = useState(false);
+    const [conversation, setConversation] = useState(null);
+    const carouselRef = useRef(null);
+    const [showButtons, setShowButtons] = useState(false);
 
-            if (Math.floor(scrolledPercentage) >= 88) {
-                setHeight80(true)
-            }
-            else {
-                setHeight80(false)
-            }
-        };
 
-        window.addEventListener("scroll", handleScroll);
-
-        // Cleanup sự kiện khi component unmount
-        return () => {
-            window.removeEventListener("scroll", handleScroll);
-        };
-    }, []);
-
+   
 
     useEffect(() => {
-        detail && getPromotion(detail)
-        getReviews()
-    }, [detail])
-
+        detail && getPromotion(detail);
+        getReviews();
+    }, [detail]);
 
     useSignalR("RefeshDateHomeStay", (idHomeStay) => {
-        idHomeStay === Number.parseInt(id) && handleDateDisabled(id)
-    })
-
-    console.log(detail)
+        idHomeStay === Number.parseInt(id) && handleDateDisabled(id);
+    });
 
     const getPromotion = async (detail) => {
-        // Lấy danh sách các voucher từ dịch vụ
         let res = await promotionService.getAllByOwnwer(detail.homeStay.ownerID);
-        // Lấy ngày hiện tại
         const date = new Date();
-        // Lọc các voucher hợp lệ dựa trên ngày bắt đầu và kết thúc
         const validPromotions = res.filter(voucher => {
-            const startDate = new Date(voucher.startDate); // Chuyển startDate thành đối tượng Date
-            const endDate = new Date(voucher.endDate); // Chuyển endDate thành đối tượng Date  
-
+            const startDate = new Date(voucher.startDate);
+            const endDate = new Date(voucher.endDate);
             return date >= startDate && date <= endDate;
         });
-
-        // Cập nhật các voucher hợp lệ vào trạng thái
         setPromotions(validPromotions);
-    }
-    // Hàm tạo các ngày đã đặt phòng rồi
+    };
 
     const getReviews = async () => {
         try {
-            let res = await reviewRatingService.getReviewByHomeStay(id)
-            res && setReviews(res)
+            let res = await reviewRatingService.getReviewByHomeStay(id);
+            res && setReviews(res);
         } catch (error) {
-            setReviews([])
+            setReviews([]);
         }
-    }
-
-    // 
-    const disabledDate = (current) => {
-        // Không cho phép chọn ngày trước ngày hiện tại
-        const disabledDates = getDisabledDates(bookedDate)
-
-        // Kiểm tra nếu ngày hiện tại là ngày trước hôm nay
-        const isPastDate = current && current <= moment().startOf('day');
-
-        // Kiểm tra xem ngày hiện tại có trong danh sách tùy chọn không
-        const isDisabledDate = disabledDates.some(date => current.isSame(date, 'day'));
-
-        // Trả về true nếu ngày hiện tại là ngày quá khứ hoặc là một trong các ngày tùy chọn
-        return isPastDate || isDisabledDate;
-
     };
 
+    const disabledDate = (current) => {
+        const disabledDates = getDisabledDates(bookedDate);
+        const isPastDate = current && current <= moment().startOf('day');
+        const isDisabledDate = disabledDates.some(date => current.isSame(date, 'day'));
+        return isPastDate || isDisabledDate;
+    };
 
     const addFavorites = async () => {
         if (!cus) {
-            notification.error({ showProgress: true, message: "Yêu cầu đăng nhập !", description: "Bạn cần đăng nhập để sử dụng chức năng này", btn: <Button onClick={() => navigate('/login-user')}>Đăng nhập ngay</Button>, duration: 4 })
-        }
-        else {
+            notification.error({ 
+                showProgress: true, 
+                message: "Yêu cầu đăng nhập!", 
+                description: "Bạn cần đăng nhập để sử dụng chức năng này", 
+                btn: <Button onClick={() => navigate('/login-user')}>Đăng nhập ngay</Button>, 
+                duration: 4 
+            });
+        } else {
             try {
-                await favoritesService.addFavorites(detail.homeStay.homestayID, cus.idCus)
-                notification.success({ message: 'Thông báo', description: "Thêm thành công HomeStay vào danh sách yêu thích của bạn" })
+                await favoritesService.addFavorites(detail.homeStay.homestayID, cus.idCus);
+                notification.success({ message: 'Thông báo', description: "Thêm thành công HomeStay vào danh sách yêu thích của bạn" });
             } catch (error) {
-                notification.error({ message: "Thông báo", description: "Bạn đã thêm HomeStay này vào danh sách yêu thích rồi" })
+                notification.error({ message: "Thông báo", description: "Bạn đã thêm HomeStay này vào danh sách yêu thích rồi" });
             }
         }
-    }
+    };
 
     const getDataDetail = async () => {
         try {
             let result = await homestayService.viewDetailHomeStay(id);
             result && setDetail(result);
-            // Lay ve cac ngay ma booking da dc dat
-            await handleDateDisabled(id)
+            await handleDateDisabled(id);
         } catch (error) {
             message.error("Có lỗi khi tải dữ liệu");
         } finally {
@@ -173,19 +133,14 @@ const DetailHomeStay = () => {
         }
     };
 
-
     useEffect(() => {
         getDataDetail();
     }, []);
 
-
-    //Cập nhật trạng thái date disabled 
-
     const handleDateDisabled = async (id) => {
         let resDateBooking = await bookingService.getBookingDateExisted(id);
-        resDateBooking && setBookedDate(resDateBooking)
-    }
-
+        resDateBooking && setBookedDate(resDateBooking);
+    };
 
     const showModal = () => {
         setIsModalVisible(true);
@@ -199,33 +154,52 @@ const DetailHomeStay = () => {
         setIsModalVisible(false);
     };
 
-    // nhắn tin trao đổi hỗ trợ 
     const handleOpenConversation = async (idUserOwner, userNameOwner) => {
-
         if (!cus) {
-            notification.warning({ message: "Bạn cần đăng nhập để sử dụng dịch vụ này !" ,duration:3 , showProgress:true , btn:<Button onClick={()=>{navigate("/login-user")}}>Đăng nhập</Button>})
-            return
+            notification.warning({ 
+                message: "Bạn cần đăng nhập để sử dụng dịch vụ này!", 
+                duration: 3, 
+                showProgress: true, 
+                btn: <Button onClick={() => { navigate("/login-user") }}>Đăng nhập</Button> 
+            });
+            return;
         }
         try {
             const payload = {
-                user1: cus.idUser,  // Người dùng thứ nhất
-                user2: idUserOwner,  // Người dùng thứ hai
-                createdAt: convertTimezoneToVN(new Date()),  // Thời gian tạo cuộc trò chuyện
-                lastMessageAt: convertTimezoneToVN(new Date()),  // Thời gian của tin nhắn cuối cùng, mặc định có thể là thời gian tạo
-                userName1: cus.username,  // Bạn có thể lấy tên người dùng từ hệ thống hoặc thông qua API
-                userName2: userNameOwner,  // Tương tự như trên
-               
+                user1: cus.idUser,
+                user2: idUserOwner,
+                createdAt: convertTimezoneToVN(new Date()),
+                lastMessageAt: convertTimezoneToVN(new Date()),
+                userName1: cus.username,
+                userName2: userNameOwner,
             };
-            let res = await chatSupportService.openTabChat(payload)
+            let res = await chatSupportService.openTabChat(payload);
             if (res) {
-                setConversation(res)
-                setShowChat(true)
+                setConversation(res);
+                setShowChat(true);
             }
         } catch (error) {
-            console.error(error)
-            notification.error({ message: "Có lỗi rồi hãy quay lại vào lúc khác nhé !" })
+            console.error(error);
+            notification.error({ message: "Có lỗi rồi hãy quay lại vào lúc khác nhé!" });
         }
-    }
+    };
+
+    const handleBookRoom = (room) => {
+        setSelectedRoom(room);
+        setShowCreateBooking(true);
+    };
+
+    const renderRoomAmenities = (room) => {
+        const amenities = [];
+        if (room.hasBalcony) amenities.push({ icon: "fa-solid fa-door-open", text: "Ban công" });
+        if (room.hasTv) amenities.push({ icon: "fa-solid fa-tv", text: "TV" });
+        if (room.hasAirConditioner) amenities.push({ icon: "fa-solid fa-wind", text: "Điều hòa" });
+        if (room.hasRefrigerator) amenities.push({ icon: "fa-solid fa-snowflake", text: "Tủ lạnh" });
+        if (room.hasWifi) amenities.push({ icon: "fa-solid fa-wifi", text: "Wifi" });
+        if (room.hasHotWater) amenities.push({ icon: "fa-solid fa-fire", text: "Nước nóng" });
+        
+        return amenities;
+    };
 
     if (loading) {
         return (
@@ -237,305 +211,430 @@ const DetailHomeStay = () => {
 
     return (
         <>
-            <div >
-
-                {detail ? <div ref={ref}>
-                    <div className="rounded-xl">
-                        <SearchHomeStay />
-                    </div>
-
-                    <div className="px-16">
-                        <div className="px-4 py-2 text-base mb-5">
-                            <Breadcrumb
-                                className="text-base"
-                                items={[
-                                    {
-                                        title: <Link to="/">Trang chủ</Link>,
-                                    },
-                                    {
-                                        title: 'Chi tiết về HomeStay #' + id,
-                                    },
-                                ]}
-                            />
-                        </div>
-                        <div className="flex justify-between">
-                            <div>
-                                <h1 className="name-homestay text-3xl font-bold mb-2">{detail.homeStay.homestayName} ⚡</h1>
-                                <h4 className="name-homestay text-base font-normal mt-1">
-                                    <i className="fa-solid fa-location-dot mr-1" style={{ fontSize: 18, color: "#11497C" }}></i>
-                                    <span className="font-semibold" >{detail.homeStay.addressDetail}</span> -
-                                    <span className="font-semibold"> {detail.homeStay.province}</span> -
-                                    <span className="font-semibold"> {detail.homeStay.district}</span>
-                                    <p className="inline-block"></p>
-                                </h4>
-                            </div>
-
+            <div>
+                {detail ? (
+                    <div ref={ref}>
+                        <div className="rounded-xl">
+                            <SearchHomeStay />
                         </div>
 
-                        {/* Image Gallery Section */}
-                        <div className="flex justify-between mt-4 relative" style={{ height: 400 }}>
-                            <div style={{ width: "51.3%", maxWidth: "51.3%" }} >
-                                <Image height={400} width={"100%"} className="rounded-xl object-cover" src={URL_SERVER + detail.homeStay.imagePreview[0]} />
+                        <div className="px-16">
+                            <div className="px-4 py-2 text-base mb-5">
+                                <Breadcrumb
+                                    className="text-base"
+                                    items={[
+                                        {
+                                            title: <Link to="/">Trang chủ</Link>,
+                                        },
+                                        {
+                                            title: 'Chi tiết về HomeStay #' + id,
+                                        },
+                                    ]}
+                                />
                             </div>
-                            <div style={{ width: "48%" }} className="grid grid-cols-2 gap-1 ">
 
-                                {detail.homeStay.imagePreview.map((src, index) => (
-                                    index > 0 && index < 5 && <Image key={index} width={"100%"} height={198} className="rounded-xl object-cover" src={URL_SERVER + src} />
-                                ))}
-                            </div>
-                            <Button className="absolute inline bottom-2 right-1 bg-white p-1 text-blue-900" type="link" onClick={showModal}>
-                                Xem tất cả ảnh
-                            </Button>
-                        </div>
-
-                        <div className=" mt-10 py-5 pl-2 flex">
-                            <div className="w-7/12">
-                                <div className="grid grid-cols-2 gap-5  pb-8 border-b border-gray-200">
-                                    <div className="text-xl text-gray-700"><i className="fa-solid fa-house-user mr-4"></i>Homestay</div>
-                                    <div className="text-xl text-gray-700"><i className="fa-solid fa-bed mr-4"></i>{detail.detailHomeStay.numberOfBedrooms} Phòng ngủ</div>
-                                    <div className="text-xl text-gray-700"><i className="fa-solid fa-person-booth mr-4"></i>{detail.detailHomeStay.numberOfLivingRooms} Phòng khách</div>
-                                    <div className="text-xl text-gray-700"><i className="fa-solid fa-utensils mr-5"></i>{detail.detailHomeStay.numberOfKitchens} phòng bếp</div>
-                                    <div className="text-xl text-gray-700"><i className="fa-solid fa-bath mr-4"></i>{detail.detailHomeStay.numberOfBathrooms} phòng tắm</div>
-                                    <div className="text-xl text-gray-700"><i className="fa-solid fa-elevator mr-4"></i>Sức chứa {detail.homeStay.minPerson} khách (tối đa {detail.homeStay.maxPerson})</div>
+                            <div className="flex justify-between">
+                                <div>
+                                    <h1 className="name-homestay text-3xl font-bold mb-2">{detail.homeStay.homestayName} ⚡</h1>
+                                    <h4 className="name-homestay text-base font-normal mt-1">
+                                        <i className="fa-solid fa-location-dot mr-1" style={{ fontSize: 18, color: "#11497C" }}></i>
+                                        <span className="font-semibold">{detail.homeStay.addressDetail}</span> -
+                                        <span className="font-semibold"> {detail.homeStay.province}</span> -
+                                        <span className="font-semibold"> {detail.homeStay.district}</span>
+                                    </h4>
                                 </div>
-                                {/*  */}
-
-                                {/* New Section */}
-                                <div className="mt-8 grid grid-cols-2 pb-8 gap-8 border-b border-gray-200">
-                                    <div>
-                                        <div className="flex items-center font-bold text-xl mb-2">
-                                            <i className="fa-solid fa-utensils mr-4"></i>Quy định nấu ăn
-                                        </div>
-                                        <p className="text-gray-500">Homestay có đầy đủ tiện nghi để bạn có thể tự nấu nướng</p>
-                                    </div>
-                                    <div>
-                                        <div className="flex items-center font-bold text-xl mb-2">
-                                            <i className="fa-solid fa-dollar-sign mr-4"></i>Quy trình thanh toán
-                                        </div>
-                                        <p className="text-gray-500">Thanh toán 100% tiền phòng, thanh toán phần còn lại và các phụ thu phát sinh khác khi checkout</p>
-                                    </div>
-                                    <div>
-                                        <div className="flex items-center font-bold text-xl mb-2">
-                                            <i className="fa-solid fa-clock mr-4"></i>Check-in/Check-out
-                                        </div>
-                                        <p className="text-gray-500">Check-in sau 14:00 và check-out trước 12:00 ngày hôm sau</p>
-                                    </div>
-                                    <div>
-                                        <div className="flex items-center font-bold text-xl mb-2">
-                                            <i className="fa-solid fa-house mr-4"></i>Cách thức nhận phòng
-                                        </div>
-                                        <p className="text-gray-500">Liên hệ quản gia trước 30 phút để làm thủ tục nhận phòng</p>
-                                    </div>
-                                </div>
-                            </div>
-                            {/* thông tin đặt phòng  */}
-                            {!height80 && <Affix style={{ marginLeft: "12%", }} offsetTop={130} className="w-[30%]">
-
-                                <div className="w-full h-full border-2 border-gray-200  rounded-2xl shadow-lg p-4 pb-9 px-9 ">
-                                    <h2 className="font-bold mb-2 text-center ">
-                                        <span className=" text-center mb-3 block">  <span className="text-xl inline" style={{ color: "orangered" }}>{formatPrice(detail.homeStay.pricePerNight)} /đêm</span></span>
-                                    </h2>
-
-                                    <div className="rounded-2xl  border-2 border-gray-100 p-2" >
-                                        <Row className="border-b-1 border-gray-500" gutter={[16, 16]} >
-                                            <Col className="p-2 border-r-2 border-gray-300" span={12} >
-                                                <p className="font-bold mb-1">Ngày đến</p>
-                                                <DatePicker placeholder="Chọn ngày" disabledDate={disabledDate} format={"DD/MM/YYYY"} value={booking.dateIn} onChange={(date) => setBooking({ ...booking, dateIn: date })} />
-                                            </Col>
-                                            <Col className="p-2" span={12}>
-                                                <p className="font-bold mb-1">Ngày về</p>
-                                                <DatePicker placeholder="Chọn ngày" disabledDate={disabledDate} format={"DD/MM/YYYY"} value={booking.dateOut}
-                                                    onChange={(date) => {
-                                                        if (date > booking.dateIn) {
-
-                                                            setBooking({ ...booking, dateOut: date })
-                                                        }
-                                                        else {
-                                                            notification.error({
-                                                                message: 'Lỗi',
-                                                                showProgress: true,
-                                                                description: 'Quy định khi thuê HomeStay tối thiểu phải là 1 đêm vui lòng chọn lại ngày về',
-                                                                placement: "topRight", // vị trí của thông báo (có thể thay đổi)
-                                                                duration: 4, // thời gian hiển thị (giây)
-                                                            });
-                                                        }
-                                                    }
-                                                    } />
-                                            </Col>
-                                        </Row>
-                                        <Row >
-                                            <Col className="p-2" span={24}>
-                                                <p className="font-bold mb-1">Số người</p>
-                                                <InputNumber min={detail.homeStay.minPerson} max={detail.homeStay.maxPerson} style={{ width: "100%" }} value={booking.numberofGuest} placeholder="Chọn số người" onChange={(vl) => {
-                                                    (vl >= detail.homeStay.minPerson && vl <= detail.homeStay.maxPerson) ? setBooking({ ...booking, numberofGuest: vl }) :
-                                                        notification.error({
-                                                            message: 'Lỗi',
-                                                            showProgress: true,
-                                                            description: 'Bạn đang chọn số người thuê không hợp lệ',
-                                                            placement: "topRight", // vị trí của thông báo (có thể thay đổi)
-                                                            duration: 4, // thời gian hiển thị (giây)
-                                                        });
-                                                }
-                                                }
-                                                />
-                                            </Col>
-                                        </Row>
-                                        {/* <Row >
-                                    <Col className="p-2" span={24}>
-                                        <p className="font-bold mb-1">Tổng số đêm thuê</p>
-                                        <InputNumber min={0} style={{ width: "100%" }} value={(booking.dateOut.diff(booking.dateIn, 'day') || 0)} />
-                                    </Col>
-                                </Row> */}
-                                    </div>
-
-                                    <p className="text-center mt-5">
-
-                                        <span>Các ngày được bôi xám là đã có người đặt</span>
-                                    </p>
-
-
-                                    <br />
+                                <div className="flex items-center gap-4">
                                     <Button
-                                        icon={<ShoppingCartOutlined />}
-                                        type="primary"
-                                        style={{ backgroundColor: '#1593FF', height: 60 }}
-                                        className="text-xl mb-2 w-full font-medium rounded-2xl"
-                                        size="small"
-                                        onClick={() => {
-                                            setShowCreateBooking(true)
-                                        }}
-                                    >
-                                        Đặt Ngay
-                                    </Button>
-                                    <br />
-
-                                    <Button
-                                        icon={<MessageOutlined />}  // Sử dụng icon chat
+                                        icon={<MessageOutlined />}
                                         type="primary"
                                         onClick={() => handleOpenConversation(detail.idUserOwner, detail.userNameOwner)}
-                                        style={{ height: 60, }}
-                                        className="text-xl w-full mb-2 font-medium rounded-2xl text-white bg-green-800"
-                                        size="small"
+                                        className="bg-green-600 hover:bg-green-700"
                                     >
-                                        Trao đổi
+                                        Trao đổi với chủ nhà
                                     </Button>
                                     <Button
                                         icon={<HeartFilled />}
                                         onClick={addFavorites}
-                                        type="default" danger
-                                        style={{ height: 60 }}
-                                        className="text-xl w-full font-medium rounded-2xl"
-                                        size="small"
+                                        type="default"
+                                        danger
                                     >
-                                        Yêu Thích
+                                        Yêu thích
                                     </Button>
                                 </div>
-                            </Affix>
-                            }
-
-
-                        </div>
-
-                        <div className="mt-5 ">
-                            <h1 className="text-3xl font-bold mb-5">Chi tiết chỗ ở</h1>
-                            <div className="text-lg w-[66.9%] text-justify leading-relaxed border-b border-gray-200 pb-4" >
-                                {detail.detailHomeStay.note ? detail.detailHomeStay.note : "Chưa cập nhật"}
                             </div>
-                        </div>
-                        <div className="">
-                            <div className="mt-5 w-[68%] border-b border-gray-300 pb-10 ">
-                                <h1 className="text-2xl font-bold mb-6">Tiện nghi HomeStay</h1>
-                                <div className="grid grid-cols-3 gap-7 mt-4">
-                                    {
-                                        detail.amenities.map((a, index) =>
-                                            <span key={index} className="text-lg font-medium"> <i className={a.icon + " mr-3 text-lg"}></i>{a.name}</span>)
-                                    }
+
+                            {/* Image Gallery Section */}
+                            <div className="flex justify-between mt-4 relative" style={{ height: 400 }}>
+                                <div style={{ width: "51.3%", maxWidth: "51.3%" }}>
+                                    <Image 
+                                        height={400} 
+                                        width={"100%"} 
+                                        className="rounded-xl object-cover" 
+                                        src={URL_SERVER + detail.homeStay.imageHomestay?.split(',')[0]} 
+                                    />
                                 </div>
-                            </div>
-                            <div className="mt-5 w-[68%]  pb-10 ">
-                                <h1 className="text-2xl font-bold mb-6">Tiện ích miễn phí</h1>
-                                <TextArea autoSize readOnly value={detail.detailHomeStay.utilities || "Chưa cập nhật"} className="text-lg leading-4 pb-2 font-medium box-border  text-gray-600 mt-4 overflow-hidden">
-                                </TextArea>
-                            </div>
-                            <div className="mt-5 w-[68%] border-b border-gray-300 pb-10 ">
-                                <h1 className="text-2xl font-bold mb-6">Nội quy về HomeStay ⚡</h1>
-                                <div className=" text-lg mt-4 text-justify leading-relaxed ">
-
-                                    <TextArea autoSize readOnly value={detail.detailHomeStay.rules || "Chưa cập nhật"} className="text-lg leading-4 pb-2 font-medium box-border  text-gray-600 mt-4 overflow-hidden">
-                                    </TextArea>
+                                <div style={{ width: "48%" }} className="grid grid-cols-2 gap-1">
+                                    {detail.homeStay.imageHomestay?.split(',').map((src, index) => (
+                                        index > 0 && index < 5 && (
+                                            <Image 
+                                                key={index} 
+                                                width={"100%"} 
+                                                height={198} 
+                                                className="rounded-xl object-cover" 
+                                                src={URL_SERVER + src} 
+                                            />
+                                        )
+                                    ))}
                                 </div>
+                                <Button className="absolute inline bottom-2 right-1 bg-white p-1 text-blue-900" type="link" onClick={showModal}>
+                                    Xem tất cả ảnh
+                                </Button>
                             </div>
-                            <div className="mt-5 w-[68%] border-b border-gray-300 pb-10 ">
-                                <h1 className="text-2xl font-bold mb-6">Giá phòng 💰</h1>
-                                <div className=" text-lg mt-4 text-justify leading-relaxed ">
 
-                                    <div className="text-lg font-semibold w-full flex justify-between bg-gray-100 p-4">
-                                        <span className="text-xl text-gray-600  font-bold">Giá đêm thứ nhất</span>
-                                        <span className="text-xl text-gray-800">{formatPrice(detail.homeStay.pricePerNight)}</span>
+                            {/* HomeStay Info Section */}
+                            <div className="mt-10 py-5 pl-2">
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                    {/* Left Column - HomeStay Info */}
+                                    <div className="lg:col-span-2">
+                                        <div className="grid grid-cols-2 gap-5 pb-8 border-b border-gray-200">
+                                            <div className="text-xl text-gray-700">
+                                                <i className="fa-solid fa-house-user mr-4"></i>Homestay
+                                            </div>
+                                            <div className="text-xl text-gray-700">
+                                                <i className="fa-solid fa-clock mr-4"></i>
+                                                Check-in: {detail.homeStay.timeCheckIn} | Check-out: {detail.homeStay.timeCheckOut}
+                                            </div>
+                                            <div className="text-xl text-gray-700">
+                                                <i className="fa-solid fa-star mr-4"></i>
+                                                Đánh giá: {detail.homeStay.averageRating}/5 ({detail.homeStay.reviewCount} đánh giá)
+                                            </div>
+                                            <div className="text-xl text-gray-700">
+                                                <i className="fa-solid fa-eye mr-4"></i>
+                                                Đã xem: {detail.homeStay.viewCount} lần
+                                            </div>
+                                        </div>
+
+                                        {/* HomeStay Features */}
+                                        <div className="mt-8 pb-8 border-b border-gray-200">
+                                            <h2 className="text-2xl font-bold mb-4">Đặc điểm nổi bật</h2>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                {detail.detailHomeStay.hasSwimmingPool && (
+                                                    <div className="flex items-center text-lg text-gray-700">
+                                                        <i className="fa-solid fa-swimming-pool mr-3"></i>Hồ bơi
+                                                    </div>
+                                                )}
+                                                {detail.detailHomeStay.hasBilliardTable && (
+                                                    <div className="flex items-center text-lg text-gray-700">
+                                                        <i className="fa-solid fa-table-tennis-paddle-ball mr-3"></i>Bàn bi-a
+                                                    </div>
+                                                )}
+                                                {detail.detailHomeStay.manyActivities && (
+                                                    <div className="flex items-center text-lg text-gray-700">
+                                                        <i className="fa-solid fa-gamepad mr-3"></i>Nhiều hoạt động
+                                                    </div>
+                                                )}
+                                                {detail.detailHomeStay.spaciousGarden && (
+                                                    <div className="flex items-center text-lg text-gray-700">
+                                                        <i className="fa-solid fa-seedling mr-3"></i>Vườn rộng rãi
+                                                    </div>
+                                                )}
+                                                {detail.detailHomeStay.lakeView && (
+                                                    <div className="flex items-center text-lg text-gray-700">
+                                                        <i className="fa-solid fa-water mr-3"></i>View hồ
+                                                    </div>
+                                                )}
+                                                {detail.detailHomeStay.mountainView && (
+                                                    <div className="flex items-center text-lg text-gray-700">
+                                                        <i className="fa-solid fa-mountain mr-3"></i>View núi
+                                                    </div>
+                                                )}
+                                                {detail.detailHomeStay.seaView && (
+                                                    <div className="flex items-center text-lg text-gray-700">
+                                                        <i className="fa-solid fa-ship mr-3"></i>View biển
+                                                    </div>
+                                                )}
+                                                {detail.detailHomeStay.riceFieldView && (
+                                                    <div className="flex items-center text-lg text-gray-700">
+                                                        <i className="fa-solid fa-wheat-awn mr-3"></i>View ruộng lúa
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Description */}
+                                        <div className="mt-8 pb-8 border-b border-gray-200">
+                                            <h2 className="text-2xl font-bold mb-4">Mô tả</h2>
+                                            <div 
+                                                className="text-lg text-justify leading-relaxed"
+                                                dangerouslySetInnerHTML={{ __html: detail.detailHomeStay.noteHomestay || "Chưa cập nhật" }}
+                                            />
+                                        </div>
+
+                                        {/* Amenities */}
+                                        <div className="mt-8 pb-8 border-b border-gray-200">
+                                            <h2 className="text-2xl font-bold mb-4">Tiện nghi HomeStay</h2>
+                                            <div className="grid grid-cols-3 gap-4">
+                                                {detail.amenities.map((a, index) => (
+                                                    <span key={index} className="text-lg font-medium">
+                                                        <i className={a.icon + " mr-3 text-lg"}></i>{a.name}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Rules */}
+                                        <div className="mt-8 pb-8 border-b border-gray-200">
+                                            <h2 className="text-2xl font-bold mb-4">Nội quy HomeStay</h2>
+                                            <div 
+                                                className="text-lg leading-relaxed"
+                                                dangerouslySetInnerHTML={{ __html: detail.detailHomeStay.stayRules || "Chưa cập nhật" }}
+                                            />
+                                        </div>
+
+                                        {/* Policies */}
+                                        <div className="mt-8 pb-8 border-b border-gray-200">
+                                            <h2 className="text-2xl font-bold mb-4">Chính sách</h2>
+                                            <div 
+                                                className="text-lg leading-relaxed"
+                                                dangerouslySetInnerHTML={{ __html: detail.detailHomeStay.policies || "Chưa cập nhật" }}
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="text-lg font-semibold flex justify-between mt-2 bg-gray-50 p-4 p-4">
-                                        <span className="text-xl text-gray-600 font-bold">Giá từ đêm tiếp theo</span>
-                                        <span className="text-xl text-gray-800">{formatPrice(detail.homeStay.discountSecondNight)}</span>
+
+                                    {/* Right Column - Contact Info */}
+                                    <div className="lg:col-span-1">
+                                        <Card className="shadow-xl sticky top-24 rounded-2xl overflow-hidden border-0">
+                                            <div className="bg-gradient-to-r from-blue-50 to-green-50 -mx-6 -mt-6 p-6 mb-6 border-b border-gray-100">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <Avatar size={48} icon={<UserOutlined />} className="bg-blue-500" />
+                                                    <div className="text-left">
+                                                        <h3 className="text-xl font-bold text-gray-800">{detail.userNameOwner}</h3>
+                                                        <p className="text-sm text-gray-500">Chủ HomeStay</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="space-y-4">
+                                                <Button
+                                                    icon={<MessageOutlined />}
+                                                    type="primary"
+                                                    onClick={() => handleOpenConversation(detail.idUserOwner, detail.userNameOwner)}
+                                                    className="w-full h-12 rounded-xl bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 border-0 shadow-md hover:shadow-lg transition-all duration-300"
+                                                    size="large"
+                                                >
+                                                    <span className="font-medium">Trao đổi với chủ nhà</span>
+                                                </Button>
+                                                
+                                                <Button
+                                                    icon={<HeartFilled />}
+                                                    onClick={addFavorites}
+                                                    className="w-full h-12 rounded-xl bg-white border border-red-300 hover:bg-red-50 text-red-500 hover:text-red-600 hover:border-red-400 shadow-sm hover:shadow-md transition-all duration-300"
+                                                    size="large"
+                                                >
+                                                    <span className="font-medium">Thêm vào yêu thích</span>
+                                                </Button>
+                                                
+                                                <div className="flex items-center justify-center mt-2 text-gray-500 text-sm">
+                                                    <i className="fa-solid fa-shield-halved mr-2"></i>
+                                                    <span>Liên hệ an toàn qua Huystay</span>
+                                                </div>
+                                            </div>
+                                        </Card>
                                     </div>
-
                                 </div>
-                            </div>
-                        </div>
 
+                                {/* Rooms Section */}
+                                <div className="mt-10">
+                                    <h2 className="text-3xl font-bold mb-6">Danh sách phòng</h2>
+                                    <div className="grid grid-cols-1 gap-6">
+                                        {detail.rooms.map((room) => (
+                                            <Card 
+                                                key={room.roomId} 
+                                                className="shadow-sm hover:shadow-md transition-shadow duration-300"
+                                                title={<h2 className="text-lg font-semibold text-gray-800">{"Phòng: " + room.roomName}</h2>}
+                                                extra={
+                                                    <Button
+                                                        type="primary"
+                                                        icon={<ShoppingCartOutlined />}
+                                                        className="bg-blue-500 hover-blue-white"
+                                                        onClick={() => handleBookRoom(room)}
+                                                    >
+                                                        Đặt phòng này
+                                                    </Button>
+                                                }
+                                            >
+                                                <div className="flex flex-col lg:flex-row gap-4">
+                                                    <div className="w-full lg:w-1/3">
+                                                        <div className="relative h-48 md:h-56 lg:h-64 w-full overflow-hidden rounded-xl">
+                                                            <div className="carousel-container" 
+                                                                onMouseEnter={() => setShowButtons(true)}
+                                                                onMouseLeave={() => setShowButtons(false)}
+                                                            >
+                                                                {showButtons && (
+                                                                    <>
+                                                                        <CarouselButton direction="prev" onClick={() => carouselRef.current.prev()} />
+                                                                        <CarouselButton direction="next" onClick={() => carouselRef.current.next()} />
+                                                                    </>
+                                                                )}
+                                                                <Carousel ref={carouselRef} dots>
+                                                                    {room.roomImage?.split(',').map((image, index) => (
+                                                                        <div key={index} style={{ borderRadius: 10, width: '100%', height: '100%' }}>
+                                                                            <Image
+                                                                                src={URL_SERVER + image}
+                                                                                alt={`${room.roomName} - ảnh ${index + 1}`}
+                                                                                className="object-cover rounded-xl"
+                                                                                style={{ height: '100%', width: '100%', objectFit: 'cover' }}
+                                                                                preview={true}
+                                                                            />
+                                                                        </div>
+                                                                    ))}
+                                                                </Carousel>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="w-full lg:w-2/3">
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                                            <div className="flex items-center gap-2">
+                                                                <i className="fas fa-home text-blue-500"></i>
+                                                                <p><span className="font-medium">Loại phòng:</span> {room.roomType}</p>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <i className="fas fa-money-bill-wave text-yellow-500"></i>
+                                                                <p><span className="font-medium">Giá/đêm:</span> {formatPrice(room.pricePerNight)}</p>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <i className="fas fa-money-bill-wave text-yellow-500"></i>
+                                                                <p><span className="font-medium">Giá từ đêm thứ 2:</span> {formatPrice(room.priceFromSecondNight)}</p>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <i className="fas fa-ruler-combined text-green-500"></i>
+                                                                <p><span className="font-medium">Diện tích:</span> {room.roomSize} m²</p>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <i className="fas fa-bed text-purple-500"></i>
+                                                                <p><span className="font-medium">Số giường:</span> {room.bedCount}</p>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <i className="fas fa-bath text-cyan-500"></i>
+                                                                <p><span className="font-medium">Phòng tắm:</span> {room.bathroomCount}</p>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <i className="fas fa-user text-indigo-500"></i>
+                                                                <p><span className="font-medium">Người lớn:</span> {room.maxAdults}</p>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <i className="fas fa-child text-pink-500"></i>
+                                                                <p><span className="font-medium">Trẻ em:</span> {room.maxChildren}</p>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <i className="fas fa-baby text-orange-500"></i>
+                                                                <p><span className="font-medium">Em bé:</span> {room.maxBaby}</p>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <i className="fas fa-tag text-red-500"></i>
+                                                                <p>
+                                                                    <span className="font-medium">Phụ thu:</span> 
+                                                                    <Tag color="orange" className="ml-1">Người lớn: {formatPrice(room.extraFeePerAdult)}</Tag>
+                                                                </p>
+                                                            </div>
+                                                        </div>
 
+                                                        <div className="mt-4">
+                                                            <p className="font-medium text-gray-700 mb-2">Tiện nghi phòng:</p>
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {room.hasBalcony && <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs flex items-center"><i className="fas fa-door-open mr-1"></i>Ban công</span>}
+                                                                {room.hasTv && <span className="bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs flex items-center"><i className="fas fa-tv mr-1"></i>TV</span>}
+                                                                {room.hasAirConditioner && <span className="bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-xs flex items-center"><i className="fas fa-wind mr-1"></i>Điều hòa</span>}
+                                                                {room.hasRefrigerator && <span className="bg-cyan-50 text-cyan-700 px-3 py-1 rounded-full text-xs flex items-center"><i className="fas fa-snowflake mr-1"></i>Tủ lạnh</span>}
+                                                                {room.hasWifi && <span className="bg-yellow-50 text-yellow-700 px-3 py-1 rounded-full text-xs flex items-center"><i className="fas fa-wifi mr-1"></i>Wifi</span>}
+                                                                {room.hasHotWater && <span className="bg-red-50 text-red-700 px-3 py-1 rounded-full text-xs flex items-center"><i className="fas fa-hot-tub mr-1"></i>Nước nóng</span>}
+                                                            </div>
+                                                        </div>
 
+                                                        {room.description && (
+                                                            <div className="mt-4">
+                                                                <p className="font-medium text-gray-700 mb-1">Mô tả:</p>
+                                                                <p className="text-gray-600 text-sm">{room.description}</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </Card>
+                                        ))}
+                                    </div>
+                                </div>
 
-                        <Modal
-                            title="Tất cả ảnh"
-                            visible={isModalVisible}
-                            onOk={handleOk}
-                            onCancel={handleCancel}
-                            width={1000}
-                            footer={null}
-                        >
-                            <Image.PreviewGroup>
-                                {detail.homeStay.imagePreview.map((src, index) => (
-                                    <Image width={"100%"} className="object-cover" height={"45vh"} key={index} src={URL_SERVER + src} />
-                                ))}
-                            </Image.PreviewGroup>
-                        </Modal>
+                                {/* Modal for all images */}
+                                <Modal
+                                    title="Tất cả ảnh"
+                                    visible={isModalVisible}
+                                    onOk={handleOk}
+                                    onCancel={handleCancel}
+                                    width={1000}
+                                    footer={null}
+                                >
+                                    <Image.PreviewGroup>
+                                        {detail.homeStay.imageHomestay?.split(',').map((src, index) => (
+                                            <Image 
+                                                width={"100%"} 
+                                                className="object-cover" 
+                                                height={"45vh"} 
+                                                key={index} 
+                                                src={URL_SERVER + src} 
+                                            />
+                                        ))}
+                                    </Image.PreviewGroup>
+                                </Modal>
 
-                        {showCreateBooking && <CreateDetailBooking data={detail} bookingValue={booking} onClose={setShowCreateBooking} visible={showCreateBooking} disabledDates={disabledDate} />}
-
-
-                        {/* Voucher */}
-
-                        {promotions.length > 0 && <div className="mt-5 w-[68%] border-b border-gray-300 pb-10 ">
-                            <h1 className="text-2xl font-bold mb-6">Mã giảm giá dành cho bạn </h1>
-                            <div className="flex gap-4">
-                                {
-
-                                    promotions.map(s => <VoucherCard voucher={s} />)
-                                }
-                            </div>
-                        </div>}
-
-                        {/* HomeStay Reviews */}
-
-                        {<div className="mt-5 w-[100%] border-b border-gray-300 pb-10">
-                            <h1 className="text-2xl font-bold mb-6">Đánh giá về HomeStay</h1>
-                            <div className="flex flex-wrap gap-2">
-                                {reviews.length === 0 ? (
-                                    <Empty description="Chưa có đánh giá nào" />
-                                ) : (
-                                    reviews.map((s, i) => (
-                                        <ReviewItem key={i} review={s} />
-                                    ))
+                                {/* Booking Modal */}
+                                {showCreateBooking && selectedRoom && (
+                                    <CreateDetailBooking 
+                                        data={detail} 
+                                        room={selectedRoom}
+                                        bookingValue={booking} 
+                                        onClose={setShowCreateBooking} 
+                                        visible={showCreateBooking} 
+                                        disabledDates={disabledDate} 
+                                    />
                                 )}
-                            </div>
-                        </div>}
-                    </div>
-                </div > : <div></div>
-                }
-            </div>
-            {conversation &&showChat && <ChatAppCard convertion={conversation} stateOpen={{ open: showChat, setOpen: setShowChat }} />}
-        </>
 
+                                {/* Vouchers */}
+                                {promotions.length > 0 && (
+                                    <div className="mt-8 pb-8 border-b border-gray-300">
+                                        <h2 className="text-2xl font-bold mb-4">Mã giảm giá dành cho bạn</h2>
+                                        <div className="flex gap-4">
+                                            {promotions.map((s, index) => (
+                                                <VoucherCard key={index} voucher={s} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Reviews */}
+                                <div className="mt-8 pb-8">
+                                    <h2 className="text-2xl font-bold mb-4">Đánh giá về HomeStay</h2>
+                                    <div className="flex flex-wrap gap-2">
+                                        {reviews.length === 0 ? (
+                                            <Empty description="Chưa có đánh giá nào" />
+                                        ) : (
+                                            reviews.map((s, i) => (
+                                                <ReviewItem key={i} review={s} />
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div></div>
+                )}
+            </div>
+            {conversation && showChat && (
+                <ChatAppCard convertion={conversation} stateOpen={{ open: showChat, setOpen: setShowChat }} />
+            )}
+        </>
     );
 };
-export default memo(DetailHomeStay)
+
+export default memo(DetailHomeStay);

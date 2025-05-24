@@ -111,7 +111,7 @@ const OwnerLayout = ({ children }) => {
     };
 
     useEffect(() => {
-        if (owner.idOwner) {
+        if (owner && owner.idOwner) {
             async function loadData() {
 
                 fetchNotifications();
@@ -126,7 +126,7 @@ const OwnerLayout = ({ children }) => {
     useEffect(() => {
         document.title = "Huystay - Kênh Chủ HomeStay";
 
-        if (!owner.idOwner) {
+        if (!owner || !owner.idOwner) {
             notification.error({
                 message: "Bạn chưa phải là đối tác của HuyStay",
                 description:

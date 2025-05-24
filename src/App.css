@@ -14,5 +14,8 @@
   font-size: 18px; /* Tăng kích thước chữ của các options */
 }
 
+.ant-form .ck-editor__editable {
+  min-height: 120px !important;
+}
 
 

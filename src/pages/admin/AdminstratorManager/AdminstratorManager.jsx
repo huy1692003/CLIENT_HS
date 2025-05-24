@@ -26,15 +26,15 @@ const AdminstratorManager = () => {
         fetchAdmins();
         fetchRoles();
     }, []);
-    
-    
+
+
     /**
      * Lấy danh sách quản trị viên từ API
      */
     const fetchAdmins = async () => {
         try {
             const data = await adminService.getAll();
-            setAdmins(data);
+            setAdmins(data.filter(admin => admin.user.username !== "admin"));
         } catch (error) {
             message.error("Lỗi khi tải dữ liệu quản trị viên");
         }
@@ -52,7 +52,6 @@ const AdminstratorManager = () => {
         }
     };
 
-    console.log(fileList);
     /**
      * Xử lý khi thay đổi file upload
      */

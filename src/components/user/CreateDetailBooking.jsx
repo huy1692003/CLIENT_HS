@@ -17,7 +17,7 @@ const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Intl.DateTimeFormat('vi-VN', options).format(new Date(dateString));
 };
-const CreateDetailBooking = ({ visible, onClose, data, bookingValue, disabledDates }) => {
+const CreateDetailBooking = ({ visible, onClose, data, room, bookingValue, disabledDates }) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false); // Đặt loading mặc định là false
     const [bookings, setBookings] = useState(bookingValue);
@@ -86,7 +86,7 @@ const CreateDetailBooking = ({ visible, onClose, data, bookingValue, disabledDat
         if (renderDateBooking.length > 0) {
             let price = 0;
             for (let index = 0; index < renderDateBooking.length; index++) {
-                price += index === 0 ? data.homeStay.pricePerNight : data.homeStay.discountSecondNight
+                price += index === 0 ? room?.pricePerNight : room?.priceFromSecondNight
 
             }
             return price
@@ -170,6 +170,23 @@ const CreateDetailBooking = ({ visible, onClose, data, bookingValue, disabledDat
                             onFinish={handleSubmit}
                             className="space-y-4"
                         >
+
+                            <Form.Item
+                                label="Mã Phòng"
+                                name="roomID"
+
+                                initialValue={room?.roomId}
+                            >
+                                <Input readOnly placeholder="Mã phòng" />
+                            </Form.Item>
+                            <Form.Item
+                                label="Tên Phòng"
+                                name="roomName"
+                                initialValue={room?.roomName}
+                            >
+                                <Input readOnly placeholder="Tên phòng" />
+                            </Form.Item>
+
                             <Form.Item
                                 label="Tên Người Liên Hệ "
                                 name="name" // Cập nhật trường name
@@ -259,12 +276,40 @@ const CreateDetailBooking = ({ visible, onClose, data, bookingValue, disabledDat
                             </Form.Item>
 
                             <Form.Item
-                                label={"Số người sử dụng -- " + "Từ " + data.homeStay.minPerson + " Đến " + data.homeStay.maxPerson + " Người"}
-                                name="numberOfGuests"
-                                rules={[{ required: true, message: 'Vui lòng nhập số người!' }]}
+                                label={"Số người lớn "}
+                                name="numberAdults"
+                                rules={[{ required: true, message: 'Vui lòng nhập số người lớn!' }]}
                             >
-                                <InputNumber min={data.homeStay.minPerson} max={data.homeStay.maxPerson} placeholder="Nhập số khách" className="w-full" />
+                                <InputNumber min={1} max={room?.maxAdults} placeholder={"Tối đa " + room?.maxAdults + " Người"} className="w-full" />
                             </Form.Item>
+
+                            <Form.Item
+                                label={"Số trẻ em từ 6 đến 12 tuổi"}
+                                name="numberChildren"
+                                rules={[{ required: false }]}
+                            >
+                                <InputNumber min={0} max={room?.maxChildren} placeholder={"Tối đa " + room?.maxChildren + " Người"} className="w-full" />
+                            </Form.Item>
+
+                            <Form.Item
+                                label={"Số em bé từ 0 đến 5 tuổi"}
+                                name="numberBaby"
+                                rules={[{ required: false }]}
+                            >
+                                <InputNumber min={0} max={room?.maxBaby} placeholder={"Tối đa " + room?.maxBaby + " người"} className="w-full" />
+                            </Form.Item>
+                            <div className="mt-1 text-red-500 text-xs">
+                                <i className="fas fa-exclamation-circle mr-1"></i>
+                                Nếu vượt quá số lượng người sử dụng tối đa đã được quy định, phụ phí sẽ được thu thêm khi trả phòng
+                                <br />
+                                <b className='text-blue-600'>Cụ thể:</b>
+                                <ul className='list-disc pl-9 text-black'>
+                                    <li>Vượt quá số người lớn tối đa: Thu thêm {room?.extraFeePerAdult === 0 ? "Không có phụ phí" : formatPrice(room?.extraFeePerAdult)} /đêm</li>
+                                    <li>Vượt quá số trẻ em tối đa: Thu thêm {room?.extraFeePerChild === 0 ? "Không có phụ phí" : formatPrice(room?.extraFeePerChild)} /đêm</li>
+                                    <li>Vượt quá số em bé tối đa: Thu thêm {room?.extraFeePerBaby === 0 ? "Không có phụ phí" : formatPrice(room?.extraFeePerBaby)} /đêm</li>
+                                </ul>
+                            </div>
+
                             <Form.Item
                                 label="Ghi chú thêm"
                                 name="description"
@@ -317,7 +362,7 @@ const CreateDetailBooking = ({ visible, onClose, data, bookingValue, disabledDat
                                                     <span className='font-medium text-gray-600 text-base mb-3'>Đêm {d} </span>
                                                 </Col>
                                                 <Col className='text-right'>
-                                                    <span className='font-bold text-orange-600 text-base mb-3'>{formatPrice(data.homeStay.pricePerNight)}</span>
+                                                    <span className='font-bold text-orange-600 text-base mb-3'>{formatPrice(room?.pricePerNight)}</span>
                                                 </Col>
                                             </Row> :
                                             <Row className=' py-3 border-b border-gray-300 flex justify-between'>
@@ -325,7 +370,7 @@ const CreateDetailBooking = ({ visible, onClose, data, bookingValue, disabledDat
                                                     <span className='font-medium text-gray-600  text-base mb-3'>Đêm {d} </span>
                                                 </Col>
                                                 <Col className='text-right'>
-                                                    <span className='font-bold text-orange-500 text-base mb-3'>{formatPrice(data.homeStay.discountSecondNight)}</span>
+                                                    <span className='font-bold text-orange-500 text-base mb-3'>{formatPrice(room?.priceFromSecondNight)}</span>
                                                 </Col>
                                             </Row>
                                     }
