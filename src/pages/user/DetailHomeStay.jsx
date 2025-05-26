@@ -2,7 +2,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import SearchHomeStay from "../../components/user/SearchHomeStay";
 import { memo, useEffect, useRef, useState } from "react";
 import { Button, Col, Image, Space, Table, Modal, Tag, DatePicker, InputNumber, Row, message, notification, Spin, Breadcrumb, Empty, Affix, Card, Divider, Avatar, Carousel } from "antd";
-import { HeartFilled, HeartOutlined, MessageOutlined, ShoppingCartOutlined, UserOutlined, SmileOutlined, HomeOutlined, InfoCircleOutlined } from "@ant-design/icons";
+import { HeartFilled, HeartOutlined, MessageOutlined, ShoppingCartOutlined, UserOutlined, SmileOutlined, HomeOutlined, InfoCircleOutlined, EyeOutlined, FireTwoTone } from "@ant-design/icons";
 import { formatPrice } from './../../utils/formatPrice';
 import HomeStayReviews from "../../components/user/HomeStayReviews";
 import homestayService from "../../services/homestayService";
@@ -23,33 +23,21 @@ import ChatAppCard from "../../components/shared/ChatAppCard";
 import chatSupportService from "../../services/chatSupportService";
 import { convertTimezoneToVN } from "../../utils/convertDate";
 import CarouselButton from "../../components/shared/CarouselButton";
+import serviceHomestayService from "../../services/serviceHomestayService";
 
-export const getDisabledDates = (bookedDates) => {
-    const disabledDates = [];
 
-    bookedDates.forEach(({ checkInDate, checkOutDate }) => {
-        const start = moment(checkInDate);
-        const end = moment(checkOutDate);
-
-        for (let date = start; date.isBefore(end); date.add(1, 'days')) {
-            disabledDates.push(date.clone());
-        }
-    });
-
-    return disabledDates;
-};
 
 const DetailHomeStay = () => {
     const [param] = useSearchParams();
     const id = param.get('id');
     const [detail, setDetail] = useState();
-    const [bookedDate, setBookedDate] = useState([]);
     const [showCreateBooking, setShowCreateBooking] = useState(false);
     const [selectedRoom, setSelectedRoom] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [loading, setLoading] = useState(true);
     const [reviews, setReviews] = useState([]);
     const [promotions, setPromotions] = useState([]);
+    const [services, setServices] = useState([]);
     const [booking, setBooking] = useState({
         numberofGuest: null,
         dateIn: null,
@@ -64,16 +52,22 @@ const DetailHomeStay = () => {
     const [showButtons, setShowButtons] = useState(false);
 
 
-   
+
 
     useEffect(() => {
-        detail && getPromotion(detail);
-        getReviews();
+        if (detail) {
+            getServices();
+            getPromotion(detail);
+            getReviews();
+        }
+
     }, [detail]);
 
-    useSignalR("RefeshDateHomeStay", (idHomeStay) => {
-        idHomeStay === Number.parseInt(id) && handleDateDisabled(id);
-    });
+
+    const getServices = async () => {
+        let res = await serviceHomestayService.getAllServices(detail.homeStay.ownerID);
+        setServices(res);
+    };
 
     const getPromotion = async (detail) => {
         let res = await promotionService.getAllByOwnwer(detail.homeStay.ownerID);
@@ -95,21 +89,16 @@ const DetailHomeStay = () => {
         }
     };
 
-    const disabledDate = (current) => {
-        const disabledDates = getDisabledDates(bookedDate);
-        const isPastDate = current && current <= moment().startOf('day');
-        const isDisabledDate = disabledDates.some(date => current.isSame(date, 'day'));
-        return isPastDate || isDisabledDate;
-    };
+
 
     const addFavorites = async () => {
         if (!cus) {
-            notification.error({ 
-                showProgress: true, 
-                message: "Yêu cầu đăng nhập!", 
-                description: "Bạn cần đăng nhập để sử dụng chức năng này", 
-                btn: <Button onClick={() => navigate('/login-user')}>Đăng nhập ngay</Button>, 
-                duration: 4 
+            notification.error({
+                showProgress: true,
+                message: "Yêu cầu đăng nhập!",
+                description: "Bạn cần đăng nhập để sử dụng chức năng này",
+                btn: <Button onClick={() => navigate('/login-user')}>Đăng nhập ngay</Button>,
+                duration: 4
             });
         } else {
             try {
@@ -125,7 +114,6 @@ const DetailHomeStay = () => {
         try {
             let result = await homestayService.viewDetailHomeStay(id);
             result && setDetail(result);
-            await handleDateDisabled(id);
         } catch (error) {
             message.error("Có lỗi khi tải dữ liệu");
         } finally {
@@ -137,10 +125,7 @@ const DetailHomeStay = () => {
         getDataDetail();
     }, []);
 
-    const handleDateDisabled = async (id) => {
-        let resDateBooking = await bookingService.getBookingDateExisted(id);
-        resDateBooking && setBookedDate(resDateBooking);
-    };
+
 
     const showModal = () => {
         setIsModalVisible(true);
@@ -156,11 +141,11 @@ const DetailHomeStay = () => {
 
     const handleOpenConversation = async (idUserOwner, userNameOwner) => {
         if (!cus) {
-            notification.warning({ 
-                message: "Bạn cần đăng nhập để sử dụng dịch vụ này!", 
-                duration: 3, 
-                showProgress: true, 
-                btn: <Button onClick={() => { navigate("/login-user") }}>Đăng nhập</Button> 
+            notification.warning({
+                message: "Bạn cần đăng nhập để sử dụng dịch vụ này!",
+                duration: 3,
+                showProgress: true,
+                btn: <Button onClick={() => { navigate("/login-user") }}>Đăng nhập</Button>
             });
             return;
         }
@@ -197,7 +182,7 @@ const DetailHomeStay = () => {
         if (room.hasRefrigerator) amenities.push({ icon: "fa-solid fa-snowflake", text: "Tủ lạnh" });
         if (room.hasWifi) amenities.push({ icon: "fa-solid fa-wifi", text: "Wifi" });
         if (room.hasHotWater) amenities.push({ icon: "fa-solid fa-fire", text: "Nước nóng" });
-        
+
         return amenities;
     };
 
@@ -266,27 +251,27 @@ const DetailHomeStay = () => {
                             {/* Image Gallery Section */}
                             <div className="flex justify-between mt-4 relative" style={{ height: 400 }}>
                                 <div style={{ width: "51.3%", maxWidth: "51.3%" }}>
-                                    <Image 
-                                        height={400} 
-                                        width={"100%"} 
-                                        className="rounded-xl object-cover" 
-                                        src={URL_SERVER + detail.homeStay.imageHomestay?.split(',')[0]} 
+                                    <Image
+                                        height={400}
+                                        width={"100%"}
+                                        className="rounded-xl object-cover"
+                                        src={URL_SERVER + detail.homeStay.imageHomestay?.split(',')[0]}
                                     />
                                 </div>
                                 <div style={{ width: "48%" }} className="grid grid-cols-2 gap-1">
                                     {detail.homeStay.imageHomestay?.split(',').map((src, index) => (
                                         index > 0 && index < 5 && (
-                                            <Image 
-                                                key={index} 
-                                                width={"100%"} 
-                                                height={198} 
-                                                className="rounded-xl object-cover" 
-                                                src={URL_SERVER + src} 
+                                            <Image
+                                                key={index}
+                                                width={"100%"}
+                                                height={198}
+                                                className="rounded-xl object-cover"
+                                                src={URL_SERVER + src}
                                             />
                                         )
                                     ))}
                                 </div>
-                                <Button className="absolute inline bottom-2 right-1 bg-white p-1 text-blue-900" type="link" onClick={showModal}>
+                                <Button className="absolute inline bottom-2  right-1 bg-white p-1 pl-3 text-blue-900" onClick={showModal}>
                                     Xem tất cả ảnh
                                 </Button>
                             </div>
@@ -298,25 +283,25 @@ const DetailHomeStay = () => {
                                     <div className="lg:col-span-2">
                                         <div className="grid grid-cols-2 gap-5 pb-8 border-b border-gray-200">
                                             <div className="text-xl text-gray-700">
-                                                <i className="fa-solid fa-house-user mr-4"></i>Homestay
+                                                <i className="fa-solid fa-house-user mr-4 text-blue-500"></i>Homestay
                                             </div>
                                             <div className="text-xl text-gray-700">
-                                                <i className="fa-solid fa-clock mr-4"></i>
+                                                <i className="fa-solid fa-clock mr-4 text-orange-700"></i>
                                                 Check-in: {detail.homeStay.timeCheckIn} | Check-out: {detail.homeStay.timeCheckOut}
                                             </div>
                                             <div className="text-xl text-gray-700">
-                                                <i className="fa-solid fa-star mr-4"></i>
+                                                <i className="fa-solid fa-star mr-4 text-yellow-500"></i>
                                                 Đánh giá: {detail.homeStay.averageRating}/5 ({detail.homeStay.reviewCount} đánh giá)
                                             </div>
                                             <div className="text-xl text-gray-700">
-                                                <i className="fa-solid fa-eye mr-4"></i>
+                                                <i className="fa-solid fa-eye mr-4 text-green-500"></i>
                                                 Đã xem: {detail.homeStay.viewCount} lần
                                             </div>
                                         </div>
 
                                         {/* HomeStay Features */}
                                         <div className="mt-8 pb-8 border-b border-gray-200">
-                                            <h2 className="text-2xl font-bold mb-4">Đặc điểm nổi bật</h2>
+                                            <h2 className="text-2xl font-bold mb-4 text-blue-500">Đặc điểm nổi bật</h2>
                                             <div className="grid grid-cols-2 gap-4">
                                                 {detail.detailHomeStay.hasSwimmingPool && (
                                                     <div className="flex items-center text-lg text-gray-700">
@@ -364,7 +349,7 @@ const DetailHomeStay = () => {
                                         {/* Description */}
                                         <div className="mt-8 pb-8 border-b border-gray-200">
                                             <h2 className="text-2xl font-bold mb-4">Mô tả</h2>
-                                            <div 
+                                            <div
                                                 className="text-lg text-justify leading-relaxed"
                                                 dangerouslySetInnerHTML={{ __html: detail.detailHomeStay.noteHomestay || "Chưa cập nhật" }}
                                             />
@@ -382,23 +367,8 @@ const DetailHomeStay = () => {
                                             </div>
                                         </div>
 
-                                        {/* Rules */}
-                                        <div className="mt-8 pb-8 border-b border-gray-200">
-                                            <h2 className="text-2xl font-bold mb-4">Nội quy HomeStay</h2>
-                                            <div 
-                                                className="text-lg leading-relaxed"
-                                                dangerouslySetInnerHTML={{ __html: detail.detailHomeStay.stayRules || "Chưa cập nhật" }}
-                                            />
-                                        </div>
 
-                                        {/* Policies */}
-                                        <div className="mt-8 pb-8 border-b border-gray-200">
-                                            <h2 className="text-2xl font-bold mb-4">Chính sách</h2>
-                                            <div 
-                                                className="text-lg leading-relaxed"
-                                                dangerouslySetInnerHTML={{ __html: detail.detailHomeStay.policies || "Chưa cập nhật" }}
-                                            />
-                                        </div>
+
                                     </div>
 
                                     {/* Right Column - Contact Info */}
@@ -413,7 +383,7 @@ const DetailHomeStay = () => {
                                                     </div>
                                                 </div>
                                             </div>
-                                            
+
                                             <div className="space-y-4">
                                                 <Button
                                                     icon={<MessageOutlined />}
@@ -424,7 +394,7 @@ const DetailHomeStay = () => {
                                                 >
                                                     <span className="font-medium">Trao đổi với chủ nhà</span>
                                                 </Button>
-                                                
+
                                                 <Button
                                                     icon={<HeartFilled />}
                                                     onClick={addFavorites}
@@ -433,7 +403,7 @@ const DetailHomeStay = () => {
                                                 >
                                                     <span className="font-medium">Thêm vào yêu thích</span>
                                                 </Button>
-                                                
+
                                                 <div className="flex items-center justify-center mt-2 text-gray-500 text-sm">
                                                     <i className="fa-solid fa-shield-halved mr-2"></i>
                                                     <span>Liên hệ an toàn qua Huystay</span>
@@ -448,8 +418,8 @@ const DetailHomeStay = () => {
                                     <h2 className="text-3xl font-bold mb-6">Danh sách phòng</h2>
                                     <div className="grid grid-cols-1 gap-6">
                                         {detail.rooms.map((room) => (
-                                            <Card 
-                                                key={room.roomId} 
+                                            <Card
+                                                key={room.roomId}
                                                 className="shadow-sm hover:shadow-md transition-shadow duration-300"
                                                 title={<h2 className="text-lg font-semibold text-gray-800">{"Phòng: " + room.roomName}</h2>}
                                                 extra={
@@ -466,7 +436,7 @@ const DetailHomeStay = () => {
                                                 <div className="flex flex-col lg:flex-row gap-4">
                                                     <div className="w-full lg:w-1/3">
                                                         <div className="relative h-48 md:h-56 lg:h-64 w-full overflow-hidden rounded-xl">
-                                                            <div className="carousel-container" 
+                                                            <div className="carousel-container"
                                                                 onMouseEnter={() => setShowButtons(true)}
                                                                 onMouseLeave={() => setShowButtons(false)}
                                                             >
@@ -533,7 +503,7 @@ const DetailHomeStay = () => {
                                                             <div className="flex items-center gap-2">
                                                                 <i className="fas fa-tag text-red-500"></i>
                                                                 <p>
-                                                                    <span className="font-medium">Phụ thu:</span> 
+                                                                    <span className="font-medium">Phụ thu:</span>
                                                                     <Tag color="orange" className="ml-1">Người lớn: {formatPrice(room.extraFeePerAdult)}</Tag>
                                                                 </p>
                                                             </div>
@@ -575,12 +545,12 @@ const DetailHomeStay = () => {
                                 >
                                     <Image.PreviewGroup>
                                         {detail.homeStay.imageHomestay?.split(',').map((src, index) => (
-                                            <Image 
-                                                width={"100%"} 
-                                                className="object-cover" 
-                                                height={"45vh"} 
-                                                key={index} 
-                                                src={URL_SERVER + src} 
+                                            <Image
+                                                width={"100%"}
+                                                className="object-cover"
+                                                height={"45vh"}
+                                                key={index}
+                                                src={URL_SERVER + src}
                                             />
                                         ))}
                                     </Image.PreviewGroup>
@@ -588,20 +558,44 @@ const DetailHomeStay = () => {
 
                                 {/* Booking Modal */}
                                 {showCreateBooking && selectedRoom && (
-                                    <CreateDetailBooking 
-                                        data={detail} 
+                                    <CreateDetailBooking
+                                        data={detail}
                                         room={selectedRoom}
-                                        bookingValue={booking} 
-                                        onClose={setShowCreateBooking} 
-                                        visible={showCreateBooking} 
-                                        disabledDates={disabledDate} 
+                                        bookingValue={booking}
+                                        onClose={setShowCreateBooking}
+                                        visible={showCreateBooking}
                                     />
+                                )}
+                                {services.length > 0 && (
+                                    <div className="mt-8 pb-8 w-3/4 border-b border-gray-200">
+                                        <h2 className="text-2xl font-bold mb-4">Dịch vụ của chủ nhà</h2>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {services.map((s, index) => (
+                                                <div key={index} className="flex items-center gap-2">
+                                                    <div className="w-[60px] h-[60px] flex-shrink-0">
+                                                        <Image 
+                                                            preview={false} 
+                                                            src={URL_SERVER + s.imagePreview} 
+                                                            alt={s.serviceName} 
+                                                            width={60} 
+                                                            height={60} 
+                                                            className="rounded-xl object-cover w-full h-full"
+                                                        />
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <b className="font-bold"> {s.serviceName}</b>
+                                                        <p className="text-gray-500 text-sm"> {formatPrice(s.price)}/{s.unit}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 )}
 
                                 {/* Vouchers */}
                                 {promotions.length > 0 && (
                                     <div className="mt-8 pb-8 border-b border-gray-300">
-                                        <h2 className="text-2xl font-bold mb-4">Mã giảm giá dành cho bạn</h2>
+                                        <h2 className="text-2xl font-bold mb-4">Mã giảm giá của Homestay dành cho bạn <FireTwoTone twoToneColor="#ff0000" /></h2>
                                         <div className="flex gap-4">
                                             {promotions.map((s, index) => (
                                                 <VoucherCard key={index} voucher={s} />
@@ -610,6 +604,23 @@ const DetailHomeStay = () => {
                                     </div>
                                 )}
 
+                                {/* Rules */}
+                                <div className="mt-8 pb-8 border-b border-gray-200">
+                                    <h2 className="text-2xl font-bold mb-4">Nội quy HomeStay</h2>
+                                    <div
+                                        className="text-lg leading-relaxed"
+                                        dangerouslySetInnerHTML={{ __html: detail.detailHomeStay.stayRules || "Chưa cập nhật" }}
+                                    />
+                                </div>
+
+                                {/* Policies */}
+                                <div className="mt-8 pb-8 border-b border-gray-200">
+                                    <h2 className="text-2xl font-bold mb-4">Chính sách</h2>
+                                    <div
+                                        className="text-lg leading-relaxed"
+                                        dangerouslySetInnerHTML={{ __html: detail.detailHomeStay.policies || "Chưa cập nhật" }}
+                                    />
+                                </div>
                                 {/* Reviews */}
                                 <div className="mt-8 pb-8">
                                     <h2 className="text-2xl font-bold mb-4">Đánh giá về HomeStay</h2>

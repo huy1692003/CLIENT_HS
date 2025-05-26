@@ -72,11 +72,11 @@ const HomePage = () => {
             {/* Địa điểm yêu thích */}
 
             {/* Một số HomeStay nhiều lượt đặt phòng */}
-            <div className="w-full flex justify-between h-auto md:h-[widthInit] ">
+            <div className="w-full flex justify-between h-auto mb-4 md:h-[widthInit] ">
                 {/* Thanh bên hiển thị khi màn hình lớn hơn 768px */}
                 {windowWidth > 768 && (
                     <div className="w-[30%] h-full pl-4">
-                        <h1 className="text-2xl text-center font-bold">
+                        <h1 className="text-xl text-center font-bold">
                             HuyStay MALL <i className="fa-solid fa-certificate text-yellow-500"></i>
                         </h1>
                         <p className="mt-1 text-center font-light" style={{ fontFamily: "Lexend, sans-serif" }}>
@@ -94,16 +94,11 @@ const HomePage = () => {
                 )}
                 {/* Nội dung chính */}
                 <div className={windowWidth > 768 ? 'w-[69%]' : 'w-full'}>
-                    <div className="">
-                        <h1 className="text-2xl text-center font-bold">HomeStay được quan tâm nhiều nhất</h1>
-                        <p className="mt-2 text-center font-light" style={{ fontFamily: "Lexend, sans-serif" }}>
-                            Hơn 1.000+ homestay giá tốt, trải nghiệm chất Việt trong từng hành trình!
-                        </p>
-                    </div>
+                    
                     <Skeleton loading={loading} active>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 justify-items-center">
                             {homeStayViewHight.slice(0, windowWidth > 768 ? 12 : 8).map((homestay) => (
-                                <CardHomeStay key={homestay.id} data={homestay} />
+                                <CardHomeStay key={homestay.id} data={homestay} isTopView={true} />
                             ))}
                         </div>
                     </Skeleton>

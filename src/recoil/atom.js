@@ -34,15 +34,36 @@ export const signalR_Connect=atom ({
 })
 
 export const initParamseach={
-    location: "", // Địa điểm tìm kiếm
+    location: "", // Vị trí
     priceRange: "", // Khoảng giá
-    name: "",
-    numberAdult: 1, // Số người lớn
-    numberChild: 0, // Số trẻ em
-    numberBaby: 0, // Số em bé
-    amenities: new Set(), // Danh sách tiện ích (Sử dụng Set để tránh trùng lặp)
-    dateIn: null, // Ngày đến
-    dateOut: null, // Ngày đi
+    name: "", // Tên
+    numberAdults: 1, // Số lượng người lớn
+    numberChildren: 0, // Số lượng trẻ em
+    numberBaby: 0, // Số lượng em bé
+    amenities: [], // Tiện nghi
+    dateIn: undefined, // Ngày nhận phòng
+    dateOut: undefined, // Ngày trả phòng
+    hasBalcony: undefined, // Có ban công
+    hasTv: undefined, // Có TV
+    hasAirConditioner: undefined, // Có máy lạnh
+    hasRefrigerator: undefined, // Có tủ lạnh
+    hasWifi: undefined, // Có Wi-Fi
+    hasHotWater: undefined, // Có nước nóng
+    numberOfBeds: undefined, // Số lượng giường
+    bathroomCount: undefined, // Số lượng phòng tắm
+    roomSize: "", // Diện tích phòng
+    rating: undefined, // Điểm đánh giá
+    hasParking: undefined, // Có bãi đỗ xe
+    hasPool: undefined, // Có hồ bơi
+    hasGarden: undefined, // Có vườn
+    homeStayType: undefined, // Loại HomeStay
+    hasLakeView: undefined, // Có view hồ
+    hasMountainView: undefined, // Có view núi
+    hasSeaView: undefined, // Có view biển
+    hasRiceFieldView: undefined, // Có view cánh đồng lúa
+    hasBilliardTable: undefined, // Có bàn bi-a
+    hasManyActivities: undefined, // Có nhiều hoạt động
+    hasSpaciousGarden: undefined, // Có vườn rộng rãi
     isCallAPI: false // Cờ để kiểm tra nếu cần gọi API
 }
 export const paramSearchHT = atom({

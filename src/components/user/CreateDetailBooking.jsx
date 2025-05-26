@@ -1,30 +1,49 @@
 import React, { memo, useEffect, useMemo, useState } from 'react';
 import { Modal, Form, Input, DatePicker, InputNumber, Select, Button, notification, Tag, Row, Col, message } from 'antd';
-import moment, { duration } from 'moment';
 import CardHomeStay from './CardHomeStay';
 import TextArea from 'antd/es/input/TextArea';
-import { data } from 'autoprefixer';
 import { formatPrice } from '../../utils/formatPrice';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { userState } from '../../recoil/atom';
 import bookingService from '../../services/bookingService';
 import { convertDateTime, convertTimezoneToVN } from '../../utils/convertDate';
 import promotionService from '../../services/promotionService';
-import dayjs from 'dayjs';
+import moment from 'moment';
+import useSignalR from '../../hooks/useSignaIR';
 
 const { Option } = Select;
 const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Intl.DateTimeFormat('vi-VN', options).format(new Date(dateString));
 };
-const CreateDetailBooking = ({ visible, onClose, data, room, bookingValue, disabledDates }) => {
+
+export const getDisabledDates = (bookedDates) => {
+    const disabledDates = [];
+
+    bookedDates.forEach(({ checkInDate, checkOutDate }) => {
+        const start = moment(checkInDate);
+        const end = moment(checkOutDate);
+
+        for (let date = start; date.isSameOrBefore(end); date.add(1, 'days')) {
+            disabledDates.push(date.clone());
+        }
+    });
+
+    return disabledDates;
+};
+
+const CreateDetailBooking = ({ visible, onClose, data, room }) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false); // Đặt loading mặc định là false
-    const [bookings, setBookings] = useState(bookingValue);
+    const [bookings, setBookings] = useState();
+    const [bookedDate, setBookedDate] = useState([])
     const [user, setUser] = useRecoilState(userState)
     const [voucher, setVoucher] = useState(null)
     const [paramVoucher, setParamVoucher] = useState('')
 
+    useSignalR("RefeshDateRoomHomeStay", (idHomeStay, idRoom) => {
+        idHomeStay === Number.parseInt(data.homeStay.homestayID) && idRoom === Number.parseInt(room.roomId) && handleDateDisabled(idHomeStay, idRoom);
+    });
     useEffect(
         () => {
             if (!paramVoucher) {
@@ -32,17 +51,26 @@ const CreateDetailBooking = ({ visible, onClose, data, room, bookingValue, disab
             }
         }, [paramVoucher]
     )
-
     useEffect(() => {
-        if (visible && bookingValue) {
-            // Gán giá trị vào form khi modal được mở
-            form.setFieldsValue({
-                numberOfGuests: bookingValue.numberofGuest,
-                checkInDate: bookingValue.dateIn,
-                checkOutDate: bookingValue.dateOut,
-            });
+        if (visible) {
+            handleDateDisabled(data.homeStay.homestayID, room.roomId)
         }
-    }, [visible, bookingValue]); // Chạy khi visible hoặc jsonData thay đổi
+    }, [visible])
+
+
+
+    const handleDateDisabled = async (idHomeStay, idRoom) => {
+        let resDateBooking = await bookingService.getBookingDateExisted(idHomeStay, idRoom);
+        console.log(resDateBooking)
+        resDateBooking && setBookedDate(resDateBooking);
+    };
+
+    const disabledDate = (current) => {
+        const disabledDates = getDisabledDates(bookedDate);
+        const isPastDate = current && current <= moment().startOf('day');
+        const isDisabledDate = disabledDates.some(date => current.isSame(date, 'day'));
+        return isPastDate || isDisabledDate;
+    };
 
 
     const checkVoucher = async () => {
@@ -62,6 +90,7 @@ const CreateDetailBooking = ({ visible, onClose, data, room, bookingValue, disab
 
     // Hiển thị các ngày đặt từ ngày bawtsd dầu đến ngày về
     const renderDateBooking = useMemo(() => {
+        if (bookings) {
         let { dateIn, dateOut } = bookings
         const startDate = dateIn; // Ngày bắt đầu
         const endDate = dateOut; // Ngày kết thúc
@@ -79,7 +108,10 @@ const CreateDetailBooking = ({ visible, onClose, data, room, bookingValue, disab
         }
 
         return days;
-
+    }
+    else {
+        return []
+    }
     }, [bookings])
 
     const totalBill = useMemo(() => {
@@ -98,56 +130,47 @@ const CreateDetailBooking = ({ visible, onClose, data, room, bookingValue, disab
 
     const handleSubmit = async (dataForm) => {
         setLoading(true)
-        if (user) {
 
-            if (totalBill && totalBill > 0) {
-                var booking = {
-                    ...dataForm,
-                    checkInDate: convertTimezoneToVN(bookings.dateIn),
-                    checkOutDate: convertTimezoneToVN(bookings.dateOut),
-                    totalPrice: voucher ? totalBill - voucher.discountAmount : totalBill,
-                    originalPrice: totalBill,
-                    bookingID: 0,
-                    discountPrice: voucher ? voucher.discountAmount : 0,
-                    discountCode: voucher ? voucher.discountCode : "",
-                    customerID: user.idCus,
-                    ownerID: data.homeStay.ownerID,
-                    homeStayID: data.homeStay.homestayID,
-                    isConfirm: 0,
-                    isCancel: 0,
-                    bookingTime: new Date().toISOString()
-                }
-                console.log(booking)
-                try {
-                    let res = await bookingService.create(booking)
-                    res && notification.success({ message: "Đặt phòng thành công !", description: "Thông tin đặt phòng của bạn đã được ghi lại và đang được chờ xử lý ", showProgress: true, duration: 9 })
-                    onClose()
-                    form.resetFields()
-                } catch (error) {
-                    message.error('Đặt phòng không thành công thông tin đặt phòng không hợp lệ hoặc đã có người đặt vào thời điểm hãy thử lại sau ít phút')
-                } finally {
-                    setLoading(false)
-                }
+
+        if (totalBill && totalBill > 0) {
+            var booking = {
+                ...dataForm,
+                checkInDate: convertTimezoneToVN(bookings?.dateIn),
+                checkOutDate: convertTimezoneToVN(bookings?.dateOut),
+                totalPrice: voucher ? totalBill - voucher.discountAmount : totalBill,
+                originalPrice: totalBill,
+                bookingID: 0,
+                discountPrice: voucher ? voucher.discountAmount : 0,
+                discountCode: voucher ? voucher.discountCode : "",
+                customerID: user ? user.idCus : null,
+                ownerID: data.homeStay.ownerID,
+                homeStayID: data.homeStay.homestayID,
+                isConfirm: false,
+                isCancel: false,
+                bookingTime: new Date().toISOString()
             }
-            else {
-                notification.error({
-                    message: 'Thông tin đặt phòng không hợp lệ',
-                    showProgress: true,
-                    description: 'Hãy chọn ngày đến và ngày về hợp lệ !',
-                    placement: "topRight", // vị trí của thông báo (có thể thay đổi)
-                    duration: 5, // thời gian hiển thị (giây)
-                });
+            console.log(booking)
+            try {
+                await bookingService.create(booking)
 
+                notification.success({ message: "Đặt phòng thành công !", description: "Thông tin đặt phòng của bạn đã được ghi lại và đang được chờ xử lý ", showProgress: true, duration: 9 })
+                onClose()
+                form.resetFields()
+            } catch (error) {
+                message.error('Đặt phòng không thành công thông tin đặt phòng không hợp lệ hoặc đã có người đặt vào thời điểm hãy thử lại sau ít phút')
+            } finally {
+                setLoading(false)
             }
         }
         else {
             notification.error({
-                message: 'Yêu cầu đăng nhập',
+                message: 'Thông tin đặt phòng không hợp lệ',
                 showProgress: true,
-                description: 'Vui lòng đăng nhập trước khi thuê phòng!',
+                description: 'Hãy chọn ngày đến và ngày về hợp lệ !',
                 placement: "topRight", // vị trí của thông báo (có thể thay đổi)
                 duration: 5, // thời gian hiển thị (giây)
             });
+
         }
         setLoading(false)
     };
@@ -217,14 +240,14 @@ const CreateDetailBooking = ({ visible, onClose, data, room, bookingValue, disab
                                 rules={[{ required: true, message: 'Vui lòng chọn ngày nhận phòng!' }]}
                             >
                                 <DatePicker
-                                    value={bookings.dateIn}
-                                    disabledDate={disabledDates}
+                                    value={bookings?.dateIn}
+                                    disabledDate={disabledDate}
                                     placeholder="Chọn ngày nhận phòng"
                                     className="w-full"
                                     onChange={(date) => {
                                         setBookings({ ...bookings, dateIn: date })
 
-                                        if (bookings.dateOut && date >= bookings.dateOut) {
+                                        if (bookings?.dateOut && date >= bookings?.dateOut) {
                                             notification.error({
                                                 message: 'Lỗi',
                                                 showProgress: true,
@@ -251,12 +274,12 @@ const CreateDetailBooking = ({ visible, onClose, data, room, bookingValue, disab
                             >
                                 <DatePicker
                                     format="DD-MM-YYYY"
-                                    value={bookings.dateOut}
-                                    disabledDate={disabledDates}
+                                    value={bookings?.dateOut}
+                                    disabledDate={disabledDate}
                                     placeholder="Chọn ngày trả phòng"
                                     className="w-full"
                                     onChange={(date) => {
-                                        if (date > bookings.dateIn) {
+                                        if (date > bookings?.dateIn) {
 
                                             setBookings({ ...bookings, dateOut: date })
                                         }

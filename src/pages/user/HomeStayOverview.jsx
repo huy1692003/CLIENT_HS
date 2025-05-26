@@ -88,7 +88,7 @@ const HomeStayOverview = () => {
             </div>
 
             <div className="my-5 flex px-2 justify-between">
-                <div className="text-2xl font-bold text-gray-700">HomeStay chất lượng chỉ có tại HuyStay ⚡⚡</div>
+                <div className="text-2xl font-bold text-gray-700">Homestay chất lượng chỉ có tại HuyStay ⚡⚡</div>
                 <Button
                     className="text-xl font-semibold p-5 border-2 border-gray-500"
                     onClick={() => setShowSideFilter(true)}

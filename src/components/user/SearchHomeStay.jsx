@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { AutoComplete, Button, DatePicker, Input, InputNumber, message, Popover } from "antd";
 import dayjs from "dayjs";
 import { SearchOutlined, UserOutlined, CalendarOutlined, HomeOutlined, EnvironmentOutlined, CompassOutlined, HeartOutlined } from "@ant-design/icons";
@@ -6,25 +6,18 @@ import { useTypingEffect } from "../../hooks/useTypingEffect";
 import { useRecoilState } from "recoil";
 import { paramSearchHT } from "../../recoil/atom";
 import { useNavigate } from "react-router-dom";
-import { convertDateTime, convertTimezoneToVN } from "../../utils/convertDate";
 import homestayService from "../../services/homestayService";
 
 const placeHolders = ["Nhập địa điểm muốn đến", "Hà Nội", "Hải Phòng", "Hồ Chí Minh", "Đà Nẵng"];
 
-const SearchComponent = ({ title = "Tìm kiếm HomeStay lý tưởng cho chuyến đi của bạn" }) => {
-    const placeholder = useTypingEffect(placeHolders, 150, 50, 3000);
+const SearchComponent = ({ title = "Tìm kiếm Homestay lý tưởng cho chuyến đi của bạn" }) => {
     const [formSearch, setFormSearch] = useRecoilState(paramSearchHT);
     const [totalNight, setTotalNight] = useState(1);
     const navigate = useNavigate();
     const [dataAutocomplete, setDataAutoComplete] = useState([]);
     const [guestPopoverVisible, setGuestPopoverVisible] = useState(false);
 
-    // Guest counts state
-    const [guestCounts, setGuestCounts] = useState({
-        numberAdult: formSearch.numberAdult || 1,
-        numberChild: formSearch.numberChild || 0,
-        numberBaby: formSearch.numberBaby || 0
-    });
+   
 
     useEffect(() => {
         const getAuto = async () => {
@@ -38,14 +31,14 @@ const SearchComponent = ({ title = "Tìm kiếm HomeStay lý tưởng cho chuy�
     }, [formSearch.location])
 
     const handleSearch = () => {
-        if (formSearch.location || (formSearch.dateOut && formSearch.dateIn) || guestCounts.numberAdult || formSearch.name) {
+        if (formSearch.location || (formSearch.dateOut && formSearch.dateIn) || formSearch.numberAdults || formSearch.name) {
             setFormSearch({
                 ...formSearch,
-                ...guestCounts,
                 dateIn: formSearch.dateIn || null,
                 dateOut: formSearch.dateOut || null,
                 isCallAPI: true
             })
+
             navigate('/result-homestay-search?location=' + formSearch.location)
         } else {
             message.error("Vui lòng nhập thông tin để tìm kiếm", 5)
@@ -62,20 +55,20 @@ const SearchComponent = ({ title = "Tìm kiếm HomeStay lý tưởng cho chuy�
     }, [formSearch.dateIn, formSearch.dateOut])
 
     // Handle guest count changes
-    const handleGuestCountChange = (type, value) => {
-        const newCounts = { ...guestCounts, [type]: Math.max(0, value) };
-        if (type === 'numberAdult' && value < 1) {
-            newCounts.numberAdult = 1; // Minimum 1 adult
+    const handleGuestCountChange = useCallback((type, value) => {
+        const newCounts = { ...formSearch, [type]: Math.max(0, value) };
+        if (type === 'numberAdults' && value < 1) {
+            newCounts.numberAdults = 1; // Minimum 1 adult
         }
-        setGuestCounts(newCounts);
         setFormSearch({ ...formSearch, ...newCounts, isCallAPI: false });
-    };
+    }, [formSearch.numberAdults, formSearch.numberChildren, formSearch.numberBaby, setFormSearch]);
 
     // Total guests calculation
-    const totalGuests = guestCounts.numberAdult + guestCounts.numberChild + guestCounts.numberBaby;
+    const totalGuests = formSearch.numberAdults + formSearch.numberChildren + formSearch.numberBaby;
 
+    
     // Guest popover content
-    const guestPopoverContent = (
+    const guestPopoverContent = useMemo(() => (
         <div className="w-80 p-4">
             <div className="space-y-4">
                 {/* Adults */}
@@ -88,17 +81,17 @@ const SearchComponent = ({ title = "Tìm kiếm HomeStay lý tưởng cho chuy�
                         <Button 
                             size="small" 
                             type="text"
-                            onClick={() => handleGuestCountChange('numberAdult', guestCounts.numberAdult - 1)}
-                            disabled={guestCounts.numberAdult <= 1}
+                            onClick={() => handleGuestCountChange('numberAdults', formSearch.numberAdults - 1)}
+                            disabled={formSearch.numberAdults <= 1}
                             className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-gray-200 hover:border-blue-500 hover:text-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
                         >
                             <span className="text-base font-medium">−</span>
                         </Button>
-                        <span className="w-8 text-center text-base font-semibold text-gray-800">{guestCounts.numberAdult}</span>
+                        <span className="w-8 text-center text-base font-semibold text-gray-800">{formSearch.numberAdults}</span>
                         <Button 
                             size="small" 
                             type="text"
-                            onClick={() => handleGuestCountChange('numberAdult', guestCounts.numberAdult + 1)}
+                            onClick={() => handleGuestCountChange('numberAdults', formSearch.numberAdults + 1)}
                             className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-gray-200 hover:border-blue-500 hover:text-blue-500 transition-all duration-200"
                         >
                             <span className="text-base font-medium">+</span>
@@ -116,17 +109,17 @@ const SearchComponent = ({ title = "Tìm kiếm HomeStay lý tưởng cho chuy�
                         <Button 
                             size="small" 
                             type="text"
-                            onClick={() => handleGuestCountChange('numberChild', guestCounts.numberChild - 1)}
-                            disabled={guestCounts.numberChild <= 0}
+                            onClick={() => handleGuestCountChange('numberChildren', formSearch.numberChildren - 1)}
+                            disabled={formSearch.numberChildren <= 0}
                             className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-gray-200 hover:border-blue-500 hover:text-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
                         >
                             <span className="text-base font-medium">−</span>
                         </Button>
-                        <span className="w-8 text-center text-base font-semibold text-gray-800">{guestCounts.numberChild}</span>
+                        <span className="w-8 text-center text-base font-semibold text-gray-800">{formSearch.numberChildren}</span>
                         <Button 
                             size="small" 
                             type="text"
-                            onClick={() => handleGuestCountChange('numberChild', guestCounts.numberChild + 1)}
+                            onClick={() => handleGuestCountChange('numberChildren', formSearch.numberChildren + 1)}
                             className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-gray-200 hover:border-blue-500 hover:text-blue-500 transition-all duration-200"
                         >
                             <span className="text-base font-medium">+</span>
@@ -144,17 +137,17 @@ const SearchComponent = ({ title = "Tìm kiếm HomeStay lý tưởng cho chuy�
                         <Button 
                             size="small" 
                             type="text"
-                            onClick={() => handleGuestCountChange('numberBaby', guestCounts.numberBaby - 1)}
-                            disabled={guestCounts.numberBaby <= 0}
+                            onClick={() => handleGuestCountChange('numberBaby', formSearch.numberBaby - 1)}
+                            disabled={formSearch.numberBaby <= 0}
                             className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-gray-200 hover:border-blue-500 hover:text-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
                         >
                             <span className="text-base font-medium">−</span>
                         </Button>
-                        <span className="w-8 text-center text-base font-semibold text-gray-800">{guestCounts.numberBaby}</span>
+                        <span className="w-8 text-center text-base font-semibold text-gray-800">{formSearch.numberBaby}</span>
                         <Button 
                             size="small" 
                             type="text"
-                            onClick={() => handleGuestCountChange('numberBaby', guestCounts.numberBaby + 1)}
+                            onClick={() => handleGuestCountChange('numberBaby', formSearch.numberBaby + 1)}
                             className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-gray-200 hover:border-blue-500 hover:text-blue-500 transition-all duration-200"
                         >
                             <span className="text-base font-medium">+</span>
@@ -175,21 +168,21 @@ const SearchComponent = ({ title = "Tìm kiếm HomeStay lý tưởng cho chuy�
                 </Button>
             </div>
         </div>
-    );
+    ),[formSearch.numberAdults, formSearch.numberChildren, formSearch.numberBaby, handleGuestCountChange]);
 
     return (
         <div className="relative">
             {/* Background with modern gradient */}
             <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 rounded-3xl"></div>
             
-            <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl p-8 my-8 border border-white/40 shadow-2xl shadow-blue-500/10 hover:shadow-3xl hover:shadow-blue-500/15 transition-all duration-500 mx-auto max-w-7xl">
+            <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl p-4 sm:p-6 lg:p-5 my-5 border border-white/40 shadow-2xl shadow-blue-500/10 hover:shadow-3xl hover:shadow-blue-500/15 transition-all duration-500 mx-auto max-w-7xl">
                 
                 {/* Title */}
-                <div className="text-center mb-8">
-                    <h1 className="text-2xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-gray-800 via-blue-800 to-indigo-800 bg-clip-text text-transparent mb-2">
+                <div className="text-center mb-5 lg:mb-5">
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-gray-800 via-blue-800 to-indigo-800 bg-clip-text text-transparent mb-2">
                         {title}
                     </h1>
-                    <p className="text-gray-600 text-sm md:text-base">Khám phá hàng ngàn HomeStay tuyệt vời trên khắp Việt Nam  <i className="flex justify-center mt-2 text-blue-500 text-xl">
+                    <p className="text-gray-600 text-sm md:text-base">Khám phá hàng ngàn Homestay tuyệt vời trên khắp Việt Nam  <i className="flex justify-center mt-2 text-blue-500 text-xl">
                         <CompassOutlined className="mr-2" />
                         <HomeOutlined className="mr-2" />
                         <HeartOutlined />
@@ -198,14 +191,14 @@ const SearchComponent = ({ title = "Tìm kiếm HomeStay lý tưởng cho chuy�
                 </div>
 
                 {/* Main Search Container */}
-                <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-100">
+                <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 sm:p-6 shadow-xl border border-gray-100">
                     
-                    {/* Desktop Layout - All in one row */}
-                    <div className="hidden lg:flex items-end gap-4">
+                    {/* Responsive Layout */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 xl:grid-cols-6 gap-4 items-end">
                         
                         {/* Location Input */}
-                        <div className="flex-1 min-w-0">
-                            <div className="rounded-3xl p-3 border-2 border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-300">
+                        <div className="sm:col-span-1 lg:col-span-1 xl:col-span-1 h-full">
+                            <div className="rounded-3xl p-3 border-2 border-gray-200 h-full hover:border-blue-300 hover:shadow-md transition-all duration-300">
                                 <div className="flex items-center mb-1">
                                     <EnvironmentOutlined className="text-blue-500 mr-2 text-lg" />
                                     <label className="text-sm font-semibold text-gray-700">Điểm đến</label>
@@ -213,29 +206,30 @@ const SearchComponent = ({ title = "Tìm kiếm HomeStay lý tưởng cho chuy�
                                 <AutoComplete
                                     allowClear
                                     options={dataAutocomplete.map(location => ({ value: location }))}
-                                    className="w-full h-full"
-                                    placeholder={placeholder}
+                                    className="w-full   placeholder:text-xs"
+                                    placeholder="Tìm kiếm điểm đến"
                                     value={formSearch.location}
                                     onChange={(value) => setFormSearch({ ...formSearch, location: value, isCallAPI: false })}
                                 >
                                     <Input 
-                                        className="w-full h-10 rounded-lg text-base border-0 bg-white font-medium placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500/20" 
+                                        className="w-full h-10 rounded-lg border-0 bg-white placeholder:text-gray-400 focus:ring-0 focus:ring-blue-500/20" 
+                                        
                                     />
                                 </AutoComplete>
                             </div>
                         </div>
 
                         {/* Homestay Name Input */}
-                        <div className="flex-3 min-w-0">
-                            <div className="bg-white rounded-3xl p-3 border border-gray-200 hover:border-green-300 hover:shadow-md transition-all duration-300">
+                        <div className="sm:col-span-1 lg:col-span-1 xl:col-span-1">
+                            <div className="bg-white rounded-3xl p-3 border-2 border-gray-200 hover:border-green-300 hover:shadow-md transition-all duration-300">
                                 <div className="flex items-center mb-1">
                                     <HomeOutlined className="text-green-500 mr-2 text-lg" />
                                     <label className="text-sm font-semibold text-gray-700">Tên HomeStay</label>
                                 </div>
                                 <Input
                                     allowClear
-                                    placeholder="Nhập tên homestay..."
-                                    className="w-full h-10 rounded-lg text-base border-0 bg-white font-medium placeholder:text-gray-400 focus:ring-2 focus:ring-green-500/20"
+                                    className="w-full h-10 rounded-lg border-0 bg-white placeholder:text-gray-400 focus:ring-0 focus:ring-green-500/20"
+                                    placeholder="Tìm kiếm ngay"
                                     value={formSearch.name}
                                     onChange={(e) => setFormSearch({ ...formSearch, name: e.target.value, isCallAPI: false })}
                                 />
@@ -243,36 +237,39 @@ const SearchComponent = ({ title = "Tìm kiếm HomeStay lý tưởng cho chuy�
                         </div>
 
                         {/* Date Range Container */}
-                        <div className="flex-1 min-w-0">
-                            <div className="bg-white rounded-3xl p-3 border border-gray-200 hover:border-purple-300 hover:shadow-md transition-all duration-300">
+                        <div className="sm:col-span-2 lg:col-span-2 xl:col-span-2">
+                            <div className="bg-white rounded-3xl p-3 border-2 border-gray-200 hover:border-purple-300 hover:shadow-md transition-all duration-300">
                                 <div className="flex items-center mb-1">
                                     <CalendarOutlined className="text-purple-500 mr-2 text-lg" />
                                     <label className="text-sm font-semibold text-gray-700">Thời gian</label>
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex ">
                                     <DatePicker
-                                        className="flex-1 h-10 rounded-lg text-base border-0 bg-white hover:bg-white transition-all duration-200"
+                                        className="flex-1 h-10 rounded-lg border-0 bg-white hover:bg-white transition-all duration-200"
                                         placeholder="Ngày đến"
                                         value={formSearch.dateIn}
                                         onChange={(date) => setFormSearch({ ...formSearch, dateIn: date, isCallAPI: false })}
                                         format={"DD/MM"}
                                         disabledDate={(current) => current && current <= dayjs().startOf('day')}
+                                        style={{ fontSize: '16px', fontWeight: '500' }}
                                     />
+                                    <div className="h-8 w-[2px] bg-gray-200 mx-2"></div>
                                     <DatePicker
-                                        className="flex-1 h-10 rounded-lg text-base border-0 bg-white hover:bg-white transition-all duration-200"
+                                        className="flex-1 h-10 rounded-lg border-0 bg-white hover:bg-white transition-all duration-200"
                                         placeholder="Ngày về"
                                         value={formSearch.dateOut}
                                         onChange={(date) => setFormSearch({ ...formSearch, dateOut: date, isCallAPI: false })}
                                         format={"DD/MM"}
                                         disabledDate={(current) => current && current <= dayjs().startOf('day')}
+                                        style={{ fontSize: '16px', fontWeight: '500' }}
                                     />
                                 </div>
                             </div>
                         </div>
 
                         {/* Guest Count */}
-                        <div className="flex-1 min-w-0">
-                            <div className="bg-white rounded-3xl p-3 border border-gray-200 hover:border-orange-300 hover:shadow-md transition-all duration-300">
+                        <div className="sm:col-span-1 lg:col-span-1 xl:col-span-1">
+                            <div className="bg-white rounded-3xl p-3 border-2 border-gray-200 hover:border-orange-300 hover:shadow-md transition-all duration-300">
                                 <div className="flex items-center mb-1">
                                     <UserOutlined className="text-orange-500 mr-2 text-lg" />
                                     <label className="text-sm font-semibold text-gray-700">Số khách</label>
@@ -287,18 +284,12 @@ const SearchComponent = ({ title = "Tìm kiếm HomeStay lý tưởng cho chuy�
                                     overlayClassName="guest-popover"
                                 >
                                     <Button 
-                                        className="w-full h-10 rounded-lg text-left text-base flex items-center justify-between border-0 bg-white hover:bg-white font-medium transition-all duration-200"
+                                        className="w-full h-10 rounded-lg text-left flex items-center justify-between border-0 bg-white hover:bg-white transition-all duration-200"
+                                        style={{ fontSize: '16px', fontWeight: '500' }}
                                         onClick={() => setGuestPopoverVisible(true)}
                                     >
                                         <span className="text-gray-700 truncate">
                                             {totalGuests} khách
-                                            {(guestCounts.numberChild > 0 || guestCounts.numberBaby > 0) && (
-                                                <span className="text-sm text-gray-500 ml-2">
-                                                    ({guestCounts.numberAdult}
-                                                    {guestCounts.numberChild > 0 && `, ${guestCounts.numberChild}TE`}
-                                                    {guestCounts.numberBaby > 0 && `, ${guestCounts.numberBaby}EB`})
-                                                </span>
-                                            )}
                                         </span>
                                     </Button>
                                 </Popover>
@@ -306,9 +297,9 @@ const SearchComponent = ({ title = "Tìm kiếm HomeStay lý tưởng cho chuy�
                         </div>
 
                         {/* Search Button */}
-                        <div className="flex-shrink-0">
+                        <div className="sm:col-span-2 lg:col-span-1 xl:col-span-1 flex justify-center lg:h-full items-center lg:flex lg:items-center lg:text-center lg:justify-center">
                             <Button
-                                className="h-[72px] px-6 rounded-3xl text-base font-bold shadow-lg hover:shadow-xl transition-all duration-300 bg-blue-600 border-0 hover:bg-blue-700 transform hover:scale-105"
+                                className="h-[72px] px-6 rounded-3xl text-base font-bold shadow-lg hover:shadow-xl transition-all duration-300 bg-blue-600 border-0 hover:bg-blue-700 transform hover:scale-105 w-full sm:w-auto"
                                 type="primary"
                                 icon={<SearchOutlined className="text-lg mr-2" />}
                                 onClick={handleSearch}
@@ -317,119 +308,8 @@ const SearchComponent = ({ title = "Tìm kiếm HomeStay lý tưởng cho chuy�
                             </Button>
                         </div>
                     </div>
-
-                    {/* Mobile & Tablet Layout */}
-                    <div className="lg:hidden space-y-3">
-                        
-                        {/* Row 1: Location + Homestay Name */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {/* Location */}
-                            <div className="bg-white rounded-3xl p-3 border border-gray-200">
-                                <div className="flex items-center mb-1">
-                                    <EnvironmentOutlined className="text-blue-500 mr-2" />
-                                    <label className="text-sm font-semibold text-gray-700">Điểm đến</label>
-                                </div>
-                                <AutoComplete
-                                    allowClear
-                                    options={dataAutocomplete.map(location => ({ value: location }))}
-                                    className="w-full"
-                                    placeholder={placeholder}
-                                    value={formSearch.location}
-                                    onChange={(value) => setFormSearch({ ...formSearch, location: value, isCallAPI: false })}
-                                >
-                                    <Input 
-                                        className="w-full h-10 rounded-lg border-0 bg-white font-medium" 
-                                    />
-                                </AutoComplete>
-                            </div>
-
-                            {/* Homestay Name */}
-                            <div className="bg-white rounded-3xl p-3 border border-gray-200">
-                                <div className="flex items-center mb-1">
-                                    <HomeOutlined className="text-green-500 mr-2" />
-                                    <label className="text-sm font-semibold text-gray-700">Tên HomeStay</label>
-                                </div>
-                                <Input
-                                    allowClear
-                                    placeholder="Nhập tên homestay..."
-                                    className="w-full h-10 rounded-lg border-0 bg-white font-medium"
-                                    value={formSearch.name}
-                                    onChange={(e) => setFormSearch({ ...formSearch, name: e.target.value, isCallAPI: false })}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Row 2: Date Range */}
-                        <div className="bg-white rounded-3xl p-3 border border-gray-200">
-                            <div className="flex items-center mb-2">
-                                <CalendarOutlined className="text-purple-500 mr-2" />
-                                <label className="text-sm font-semibold text-gray-700">Thời gian lưu trú</label>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <DatePicker
-                                    className="w-full h-10 rounded-lg border-0 bg-white"
-                                    placeholder="Ngày đến"
-                                    value={formSearch.dateIn}
-                                    onChange={(date) => setFormSearch({ ...formSearch, dateIn: date, isCallAPI: false })}
-                                    format={"DD/MM"}
-                                    disabledDate={(current) => current && current <= dayjs().startOf('day')}
-                                />
-                                <DatePicker
-                                    className="w-full h-10 rounded-lg border-0 bg-white"
-                                    placeholder="Ngày về"
-                                    value={formSearch.dateOut}
-                                    onChange={(date) => setFormSearch({ ...formSearch, dateOut: date, isCallAPI: false })}
-                                    format={"DD/MM"}
-                                    disabledDate={(current) => current && current <= dayjs().startOf('day')}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Row 3: Guest Count + Search Button */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-                            <div className="md:col-span-2 bg-white rounded-3xl p-3 border border-gray-200">
-                                <div className="flex items-center mb-1">
-                                    <UserOutlined className="text-orange-500 mr-2" />
-                                    <label className="text-sm font-semibold text-gray-700">Số khách</label>
-                                </div>
-                                <Popover
-                                    content={guestPopoverContent}
-                                    title={<span className="font-semibold">Chọn số lượng khách</span>}
-                                    trigger="click"
-                                    open={guestPopoverVisible}
-                                    onOpenChange={setGuestPopoverVisible}
-                                    placement="bottomLeft"
-                                >
-                                    <Button 
-                                        className="w-full h-10 rounded-lg text-left flex items-center justify-between border-0 bg-white font-medium"
-                                        onClick={() => setGuestPopoverVisible(true)}
-                                    >
-                                        <span className="text-gray-700 truncate">
-                                            {totalGuests} khách
-                                            {(guestCounts.numberChild > 0 || guestCounts.numberBaby > 0) && (
-                                                <span className="text-sm text-gray-500 ml-2 hidden sm:inline">
-                                                    ({guestCounts.numberAdult}
-                                                    {guestCounts.numberChild > 0 && `, ${guestCounts.numberChild}TE`}
-                                                    {guestCounts.numberBaby > 0 && `, ${guestCounts.numberBaby}EB`})
-                                                </span>
-                                            )}
-                                        </span>
-                                    </Button>
-                                </Popover>
-                            </div>
-
-                            <Button
-                                className="h-full inline-block md:h-14 px-6 rounded-3xl text-base font-bold shadow-lg bg-blue-600 border-0 hover:bg-blue-700 transform hover:scale-105 transition-all duration-300"
-                                type="primary"
-                                icon={<SearchOutlined className="text-lg" />}
-                                onClick={handleSearch}
-                                block
-                            >
-                                Tìm kiếm
-                            </Button>
-                        </div>
-                    </div>
                 </div>
+                    
 
                 {/* Night Count Display */}
                 {totalNight > 0 && (
@@ -442,6 +322,8 @@ const SearchComponent = ({ title = "Tìm kiếm HomeStay lý tưởng cho chuy�
                     </div>
                 )}
             </div>
+            
+            
         </div>
     );
 };

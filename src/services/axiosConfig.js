@@ -8,7 +8,7 @@ export const URL_API = URL_SERVER + 'api';
 // Tạo một instance Axios
 const API = axios.create({
     baseURL: URL_API, // URL cơ bản cho tất cả các yêu cầu
-    timeout: 15000, // Giới hạn thời gian chờ cho request (15 giây)
+    timeout: 30000, // Giới hạn thời gian chờ cho request (15 giây)
     headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json; charset=utf-8'

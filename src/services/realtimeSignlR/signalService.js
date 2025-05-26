@@ -1,10 +1,16 @@
 import { URL_SERVER } from "../../constant/global";
 import * as signalR from '@microsoft/signalr'; // Import SignalR đúng cách
+const token = sessionStorage.getItem('token');
 class SignalRService {
     constructor(hubUrl="realtime") {
         this.connection = new signalR.HubConnectionBuilder()
-            .withUrl(URL_SERVER+hubUrl)
-            .build();
+            .withUrl(URL_SERVER+hubUrl,{
+                accessTokenFactory: () => token || '',
+                withCredentials: true,
+              })
+              .configureLogging(signalR.LogLevel.Information)
+              .withAutomaticReconnect()
+              .build();
     }
 
     // Kết nối đến Hub

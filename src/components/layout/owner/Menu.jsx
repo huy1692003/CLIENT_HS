@@ -108,8 +108,13 @@ const MenuOwner = () => {
             </Menu.Item>
 
             <Menu.Item key="24454" icon={<CreditCardOutlined />} onClick={() => handleMenuClick('24454', "/owner/promotion-manager")}>
-                Quản lý khuyến mãi
+                Quản lý giảm giá
             </Menu.Item>
+
+            <Menu.Item key="24455" icon={<FileProtectOutlined/>} onClick={() => handleMenuClick('24455', "/owner/service-homestay-manager")}>
+                Quản lý dịch vụ
+            </Menu.Item>
+
 
 
             {/* <Menu.Item key="5-1" onClick={() => handleMenuClick("5-1", "/owner/promotion-manager")}>

@@ -1,6 +1,14 @@
 import API from "./axiosConfig";
 
 const roomService = {
+    getListTypeRoom: async () => {
+        try {
+            const res = await API.get('/Room/getListTypeRoom');
+            return res.data;
+        } catch (error) {
+            throw error;
+        }
+    },
     getAll: async () => {
         try {
             const res = await API.get('/Room');

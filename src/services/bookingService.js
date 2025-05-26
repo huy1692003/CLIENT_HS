@@ -1,9 +1,9 @@
 import API from "./axiosConfig"
 
 const bookingService = {
-    getBookingDateExisted: async (id) => {
+    getBookingDateExisted: async (idHomeStay, idRoom) => {
         try {
-            let res = await API.get(`/Booking/getBookingDateExisted?idHomeStay=` + id)
+            let res = await API.get(`/Booking/getBookingDateExisted?idHomeStay=` + idHomeStay + `&idRoom=${idRoom}`)
             return res?.data
         }
         catch (error) {
@@ -47,9 +47,9 @@ const bookingService = {
         }
     },
 
-    getBookingByCus: async (idCus, status = 1) => {
+    getBookingByCus: async (phoneCus, emailCus, idCus, status = 1) => {
         try {
-            let res = await API.get(`/Booking/getBooking_byCusID?cusID=${idCus}&status=${status}`)
+            let res = await API.get(`/Booking/getBooking_byCusID?customerID=${idCus}&status=${status}&phoneCus=${phoneCus}&emailCus=${emailCus}`)
             return res?.data
         }
         catch (error) {

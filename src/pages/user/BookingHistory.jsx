@@ -1,10 +1,10 @@
-import { Breadcrumb, Empty, Card, Tag, Button, Steps, notification, Tabs, Modal, Input } from "antd";
+import { Breadcrumb, Empty, Card, Tag, Button, Steps, notification, Tabs, Modal, Input, InputNumber } from "antd";
 import React, { memo, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import bookingService from "../../services/bookingService";
 import { useRecoilValue } from "recoil";
 import { userState } from "../../recoil/atom";
-import { CheckCircleOutlined, CheckOutlined, CommentOutlined, DownSquareFilled, GlobalOutlined, HomeOutlined, Loading3QuartersOutlined, LoadingOutlined, LogoutOutlined, MoneyCollectOutlined } from "@ant-design/icons";
+import { CheckCircleOutlined, CheckOutlined, CommentOutlined, DownSquareFilled, GlobalOutlined, HomeOutlined, Loading3QuartersOutlined, LoadingOutlined, LogoutOutlined, MailOutlined, MoneyCollectOutlined, PhoneOutlined, SearchOutlined, TeamOutlined } from "@ant-design/icons";
 import { convertDate, convertDateTime } from "../../utils/convertDate";
 import { formatPrice } from "../../utils/formatPrice";
 import paymentMomoSerivce from "../../services/paymentMomoService";
@@ -17,6 +17,7 @@ import useSignalR from "../../hooks/useSignaIR";
 const BookingHistory = () => {
     const [bookings, setBookings] = useState([]);
     const cus = useRecoilValue(userState);
+    const [search, setSearch] = useState({ email: "", phone: "", isCallApi: false })
     const [status, setStatus] = useState(10);
     const [selectedBooking, setSelectedBooking] = useState(null)
     const [showCreateReview, setShowCreateReview] = useState(false)
@@ -24,16 +25,22 @@ const BookingHistory = () => {
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
-        getBookingByUser();
-    }, [cus, status]);
+        if (cus) {
+            getBookingByUser();
+        }
+        else if (search.isCallApi) {
+            getBookingByUser();
+        }
 
+    }, [cus, status, search.isCallApi]);
+
+    console.log(search)
     // Hàm để lấy danh sách booking từ API
     const getBookingByUser = async () => {
         try {
-            if (!cus) {
-                setBookings([]);
-            }
-            const res = await bookingService.getBookingByCus(cus.idCus, status);
+
+            let res = await bookingService.getBookingByCus(search.phone, search.email, cus ? cus.idCus : "", status);
+            console.log(res)
             setBookings(res);
         } catch (error) {
             console.log(error);
@@ -148,6 +155,51 @@ const BookingHistory = () => {
                 />
             </div>
 
+            {
+                !cus && (
+                    <div className="flex items-center gap-4 p-4 bg-white rounded-lg shadow-sm mt-4">
+                        <Input
+                            placeholder="Nhập số điện thoại"
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                setSearch({ ...search, phone: value, isCallApi: false });
+                            }}
+                            className="flex-1"
+                            allowClear
+                            prefix={<PhoneOutlined className="text-gray-400" />}
+                            maxLength={11}
+                            pattern="^0[0-9]{9,10}$"
+                            onKeyPress={(e) => {
+                                const charCode = e.which ? e.which : e.keyCode;
+                                if (charCode < 48 || charCode > 57) {
+                                    e.preventDefault();
+                                }
+                            }}
+                        />
+                        <Input
+                            placeholder="Nhập email"
+                            onChange={(e) => setSearch({ ...search, email: e.target.value, isCallApi: false })}
+                            className="flex-1"
+                            allowClear
+                            pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+                            prefix={<MailOutlined className="text-gray-400" />}
+                        />
+                        <Button
+                            type="primary"
+                            onClick={() => setSearch({ ...search, isCallApi: true })}
+                            className="bg-blue-500 hover:bg-blue-600 flex items-center"
+                            icon={<SearchOutlined />}
+                        >
+                            Tìm kiếm
+                        </Button>
+                    </div>
+                )
+            }
+
+
+
+
+
             <div className="text-center mb-4 px-5">
                 <h3 className="my-4 mt-7 text-xl font-bold">Lịch sử đặt phòng của tôi</h3>
                 {/* Tabs để chuyển đổi giữa các trạng thái */}
@@ -157,20 +209,20 @@ const BookingHistory = () => {
                     ))}
                 </Tabs>
             </div>
-
             <div className="p-4">
                 {bookings.length === 0 ? (
-                    <Empty description="Không có lịch sử đặt phòng nào" />
+                    <Empty description={cus || search.isCallApi === true ? "Không có lịch sử đặt phòng nào " : "Vui lòng nhập thông tin tìm kiếm để xem lịch sử đặt phòng của bạn"} />
                 ) : (
+
                     <div className="w-full">
                         {bookings.map((booking, index) => (
                             <Card
                                 key={index}
-                                title={<div className="bg-blue-400 w-[20%] my-2 p-3 mt-7 rounded-lg text-white"> {`Booking ID: ${booking.bookingID}`}</div>}
+                                title={<div className="bg-blue-400 inline-block  my-2 p-3 mt-7 rounded-lg text-white"> {`Booking ID: ${booking.bookingID}`}</div>}
                                 extra={
                                     <div className="flex gap-2">
                                         <RenderStatus statusCurrent={booking.status} />
-                                        {(booking.status<3 && booking.isCancel !== 1)  && <Button type="primary" loading={loading} className="text-xl mt-auto p-5 rounded-3xl" onClick={() => { handleReject(booking.bookingID) }} danger>
+                                        {(booking.status < 3 && !booking.isCancel) && <Button type="primary" loading={loading} className="text-xl mt-auto p-5 rounded-3xl" onClick={() => { handleReject(booking.bookingID) }} danger>
                                             Hủy đơn đặt phòng
                                         </Button>}
                                     </div>}
@@ -209,15 +261,25 @@ const BookingHistory = () => {
                                                 </tr>
                                                 <tr className="border-b hover:bg-gray-50">
                                                     <td className="px-4 py-2 font-medium">Ngày nhận phòng</td>
-                                                    <td className="px-4 py-2">{new Date(booking.checkInDate).toLocaleDateString()}</td>
+                                                    <td className="px-4 py-2">{convertDate(booking.checkInDate)}</td>
                                                 </tr>
                                                 <tr className="border-b hover:bg-gray-50">
                                                     <td className="px-4 py-2 font-medium">Ngày trả phòng</td>
-                                                    <td className="px-4 py-2">{new Date(booking.checkOutDate).toLocaleDateString()}</td>
+                                                    <td className="px-4 py-2">{convertDate(booking.checkOutDate)}</td>
                                                 </tr>
                                                 <tr className="border-b hover:bg-gray-50">
-                                                    <td className="px-4 py-2 font-medium">Số lượng người sử dụng</td>
-                                                    <td className="px-4 py-2">{booking.numberOfGuests} người</td>
+                                                    <td className="px-4 py-2 font-medium">  Số khách                                                 </td>
+                                                    <td className="flex px-4 py-2 gap-2">
+                                                        <span className="text-gray-800">
+                                                            <span className="font-semibold">{booking.numberAdults || 0}</span> người lớn
+                                                        </span>
+                                                        <span className="text-gray-800">
+                                                            <span className="font-semibold">{booking.numberChildren || 0}</span> trẻ em
+                                                        </span>
+                                                        <span className="text-gray-800">
+                                                            <span className="font-semibold">{booking.numberBaby || 0}</span> em bé
+                                                        </span>
+                                                    </td>
                                                 </tr>
                                                 <tr className="border-b hover:bg-gray-50">
                                                     <td className="px-4 py-2 font-medium">Giá gốc</td>
@@ -236,7 +298,7 @@ const BookingHistory = () => {
                                                     <td className="px-4 py-2">{new Intl.NumberFormat().format(booking.totalPrice)} VNĐ</td>
                                                 </tr>
                                                 <tr className="border-b hover:bg-gray-50">
-                                                    <td className="px-4 py-2 font-medium col-span-2"><b>Thông tin về gia chủ </b></td>                                                  
+                                                    <td className="px-4 py-2 font-medium col-span-2"><b>Thông tin về gia chủ </b></td>
                                                 </tr>
                                                 <tr className="border-b hover:bg-gray-50">
                                                     <td className="px-4 py-2 font-medium">Tên gia chủ :</td>
@@ -244,14 +306,14 @@ const BookingHistory = () => {
                                                 </tr>
                                                 <tr className="border-b hover:bg-gray-50">
                                                     <td className="px-4 py-2 font-medium">Số điện thoại liên hệ</td>
-                                                    <td className="px-4 py-2">{booking.phoneOwner||"0364174636"} </td>
+                                                    <td className="px-4 py-2">{booking.phoneOwner || "0364174636"} </td>
                                                 </tr>
                                             </tbody>
                                         </table>
                                     </div>
                                     {
 
-                                        booking.isConfirm === 1 &&
+                                        booking.isConfirm &&
                                         <div className="w-[54%] bg-gray-100 p-4 rounded-lg shadow-lg">
                                             <h3 className="text-lg font-semibold mb-2">Quy trình đặt phòng</h3>
                                             <Steps

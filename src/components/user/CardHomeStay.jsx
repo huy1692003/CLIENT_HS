@@ -8,9 +8,9 @@ import { useRecoilValue } from 'recoil';
 import { userState } from '../../recoil/atom';
 import favoritesService from '../../services/favoritesService';
 import CarouselButton from '../shared/CarouselButton';
-import { HeartOutlined, EnvironmentOutlined, HomeOutlined, StarOutlined } from '@ant-design/icons';
+import { HeartOutlined, EnvironmentOutlined, HomeOutlined, StarOutlined, FireOutlined } from '@ant-design/icons';
 
-const CardHomeStay = ({ data, width = "100%" }) => {
+const CardHomeStay = ({ data, width = "100%" , isTopView = false }) => {
     const navigate = useNavigate();
     const cus = useRecoilValue(userState);
     const carouselRef = createRef();
@@ -82,6 +82,27 @@ const CardHomeStay = ({ data, width = "100%" }) => {
             className="card-homestay-homepage shadow-md rounded-xl overflow-hidden" 
             style={{ position: 'relative', marginBottom: 20, width: width }}
         >
+            {/* Hot tag ribbon */}
+            {isTopView && (
+                <div 
+                    className="absolute top-0 left-0 z-30 overflow-hidden" 
+                    style={{ width: '80px', height: '80px' }}
+                >
+                    <div 
+                        className="absolute flex items-center justify-center bg-red-600 text-white font-bold py-1 px-6 shadow-lg"
+                        style={{ 
+                            transform: 'rotate(-45deg) translateY(-20px)', 
+                            width: '120px', 
+                            left: '-30px', 
+                            top: '24px',
+                            fontSize: '0.8rem'
+                        }}
+                    >
+                        <FireOutlined className="mr-1" /> HOT
+                    </div>
+                </div>
+            )}
+            
             {showAddFavorites && 
                 <Tooltip title="Thêm vào yêu thích">
                     <Button 
@@ -112,8 +133,8 @@ const CardHomeStay = ({ data, width = "100%" }) => {
                         </div>)}
                 </Carousel>
                 
-                {data.homeStay.averageRating > 0 && (
-                    <div className="absolute top-3 left-3 bg-white px-2 py-1 rounded-lg shadow-md flex items-center">
+                {data.homeStay.averageRating >= 0 && (
+                    <div className={`absolute  bg-white px-2 py-1 rounded-lg shadow-md flex items-center ${isTopView ? 'bottom-5 left-2' : 'top-3 left-3'}`}>
                         <StarOutlined className="text-yellow-500 mr-1" />
                         <span className="font-bold">{data.homeStay.averageRating.toFixed(1)}</span>
                     </div>

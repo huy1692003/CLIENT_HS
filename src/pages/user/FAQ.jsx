@@ -19,7 +19,7 @@ const FAQ = () => {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className=" mx-auto px-4 py-8">
       <div className="px-4 py-2 bg-gray-100">
         <Breadcrumb
           items={[

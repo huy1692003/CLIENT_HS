@@ -30,7 +30,7 @@ const PromotionManager = () => {
             setFilteredPromotions(data);
             setPagination((prev) => ({ ...prev, total: data.length }));
         } catch (error) {
-            notification.error({ message: 'Lỗi khi tải danh sách khuyến mãi' });
+            notification.error({ message: 'Lỗi khi tải danh sách mã giảm giá' });
         }
     };
 
@@ -79,10 +79,10 @@ const PromotionManager = () => {
         try {
             if (isEditing) {
                 await promotionService.update(payload);
-                notification.success({ message: 'Cập nhật khuyến mãi thành công!' });
+                notification.success({ message: 'Cập nhật mã giảm giá thành công!' });
             } else {
                 await promotionService.add(payload);
-                notification.success({ message: 'Thêm khuyến mãi thành công!' });
+                notification.success({ message: 'Thêm mã giảm giá thành công!' });
             }
             fetchPromotions();
             setIsModalVisible(false);
@@ -94,10 +94,10 @@ const PromotionManager = () => {
     const handleDelete = async (prmID) => {
         try {
             await promotionService.delete(prmID);
-            notification.success({ message: 'Xóa khuyến mãi thành công!' });
+            notification.success({ message: 'Xóa mã giảm giá thành công!' });
             fetchPromotions();
         } catch (error) {
-            notification.error({ message: 'Có lỗi xảy ra khi xóa khuyến mãi!' });
+            notification.error({ message: 'Có lỗi xảy ra khi xóa mã giảm giá!' });
         }
     };
 
@@ -143,18 +143,18 @@ const PromotionManager = () => {
     return (
         <div>
             <h1 className="text-xl font-bold mb-4">
-                Quản Lý Khuyến Mãi
+                Quản Lý Mã Giảm Giá
                 <Space style={{ marginBottom: 16, float: "right" }}>
                     <Input.Search
                         
                         className='font-semibold'
-                        placeholder="Tìm kiếm khuyến mãi..."
+                        placeholder="Tìm kiếm mã giảm giá..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         onSearch={handleSearch}
                     />
                     <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()}>
-                        Thêm Khuyến Mãi
+                        Thêm mã giảm giá
                     </Button>
                 </Space>
             </h1>
@@ -173,7 +173,7 @@ const PromotionManager = () => {
             />
 
             <Modal
-                title={isEditing ? "Sửa Khuyến Mãi" : "Thêm Khuyến Mãi"}
+                title={isEditing ? "Sửa mã giảm giá" : "Thêm mã giảm giá"}
                 visible={isModalVisible}
                 onCancel={() => setIsModalVisible(false)}
                 footer={null}
@@ -181,7 +181,7 @@ const PromotionManager = () => {
             >
                 <Form form={form} onFinish={handleOk} layout="vertical">
                     {isEditing && (
-                        <Form.Item label="Mã Khuyến Mãi" name="prmID">
+                        <Form.Item label="Mã mã giảm giá" name="prmID">
                             <Input disabled />
                         </Form.Item>
                     )}
