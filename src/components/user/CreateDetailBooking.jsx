@@ -32,7 +32,7 @@ export const getDisabledDates = (bookedDates) => {
     return disabledDates;
 };
 
-const CreateDetailBooking = ({ visible, onClose, data, room }) => {
+const CreateDetailBooking = ({ visible, onClose,data, room , isOwnerCreate=false}) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false); // Đặt loading mặc định là false
     const [bookings, setBookings] = useState();
@@ -147,14 +147,15 @@ const CreateDetailBooking = ({ visible, onClose, data, room }) => {
                 homeStayID: data.homeStay.homestayID,
                 isConfirm: false,
                 isCancel: false,
+                isOwnerCreate: isOwnerCreate,
                 bookingTime: new Date().toISOString()
             }
             console.log(booking)
             try {
                 await bookingService.create(booking)
 
-                notification.success({ message: "Đặt phòng thành công !", description: "Thông tin đặt phòng của bạn đã được ghi lại và đang được chờ xử lý ", showProgress: true, duration: 9 })
-                onClose()
+                notification.success({ message: "Đặt phòng thành công !", description: isOwnerCreate ? "Thông tin đặt phòng đã được tạo thành công " :   "Thông tin đặt phòng của bạn đã được ghi lại và đang được chờ xử lý ", showProgress: true, duration: 9 })
+                onClose(false)
                 form.resetFields()
             } catch (error) {
                 message.error('Đặt phòng không thành công thông tin đặt phòng không hợp lệ hoặc đã có người đặt vào thời điểm hãy thử lại sau ít phút')
@@ -216,6 +217,14 @@ const CreateDetailBooking = ({ visible, onClose, data, room }) => {
                                 rules={[{ required: true, message: 'Vui lòng nhập tên khách hàng!' }]}
                             >
                                 <Input placeholder="Nhập tên khách hàng" />
+                            </Form.Item>
+
+                            <Form.Item
+                                label="Số CMND"
+                                name="CMND" // Cập nhật trường name
+                                rules={[{ required: true, message: 'Vui lòng nhập số CMND!' }]}
+                            >
+                                <Input placeholder="Nhập số CMND" />
                             </Form.Item>
 
                             <Form.Item

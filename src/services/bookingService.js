@@ -67,9 +67,10 @@ const bookingService = {
         }
     },
 
-    confirmCheckOut: async (idBooking) => {
+    confirmCheckOut: async (idBooking,jsonDetailExtraCost) => {
         try {
-            let res = await API.get(`/Booking/confirmCheckOut?bookingID=${idBooking}`)
+            console.log(jsonDetailExtraCost)
+            let res = await API.post(`/Booking/confirmCheckOut?bookingID=${idBooking}`,jsonDetailExtraCost)
             return res?.data
         }
         catch (error) {

@@ -104,7 +104,15 @@ const Header = () => {
                                             </div>
                                         )
                                     },
-                                  
+                                    {
+                                        key: '4',
+                                        label: (
+                                            <div  onClick={() => navigate('/history-booking')}>
+                                                <i className="fa-solid fa-clock-rotate-left text-orange-500 mr-2" ></i>
+                                                Lịch sử đặt phòng
+                                            </div>
+                                        )
+                                    },
                                     {
                                         key: '5',
                                         label: (

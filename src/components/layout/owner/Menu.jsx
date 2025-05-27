@@ -13,6 +13,7 @@ import {
     LoginOutlined,
     LogoutOutlined,
     PayCircleFilled,
+    UserOutlined,
     VideoCameraOutlined,
 
 } from "@ant-design/icons";
@@ -59,7 +60,7 @@ const MenuOwner = () => {
                 <Menu.Item key="1-1" onClick={() => handleMenuClick("1-1", "/owner/dashboard")}>
                     Thống kê tổng quan
                 </Menu.Item>
-                
+
             </SubMenu>
 
             <SubMenu key="sub2" icon={<HomeOutlined />} title="Quản lý HomeStay">
@@ -111,15 +112,16 @@ const MenuOwner = () => {
                 Quản lý giảm giá
             </Menu.Item>
 
-            <Menu.Item key="24455" icon={<FileProtectOutlined/>} onClick={() => handleMenuClick('24455', "/owner/service-homestay-manager")}>
+            <Menu.Item key="24455" icon={<FileProtectOutlined />} onClick={() => handleMenuClick('24455', "/owner/service-homestay-manager")}>
                 Quản lý dịch vụ
             </Menu.Item>
 
 
 
+
             {/* <Menu.Item key="5-1" onClick={() => handleMenuClick("5-1", "/owner/promotion-manager")}>
                     Quản lý khuyến mãi
-            </Menu.Item> */}
+                    </Menu.Item> */}
 
 
 
@@ -127,8 +129,11 @@ const MenuOwner = () => {
 
 
 
-            <Menu.Item icon={<ContactsOutlined/>} key="7-1" onClick={() => handleMenuClick("7-1", "/owner/support-customer")}>
+            <Menu.Item icon={<ContactsOutlined />} key="7-1" onClick={() => handleMenuClick("7-1", "/owner/support-customer")}>
                 Khách hàng hỏi đáp
+            </Menu.Item>
+            <Menu.Item key="24456" icon={<UserOutlined />} onClick={() => handleMenuClick('24456', "/owner/profile-owner")}>
+                Cài đặt thông tin
             </Menu.Item>
 
         </Menu >

@@ -130,9 +130,20 @@ const CheckinManager = () => {
             });
         }
     }
-
-
+    
+    
     const columns = [
+        {
+            title: "Hành Động",
+            key: "action",
+            render: (record) => (
+                <span className="flex gap-2 w-[100]">
+    
+                    {status > 2 && status < 6 && <ButtonWaiting record={record} />}
+                    <ButtonViewDetail record={record} />
+                </span>
+            ),
+        },
         {
             title: "Mã Đặt Phòng",
             dataIndex: "bookingID",
@@ -193,17 +204,6 @@ const CheckinManager = () => {
                 }
                 return <Tag color="gray">Không xác định</Tag>;
             },
-        },
-        {
-            title: "Hành Động",
-            key: "action",
-            render: (record) => (
-                <span className="flex gap-2 w-[100]">
-
-                    {status > 2 && status < 6 && <ButtonWaiting record={record} />}
-                    <ButtonViewDetail record={record} />
-                </span>
-            ),
         },
     ];
 

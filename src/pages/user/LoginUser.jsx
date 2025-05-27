@@ -100,7 +100,7 @@ const LoginUser = () => {
                         <Form.Item
                             name="password"
                             label="Mật Khẩu"
-                            rules={[{ required: true, message: 'Mật khẩu không được để trống' }]}
+                            rules={[{ required: true, message: 'Mật khẩu không được để trống ' }, { min: 8, message: 'Mật khẩu phải có ít nhất 8 ký tự' }]}
                         >
                             <Input.Password placeholder="Nhập mật khẩu của bạn" />
                         </Form.Item>

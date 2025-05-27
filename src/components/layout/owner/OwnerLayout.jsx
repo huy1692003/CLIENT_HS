@@ -19,6 +19,7 @@ import {
     Popconfirm,
     Tooltip,
     message,
+    Avatar,
 } from "antd";
 import avatar from "../../../assets/Avatar/Avatar-Dasboard.png";
 import MenuOwner from "./Menu";
@@ -31,6 +32,7 @@ import notificationService from "../../../services/notificationService";
 import GroupNotification from "../../shared/GroupNotification";
 import chatSupportService from "../../../services/chatSupportService";
 import useSignalRChat from "../../../hooks/useSignalRChat";
+import { URL_SERVER } from "../../../constant/global";
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -227,12 +229,11 @@ const OwnerLayout = ({ children }) => {
                                     />
                                 </Badge>
                                 |
-                                <h3 style={{ fontSize: 18 }}>
-                                    <Image
-                                        src={avatar}
-                                        preview={false}
-                                        width={60}
-                                        className="relative top-2 right-1 object-cover"
+                                <h3 className="flex items-center" style={{ fontSize: 16 }}>
+                                    <Avatar
+                                        src={owner.avatar ? URL_SERVER + owner.avatar : avatar}
+                                        size={40}
+
                                     />
                                     <span className="ml-2">Hello, {owner.fullname}</span>
                                 </h3>

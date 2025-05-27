@@ -11,6 +11,7 @@ import LabelField from "../../../components/shared/LabelField";
 import dayjs from "dayjs";
 import PaginateShared from "../../../components/shared/PaginateShared";
 import useSignalR from "../../../hooks/useSignaIR";
+import { useNavigate } from "react-router-dom";
 const initSearch = {
     name: '',
     email: '',
@@ -50,6 +51,7 @@ const BookingManager = () => {
     const [selectedBooking, setSelectedBooking] = useState(null); // Booking được chọn để xem chi tiết
     const [isModalVisible, setIsModalVisible] = useState(false);  // Trạng thái hiển thị Modal
     const setLoading = useSetRecoilState(isLoadingOwner); // Loading chung cho toàn bộ component
+    const navigate = useNavigate();
 
     useEffect(() => {
         getData();
@@ -138,15 +140,16 @@ const BookingManager = () => {
             });
         }
     }
-    async function confirmCheckOut(bookingID) {
+    async function confirmCheckOut(bookingID,jsonDetailExtraCost) {
         try {
-            await bookingService.confirmCheckOut(bookingID);
+            await bookingService.confirmCheckOut(bookingID,jsonDetailExtraCost);
             getData();
             notification.success({
                 message: "Thành Công",
                 description: `Xác nhận checkout đơn đặt phòng #${bookingID} thành công!`,
             });
         } catch (error) {
+            console.log(error)  
             notification.error({
                 message: "Lỗi",
                 description: `Có lỗi khi xác nhận  checkout đơn đặt phòng #${bookingID}. Hãy thử lại sau!`,
@@ -198,20 +201,40 @@ const BookingManager = () => {
             onCancel() { },
         });
     }
-
+    
     const columns = [
+        {
+            title: "Hành Động",
+            key: "action",
+            render: (record) => (
+                <span className="flex gap-2 w-[100]">
+                    {status === 1 && <ButtonPending record={record} />}
+                    {status === 2 && <Tooltip title="Hủy Đơn Đặt Phòng">
+                        <Button
+                            type="primary"
+                            shape="circle"
+                            icon={<CloseSquareFilled />}
+                            onClick={() => handleReject(record)}
+                            style={{ backgroundColor: 'red', borderColor: 'red' }}
+                        />
+                    </Tooltip>}
+                    {status > 2 && status < 6 && <ButtonWaiting record={record} />}
+                    <ButtonViewDetail record={record} />
+                </span>
+            ),
+        },
         {
             title: "Mã Đặt Phòng",
             dataIndex: "bookingID",
             key: "bookingID",
-            render: (text) => <span className="w-[30px] underline">{"#"+text || "Trống"}</span>,
+            render: (text) => <span className="w-[30px] underline">{"#" + text || "Trống"}</span>,
 
         },
         {
             title: "Mã Homestay",
             dataIndex: "homeStayID",
             key: "homeStayID",
-            render: (text) => <span className="w-[30px]">{"#"+text || "Trống"}</span>,
+            render: (text) => <span className="w-[30px]">{"#" + text || "Trống"}</span>,
         },
         {
             title: "Tên Khách",
@@ -262,26 +285,6 @@ const BookingManager = () => {
                 }
                 return <Tag color="gray">Không xác định</Tag>;
             },
-        },
-        {
-            title: "Hành Động",
-            key: "action",
-            render: (record) => (
-                <span className="flex gap-2 w-[100]">
-                    {status === 1 && <ButtonPending record={record} />}
-                    {status === 2 && <Tooltip title="Hủy Đơn Đặt Phòng">
-                        <Button
-                            type="primary"
-                            shape="circle"
-                            icon={<CloseSquareFilled />}
-                            onClick={() => handleReject(record)}
-                            style={{ backgroundColor: 'red', borderColor: 'red' }}
-                        />
-                    </Tooltip>}
-                    {status > 2 && status < 6 && <ButtonWaiting record={record} />}
-                    <ButtonViewDetail record={record} />
-                </span>
-            ),
         },
     ];
     const ButtonPending = ({ record }) => {
@@ -391,13 +394,18 @@ const BookingManager = () => {
 
 
             </div>
-            <div className="text-center">
 
-                <Button className="m-auto" type="primary" onClick={() => {
+            <div className="flex justify-between">
+
+                <Button className="" type="primary" onClick={() => {
                     setPaginate({ ...paginate, pageSize: 1 })
                     setSearch(searchLocal)
-                }}>Lọc kết quả</Button>
+                }}>Lọc kết quả tìm kiếm</Button>
+                <Button className="bg-gradient-to-r from-orange-500 to-orange-600 text-white" onClick={() => {
+                    navigate(`/owner/homestay-current?isCreateBooking=true`)
+                }}>Tạo mới đơn đặt phòng</Button>
             </div>
+
 
 
             <div className="my-2 text-lg font-bold">Danh sách Đơn Đặt Phòng</div>
@@ -442,8 +450,14 @@ const BookingManager = () => {
                             <Descriptions.Item label="Số Điện Thoại">
                                 {selectedBooking.phone}
                             </Descriptions.Item>
-                            <Descriptions.Item label="Tổng số người sử dụng">
-                                {selectedBooking.numberOfGuests + " người"}
+                            <Descriptions.Item label="Số người lớn">
+                                {selectedBooking.numberAdults + " người"}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Số người trẻ em">
+                                {selectedBooking.numberChildren + " người"}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Số em bé">
+                                {selectedBooking.numberBaby + " người"}
                             </Descriptions.Item>
                             <Descriptions.Item label="Ngày Đến">
                                 {new Date(selectedBooking.checkInDate).toLocaleDateString()}
@@ -486,6 +500,8 @@ const BookingManager = () => {
                     <StepProcessBooking selectedBooking={selectedBooking} confirmCheckIn={confirmCheckIn} confirmCheckOut={confirmCheckOut} />
                 </Modal>
             }
+
+         
 
         </div>
     );

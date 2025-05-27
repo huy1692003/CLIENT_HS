@@ -41,6 +41,7 @@ import MenuManager from "../pages/admin/RoleManager/MenuManager";
 import FAQ from "../pages/user/FAQ";
 import BookingAction from "../pages/owner/Booking/BookingAction";
 import ServiceHomestay from "../pages/owner/ServiceHomestay";
+import ProfileOwner from "../pages/owner/ProfileOwner";
 
 export const routers = [
     // customer
@@ -98,6 +99,7 @@ export const routers = [
     { path: "/owner/history-payment-booking", element: <PaymentBooking /> },
     { path: "/owner/support-customer", element: <SupportCustomer type={2} /> },
     { path: "/owner/service-homestay-manager", element: <ServiceHomestay /> },
+    { path: "/owner/profile-owner", element: <ProfileOwner /> },
 
 
 ]   

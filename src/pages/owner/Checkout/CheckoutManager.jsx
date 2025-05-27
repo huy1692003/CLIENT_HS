@@ -13,6 +13,7 @@ import LabelField from "../../../components/shared/LabelField";
 import moment from 'moment-timezone';
 import dayjs from "dayjs";
 import PaginateShared from "../../../components/shared/PaginateShared";
+import { URL_SERVER } from "../../../constant/global";
 const initSearch = {
     name: '',
     email: '',
@@ -114,15 +115,19 @@ const CheckoutManager = () => {
             });
         }
     }
-    async function confirmCheckOut(bookingID) {
+    async function confirmCheckOut(bookingID, jsonDetailExtraCost) {
         try {
-            await bookingService.confirmCheckOut(bookingID);
-            getData();
-            notification.success({
-                message: "Thành Công",
-                description: `Xác nhận checkout đơn đặt phòng #${bookingID} thành công!`,
-            });
+            let res = await bookingService.confirmCheckOut(bookingID, jsonDetailExtraCost);
+            if (res) {
+                getData();
+                notification.success({
+                    message: "Thành Công",
+                    description: `Xác nhận checkout đơn đặt phòng #${bookingID} thành công!`,
+                });
+                window.open(URL_SERVER + res, '_blank');
+            }
         } catch (error) {
+            console.log(error)
             notification.error({
                 message: "Lỗi",
                 description: `Có lỗi khi xác nhận  checkout đơn đặt phòng #${bookingID}. Hãy thử lại sau!`,
@@ -132,7 +137,19 @@ const CheckoutManager = () => {
 
 
 
+
     const columns = [
+        {
+            title: "Hành Động",
+            key: "action",
+            render: (record) => (
+                <span className="flex gap-2 w-[100]">
+
+                    {status > 2 && status < 6 && <ButtonWaiting record={record} />}
+                    <ButtonViewDetail record={record} />
+                </span>
+            ),
+        },
         {
             title: "Mã Đặt Phòng",
             dataIndex: "bookingID",
@@ -193,17 +210,6 @@ const CheckoutManager = () => {
                 }
                 return <Tag color="gray">Không xác định</Tag>;
             },
-        },
-        {
-            title: "Hành Động",
-            key: "action",
-            render: (record) => (
-                <span className="flex gap-2 w-[100]">
-
-                    {status > 2 && status < 6 && <ButtonWaiting record={record} />}
-                    <ButtonViewDetail record={record} />
-                </span>
-            ),
         },
     ];
 
@@ -308,7 +314,7 @@ const CheckoutManager = () => {
                 dataSource={bookings}
                 rowKey="bookingID"
                 pagination={false}
-                
+
 
             />
             <PaginateShared align="end" page={paginate.page} pageSize={paginate.pageSize} setPaginate={setPaginate} totalRecord={totalRecord} />

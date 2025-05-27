@@ -17,6 +17,7 @@ import ModalWriteRoom from './ModalWriteRoom';
 import CardRoom from '../../../components/owner/CardRoom';
 import roomService from '../../../services/roomService';
 import CKEditorField from '../../../components/shared/CKEditor';
+import ownerService from '../../../services/ownerService';
 
 const WriteHomeStay = () => {
     const [paramURL] = useSearchParams();
@@ -31,9 +32,11 @@ const WriteHomeStay = () => {
     const [selectedDistrict, setSelectedDistrict] = useState()
     const [listIMG_OLD, setListIMG_OLD] = useState([])
     const [rooms, setRooms] = useState([]);
+    const [profileOwner, setProfileOwner] = useState(null)
     const [actionModalWriteRoom, setActionModalWriteRoom] = useState({ isOpen: false, isNewHomeStay: true, roomOld: null })
     useEffect(() => {
         fetchAmenities();
+        !idHomeStay && fetchProfileOwner();
     }, []);
 
     const fetchAmenities = async () => {
@@ -45,7 +48,18 @@ const WriteHomeStay = () => {
         }
     };
 
+    const fetchProfileOwner = async () => {
+        const profile = await ownerService.getProfileOwnerStay(owner.idOwner);
+        form.setFieldsValue({
+            timeCheckIn: profile?.owner?.defaultCheckinTime ? dayjs(profile?.owner?.defaultCheckinTime, 'HH:mm') : null,
+            timeCheckOut: profile?.owner?.defaultCheckoutTime ? dayjs(profile?.owner?.defaultCheckoutTime, 'HH:mm') : null,
+            stayRules: profile?.owner?.defaultRules || '',
+            policies: profile?.owner?.defaultPolicies || '',
+        })
+        setProfileOwner(profile?.owner);
+    }
 
+    console.log(profileOwner)
     // Call Api lấy về chi tiết HomeStay khi sửa
     const fillDataOnEdit = async () => {
         try {
@@ -305,6 +319,7 @@ const WriteHomeStay = () => {
                         <Form.Item
                             name="timeCheckIn"
                             label="Giờ Check-in"
+                            initialValue={profileOwner?.defaultCheckinTime ? dayjs(profileOwner?.defaultCheckinTime, 'HH:mm') : null}
                         >
                             <TimePicker format="HH:mm" className='w-full' />
                         </Form.Item>
@@ -312,6 +327,7 @@ const WriteHomeStay = () => {
                         <Form.Item
                             name="timeCheckOut"
                             label="Giờ Check-out"
+                            initialValue={profileOwner?.defaultCheckoutTime ? dayjs(profileOwner?.defaultCheckoutTime, 'HH:mm') : null}
                         >
                             <TimePicker format="HH:mm" className='w-full' />
                         </Form.Item>
@@ -377,6 +393,7 @@ const WriteHomeStay = () => {
                     <Form.Item
                         name="stayRules"
                         label="Nội quy lưu trú"
+                        initialValue={profileOwner?.defaultRules || ''}
                     >
                          <CKEditorField placeholder="Nhập nội quy lưu trú..." />
                     </Form.Item>
@@ -384,6 +401,7 @@ const WriteHomeStay = () => {
                     <Form.Item
                         name="policies"
                         label="Chính sách"
+                        initialValue={profileOwner?.defaultPolicies || ''}
                     >
                          <CKEditorField placeholder="Nhập chính sách..." />
                     </Form.Item>
