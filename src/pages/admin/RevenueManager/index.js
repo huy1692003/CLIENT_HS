@@ -6,6 +6,8 @@ import { formatPrice } from "../../../utils/formatPrice";
 import revenueService from "../../../services/revenueService";
 import { convertDate, convertTimezoneToVN } from "../../../utils/convertDate";
 import { FileExcelOutlined } from "@ant-design/icons";
+import { settingFormat } from "../../../recoil/selector";
+import { useRecoilValue } from "recoil";
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -26,7 +28,8 @@ const RevenueManager = () => {
     const [searchParams, setSearchParams] = useState(initSearch);
     const [form] = useForm();
     const [isTimeFrameSelected, setIsTimeFrameSelected] = useState(false); // Trạng thái để kiểm soát vô hiệu hóa RangePicker
-
+    const setting = useRecoilValue(settingFormat)
+    const floorFee = setting["floorFee"]?.value || 10; // Lấy phí sàn từ setting, mặc định là 10 nếu không có giá trị
     useLayoutEffect(() => {
         const getData = async () => {
             setLoading(true);
@@ -130,22 +133,22 @@ const RevenueManager = () => {
             key: "address",
         },
         {
-            title: "Thực lĩnh từ đối tác",
+            title: "Thực lĩnh tiền phòng từ đối tác",
             dataIndex: "revenue",
             key: "revenue",
             render: (text) => (text ? formatPrice(text) : "Chưa rõ"),
         },
         {
-            title: "Phải trả đối tác (- Phí sàn 10%)",
+            title: "Phải trả đối tác (- Phí sàn " + floorFee + "%)",
             dataIndex: "revenue",
             key: "revenue",
-            render: (text) => (text ? formatPrice(text * 0.9) : "Chưa rõ"),
+            render: (text) => (text ? formatPrice(text * (1 - floorFee / 100)) : "Chưa rõ"),
         },
         {
             title: "Doanh thu về công ty",
             dataIndex: "revenue",
             key: "revenue",
-            render: (text) => (text ? formatPrice(text * 0.1) : "Chưa rõ"),
+            render: (text) => (text ? formatPrice(text * (floorFee / 100)) : "Chưa rõ"),
         },
     ];
 
@@ -167,8 +170,8 @@ const RevenueManager = () => {
                 </Form.Item>
                 <Form.Item label="Khoảng thời gian" name="timeFrame">
                     <Select placeholder="Chọn khoảng thời gian" allowClear onChange={handleTimeFrameChange}>
-                        <Option value="1week">1 tuần</Option>
-                        <Option value="30days">30 ngày</Option>
+                        <Option value="1week">1 tuần gần nhất</Option>
+                        <Option value="30days">30 ngày gần nhất</Option>
                     </Select>
                 </Form.Item>
                 <Form.Item label="Số điện thoại chủ sở hữu" name="phoneOwner">

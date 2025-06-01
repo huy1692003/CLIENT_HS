@@ -83,7 +83,7 @@ const HomePage = () => {
                             Tìm đâu cũng có , chỉ có tại HuyStay MALL!
                         </p>
 
-                        <div className="mt-4 flex flex-wrap justify-center gap-4 max-h-[1600px] overflow-y-auto">
+                        <div className="mt-4 flex flex-wrap justify-center gap-4 max-h-[1800px] overflow-y-auto scrollbar-hide">
                             <Skeleton loading={loading} active>
                                 {advertisements.filter(s => s.placement === 2).map((a, index) => (
                                     <CardAdvertisement key={index} index={index} item={a} />
@@ -113,7 +113,7 @@ const HomePage = () => {
             <div className="text-2xl font-bold text-center mt-10 mb-5 py-5 rounded-2xl" style={{ backgroundColor: '#F5F5F5' }}>
                 Những địa điểm HomeStay nổi bật , được đông đảo người dùng yêu thích
             </div>
-            <div className="w-full overflow-x-auto whitespace-nowrap mb-3">
+            <div className="w-full overflow-x-auto whitespace-nowrap scrollbar-hide mb-3">
                 <div className="flex space-x-2">
                     <Skeleton loading={loading} rows={6} active>
                         {advertisements.filter(s => s.placement === 3).map((a, index) => (

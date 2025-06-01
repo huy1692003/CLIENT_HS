@@ -42,6 +42,7 @@ import FAQ from "../pages/user/FAQ";
 import BookingAction from "../pages/owner/Booking/BookingAction";
 import ServiceHomestay from "../pages/owner/ServiceHomestay";
 import ProfileOwner from "../pages/owner/ProfileOwner";
+import SettingManager from "../pages/admin/SettingManager/settingManager";
 
 export const routers = [
     // customer
@@ -79,6 +80,7 @@ export const routers = [
     { path: "/admin/adminstrator-manager", element: <AdminstratorManager /> },
     { path: "/admin/advertisement-manager", element: <AdvertisementManager /> },
     { path: "/admin/FAQ-manager", element: <FAQManager /> },
+    { path: "/admin/settings-manager", element: <SettingManager /> },
     { path: "/admin/revenue-manager", element: <RevenueManager /> },
     { path: "/admin/transaction-management-booking", element: <TransactionManager type={1} /> },
     { path: "/admin/transaction-management-advertisement", element: <TransactionManager type={2} /> },

@@ -12,6 +12,7 @@ import dayjs from "dayjs";
 import PaginateShared from "../../../components/shared/PaginateShared";
 import useSignalR from "../../../hooks/useSignaIR";
 import { useNavigate } from "react-router-dom";
+import { formatPrice } from "../../../utils/formatPrice";
 const initSearch = {
     name: '',
     email: '',
@@ -140,16 +141,16 @@ const BookingManager = () => {
             });
         }
     }
-    async function confirmCheckOut(bookingID,jsonDetailExtraCost) {
+    async function confirmCheckOut(bookingID, jsonDetailExtraCost) {
         try {
-            await bookingService.confirmCheckOut(bookingID,jsonDetailExtraCost);
+            await bookingService.confirmCheckOut(bookingID, jsonDetailExtraCost);
             getData();
             notification.success({
                 message: "Thành Công",
                 description: `Xác nhận checkout đơn đặt phòng #${bookingID} thành công!`,
             });
         } catch (error) {
-            console.log(error)  
+            console.log(error)
             notification.error({
                 message: "Lỗi",
                 description: `Có lỗi khi xác nhận  checkout đơn đặt phòng #${bookingID}. Hãy thử lại sau!`,
@@ -201,7 +202,7 @@ const BookingManager = () => {
             onCancel() { },
         });
     }
-    
+
     const columns = [
         {
             title: "Hành Động",
@@ -264,7 +265,7 @@ const BookingManager = () => {
             render: (date) => convertDate(date),
         },
         {
-            title: "Tổng Giá Tiền",
+            title: "Tiền Phòng",
             dataIndex: "totalPrice",
             key: "totalPrice",
             render: (price) => `${price.toLocaleString()} VNĐ`,
@@ -435,42 +436,61 @@ const BookingManager = () => {
                 {selectedBooking && (
                     <div className="flex justify-between ">
                         <Descriptions bordered column={1}>
-                            <Descriptions.Item label="Mã Đặt Phòng">
-                                {selectedBooking.bookingID}
-                            </Descriptions.Item>
                             <Descriptions.Item label="Mã HomeStay">
-                                {selectedBooking.homeStayID}
+                                <b className="">#{selectedBooking.homeStayID}</b>
                             </Descriptions.Item>
-                            <Descriptions.Item label="Tên Khách">
-                                {selectedBooking.name}
+                            <Descriptions.Item label="Thông Tin Khách">
+                                <p>Họ tên : {selectedBooking.name}</p>
+                                <p>Email  : {selectedBooking.email}</p>
+                                <p>Số ĐT  : {selectedBooking.phone}</p>
                             </Descriptions.Item>
-                            <Descriptions.Item label="Email">
-                                {selectedBooking.email}
+                            <Descriptions.Item label={"Số người (" + (selectedBooking.numberAdults + selectedBooking.numberChildren + selectedBooking.numberBaby) + ")"}>
+                                {selectedBooking.numberAdults + " người lớn, " +
+                                    selectedBooking.numberChildren + " trẻ em, " +
+                                    selectedBooking.numberBaby + " trẻ sơ sinh"}
+
                             </Descriptions.Item>
-                            <Descriptions.Item label="Số Điện Thoại">
-                                {selectedBooking.phone}
-                            </Descriptions.Item>
-                            <Descriptions.Item label="Số người lớn">
-                                {selectedBooking.numberAdults + " người"}
-                            </Descriptions.Item>
-                            <Descriptions.Item label="Số người trẻ em">
-                                {selectedBooking.numberChildren + " người"}
-                            </Descriptions.Item>
-                            <Descriptions.Item label="Số em bé">
-                                {selectedBooking.numberBaby + " người"}
-                            </Descriptions.Item>
-                            <Descriptions.Item label="Ngày Đến">
-                                {new Date(selectedBooking.checkInDate).toLocaleDateString()}
-                            </Descriptions.Item>
-                            <Descriptions.Item label="Ngày Về">
+
+                            <Descriptions.Item label="Ngày Sử Dụng">
+                                {new Date(selectedBooking.checkInDate).toLocaleDateString()} <span className="text-blue-700"> đến </span>
                                 {new Date(selectedBooking.checkOutDate).toLocaleDateString()}
                             </Descriptions.Item>
-                            <Descriptions.Item label="Tổng Giá Tiền">
-                                {`${selectedBooking.totalPrice.toLocaleString()} VND`}
+
+                            <Descriptions.Item label="Chi Phí">
+                                <div>
+                                    {selectedBooking.originalPrice
+                                        ? <p>Giá phòng gốc: {formatPrice(selectedBooking.originalPrice)}</p>
+                                        : <p>Giá phòng gốc: Không có</p>}
+
+                                    {selectedBooking.discountPrice
+                                        ? <p>Giảm giá: {formatPrice(selectedBooking.discountPrice)}</p>
+                                        : <p>Giảm giá: Không có</p>}
+
+                                    <p>Mã giảm giá: {selectedBooking.discountCode || "Không có"}</p>
+                                    <p>Tổng tiền phòng phải trả: {formatPrice(selectedBooking.totalPrice)}</p>
+
+                                    {selectedBooking.extraCost
+                                        ? <p>Phụ phí phát sinh: {formatPrice(selectedBooking.extraCost)}</p>
+                                        : <p>Phụ phí phát sinh: Không có</p>}
+                                </div>
                             </Descriptions.Item>
+
+
                             <Descriptions.Item label="Trạng Thái">
-                                {getStatus(selectedBooking.status)?.des || "Không xác định"}
+                                <Tag color="orange">
+
+                                    {getStatus(selectedBooking.status)?.des || "Không xác định"}
+                                </Tag>
                             </Descriptions.Item>
+                            {
+                                selectedBooking.reasonCancel && (
+                                    <Descriptions.Item label="Lý Do Hủy">
+                                        {selectedBooking.reasonCancel}
+                                    </Descriptions.Item>
+                                )
+                            }
+
+
                         </Descriptions>
                         {selectedBooking.isSuccess === 1 &&
                             <div className="mt-7">
@@ -501,7 +521,7 @@ const BookingManager = () => {
                 </Modal>
             }
 
-         
+
 
         </div>
     );

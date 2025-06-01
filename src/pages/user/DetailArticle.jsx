@@ -3,11 +3,14 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Breadcrumb, message, Spin } from "antd"; // Import Ant Design's loading spinner
 import articleService from "../../services/articleService";
 import { convertDate } from "../../utils/convertDate";
+import { use } from "react";
+import CardArticle from "../../components/user/CardArticle";
 
 const DetailArticle = () => {
     const [searchParams] = useSearchParams();
     const [article, setArticle] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [articlesSameCate, setArticlesSameCate] = useState([]);
 
     // Lấy id từ query params
     const id = searchParams.get("id");
@@ -24,7 +27,22 @@ const DetailArticle = () => {
             }
         };
         id && getData();
+        window.scrollTo(0, 0); // Cuộn lên đầu trang khi tải xong
     }, [id]);
+
+    useEffect(() => {
+        const getArticlesSameCate = async () => {
+            try {
+                if (article) {
+                    let res = await articleService.getByCate(article.cateArtID);
+                    setArticlesSameCate(res?.splice(0, 6) || []); // Lấy tối đa 3 bài viết cùng danh mục
+                }
+            } catch (error) {
+                message.error("Có lỗi khi lấy bài viết cùng danh mục");
+            }
+        }
+        getArticlesSameCate();
+    }, [article]);
 
     if (loading) {
         return (
@@ -35,11 +53,11 @@ const DetailArticle = () => {
     }
 
     // Định dạng ngày tháng
-  
+
 
     return (
         <div className="container mx-auto p-4">
-              <div className="px-4 py-2 bg-gray-100">
+            <div className="px-4 py-2 bg-gray-100">
                 <Breadcrumb
                     items={[
                         {
@@ -60,8 +78,18 @@ const DetailArticle = () => {
             <div className="prose lg:prose-xl">
                 <div dangerouslySetInnerHTML={{ __html: article?.content }} />
             </div>
-        </div>
+            <div className="mt-8">
+                <h2 className="text-2xl font-bold mb-4">Bài viết cùng danh mục</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {articlesSameCate.map((item) => (
+                        <>
+                        <CardArticle item={ item} index={item.id}/>
+                        </>
+                    ))}
+                </div>
+        </div>      
+    </div>
     );
 };
 
-export default memo( DetailArticle);
+export default memo(DetailArticle);

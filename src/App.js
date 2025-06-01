@@ -10,6 +10,9 @@ import ResultPagePayment from './pages/user/ResultPagePayment';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import dayjs from 'dayjs';
+import { useRecoilState } from 'recoil';
+import { settingState } from './recoil/atom';
+import settingService from './services/settingService';
 
 // Lazy load các layout
 const OwnerLayout = lazy(() => import('./components/layout/owner/OwnerLayout'));
@@ -22,6 +25,16 @@ dayjs.extend(timezone);
 function App() {
   const location = useLocation();
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [setting, setSetting] = useRecoilState(settingState);
+
+  useEffect(() => {
+    const fetchSetting = async () => {
+      const response = await settingService.getAll();
+      localStorage.setItem('setting', JSON.stringify(response));
+      setSetting(response);
+    };
+    fetchSetting();
+  }, []);
 
   // Xác định layout component dựa trên path
   const getLayout = () => {

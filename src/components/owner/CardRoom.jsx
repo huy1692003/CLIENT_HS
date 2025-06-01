@@ -2,7 +2,8 @@ import React, { memo, useMemo } from 'react';
 import { Card, Button, Image, Tag } from 'antd';
 import { URL_SERVER } from '../../constant/global';
 
-const CardRoom = ({ room, ButtonAction }) => {
+const CardRoom = ({ room, ButtonAction , isAdd =false}) => {
+    console.log(room)
     return (
         <Card
             title={<h2 className="text-lg font-semibold text-gray-800">{"Phòng: " + room.roomName}</h2>}
@@ -17,7 +18,7 @@ const CardRoom = ({ room, ButtonAction }) => {
                 <div className="w-full lg:w-1/3">
                     <div className="relative h-48 md:h-56 lg:h-64 w-full overflow-hidden rounded-xl">
                         <Image
-                            src={URL_SERVER + room.roomImage?.split(',')[0]}
+                            src={isAdd ? URL_SERVER + "images/default_room.jpg" : URL_SERVER + room.roomImage?.split(',')[0]}
                             alt={room.roomName}
                             className="object-cover rounded-xl hover:scale-105 transition-transform duration-300"
                             style={{ height: '100%', width: '100%', objectFit: 'cover' }}

@@ -69,8 +69,8 @@ const Article = () => {
                         <>
                             <div className='mb-7'>
                                 <p className='text-3xl font-bold my-3 font-sans text-gray-600'>{c.cateName} {cateIcons[indexParent].icon}</p>
-                                <div className="container mx-auto ">
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                <div className="mx-auto ">
+                                    <div className="grid grid-cols-1 sm:grid-cols-4 md:grid-cols-4 gap-3">
                                         {article.filter(s => s.cateArtID === c.cateID).map((item, index) => (
                                             <>
                                                 {indexParent % 2 === 0 ?

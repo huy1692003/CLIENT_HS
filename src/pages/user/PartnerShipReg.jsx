@@ -67,7 +67,7 @@ import { Link } from 'react-router-dom';
                 />
             </div>
             <h2 className="text-2xl font-bold mb-4 pt-4 ">Đăng Ký Hợp Tác Chủ Home Stay</h2>
-            <p className="mb-4 italic">
+            <p className="mb-4 italic text-justify">
                 Chào mừng bạn đến với hệ thống đăng ký hợp tác Home Stay của chúng tôi! Bằng cách hợp tác, bạn sẽ có cơ hội tiếp cận thị trường rộng lớn hơn và tối ưu hóa lợi nhuận kinh doanh. Chúng tôi luôn cam kết đồng hành và hỗ trợ bạn trong suốt quá trình hợp tác, với các công cụ quản lý hiện đại và dịch vụ chuyên nghiệp. Hãy điền đầy đủ thông tin dưới đây để hoàn tất quá trình đăng ký. Chúng tôi rất mong chờ được hợp tác với bạn!
             </p>
 

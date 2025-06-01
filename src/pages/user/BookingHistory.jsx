@@ -1,4 +1,4 @@
-import { Breadcrumb, Empty, Card, Tag, Button, Steps, notification, Tabs, Modal, Input, InputNumber } from "antd";
+import { Breadcrumb, Empty, Card, Tag, Button, Steps, notification, Tabs, Modal, Input, InputNumber, Spin } from "antd";
 import React, { memo, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import bookingService from "../../services/bookingService";
@@ -34,9 +34,10 @@ const BookingHistory = () => {
 
     }, [cus, status, search.isCallApi]);
 
-    console.log(search)
+    console.log(bookings)
     // Hàm để lấy danh sách booking từ API
     const getBookingByUser = async () => {
+        setLoading(true)
         try {
 
             let res = await bookingService.getBookingByCus(search.phone, search.email, cus ? cus.idCus : "", status);
@@ -45,7 +46,10 @@ const BookingHistory = () => {
         } catch (error) {
             console.log(error);
             setBookings([]);
+        } finally {
+            setLoading(false)
         }
+
     };
 
     useSignalR("ReseiverPaymentNew", (_, notifi, cusID) => {
@@ -134,6 +138,10 @@ const BookingHistory = () => {
         } catch (error) {
             notification.error({ message: "Có lỗi khi thanh toán" })
         }
+    }
+    if (loading) {
+
+        return <div className="flex justify-center items-center h-screen"> <Spin className="text-center" size="large" /> </div>
     }
 
     const handleCreateReview = (booking) => {
@@ -382,7 +390,7 @@ const BookingHistory = () => {
                     </div>
                 )}
             </div>
-            {selectedBooking && showCreateReview && <CreateReview bookingID={selectedBooking.bookingID} IDHomeStay={selectedBooking.homeStayID} idCus={selectedBooking.customerID} show={showCreateReview} onClose={setShowCreateReview} refesh={getBookingByUser} />}
+            {selectedBooking && showCreateReview && <CreateReview bookingID={selectedBooking.bookingID} IDHomeStay={selectedBooking.homeStayID} cusID={selectedBooking.customerID} show={showCreateReview} onClose={setShowCreateReview} refesh={getBookingByUser} />}
         </div>
     );
 };

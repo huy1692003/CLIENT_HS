@@ -51,6 +51,10 @@ const ResultSearchHomeStay = () => {
         }
     };
 
+    if (loading) return <div className="flex flex-col justify-center items-center h-screen">
+        <Spin className="mt-3" size="large" spinning={loading} tip="Đang tải dữ liệu..."></Spin>
+        <p className="text-2xl mt-3 font-bold text-gray-700">Xin vui lòng chờ trong giây lát...</p>
+    </div>
     return (
         <div>
             <SearchHomeStay title="" />
@@ -64,7 +68,7 @@ const ResultSearchHomeStay = () => {
                             title: 'Tìm kiếm HomeStay',
                         },
                         ...(locationParam ? [{
-                            title: locationParam||"",  // Hiển thị paramURL nếu có
+                            title: locationParam || "",  // Hiển thị paramURL nếu có
                         }] : ""),
                     ]}
                 />
@@ -84,7 +88,7 @@ const ResultSearchHomeStay = () => {
                 setPriceRange={setPriceRange}
                 priceRange={priceRange}
             />
-            <Spin className="mt-3" spinning={loading} tip="Đang tải dữ liệu...">
+            <div>
                 {resHomeStay.length > 0 ? (
                     <>
                         <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 justify-items-center">
@@ -111,7 +115,7 @@ const ResultSearchHomeStay = () => {
                         />
                     </div>
                 )}
-            </Spin>
+            </div>
             {total && total > paginate.pageSize && <PaginateShared page={paginate.page} pageSize={paginate.pageSize} setPaginate={setPaginate} totalRecord={total} />}
 
         </div>

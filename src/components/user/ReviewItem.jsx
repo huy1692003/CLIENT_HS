@@ -1,37 +1,39 @@
 import { memo } from "react";
-import { convertDate, convertDateTime } from "../../utils/convertDate";
-import { Avatar, Card, Rate, Typography } from "antd"; // Import các thành phần từ Ant Design
+import { convertDate } from "../../utils/convertDate";
+import { Avatar, Card, Rate, Typography, Divider } from "antd";
 import imageGirl from '../../assets/Image/girl2.png';
 import imageBoy from '../../assets/Image/boy1.png';
 
-const { Title, Text } = Typography;
+const { Text, Paragraph } = Typography;
 
 const ReviewItem = ({ review }) => {
-    // Sử dụng hình ảnh đại diện từ các file ảnh
     const avatarUrl = review.gender === 1 ? imageBoy : imageGirl;
 
     return (
-        <Card className="p-4 bg-white rounded-xl shadow-lg" bordered={true}>
-            <div className="flex items-center gap-4">
-                {/* Avatar sử dụng từ Ant Design */}
-                <Avatar src={avatarUrl} alt="Avatar" size={100} /> 
-                <div>
-                    <Title level={5} className="mb-0">{review.fullName}</Title>
-                    <Text type="secondary">{review.gender === 1 ? "Nam" : "Nữ"}</Text>
+        <Card className="mb-4 shadow-sm hover:shadow-md transition-shadow duration-300" bordered={true}>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                <div className="flex items-center gap-2 sm:gap-3">
+                    <Avatar src={review.avatar || avatarUrl} alt="Avatar" size={{ xs: 40, sm: 48 }} />
+                    <div>
+                        <Text strong className="text-sm sm:text-base">{review.fullName}</Text>
+                        <div className="flex items-center mt-1">
+                            <Rate disabled defaultValue={review.rv.rating} style={{ fontSize: '14px', sm: '16px' }} />
+                            <Text className="ml-2 text-gray-700 font-medium text-xs sm:text-sm">{review.rv.rating.toFixed(1)}</Text>
+                        </div>
+                    </div>
                 </div>
+                <Text className="text-xs text-gray-500">Đánh giá vào {convertDate(review.rv.reviewDate)}</Text>
             </div>
-
-            {/* Bình luận và đánh giá */}
-            <div className="mt-4">
-                <Text>{review.rv.comment}</Text>
+            
+            <div className="mt-2 sm:mt-3">
+                <Text type="secondary" className="text-xs sm:text-sm">Đã thuê: <Text strong className="text-blue-600">{review.roomName}</Text></Text>
             </div>
-            <div className="mt-2 mb-3 flex items-center gap-2">
-                <Text className="text-sm">Chất lượng : </Text>
-                <Rate disabled defaultValue={review.rv.rating} />
-            </div>
-
-            {/* Ngày đánh giá */}
-            <Text className="mt-3 text-sm text-gray-400">Đánh giá vào {convertDate(review.rv.reviewDate)}</Text>
+            
+            <Divider className="my-2 sm:my-3" />
+            
+            <Paragraph className="text-xs sm:text-sm md:text-base text-gray-800">
+                <i className="fas fa-quote-left text-blue-600 mr-2"></i>{review.rv.comment}
+            </Paragraph>
         </Card>
     );
 };

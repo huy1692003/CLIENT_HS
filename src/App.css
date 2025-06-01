@@ -17,5 +17,13 @@
 .ant-form .ck-editor__editable {
   min-height: 120px !important;
 }
-
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
 

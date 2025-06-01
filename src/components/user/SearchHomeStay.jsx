@@ -7,7 +7,7 @@ import { useRecoilState } from "recoil";
 import { paramSearchHT } from "../../recoil/atom";
 import { useNavigate } from "react-router-dom";
 import homestayService from "../../services/homestayService";
-
+import { useDebouncedValue } from "../../hooks/useDebouce";
 const placeHolders = ["Nhập địa điểm muốn đến", "Hà Nội", "Hải Phòng", "Hồ Chí Minh", "Đà Nẵng"];
 
 const SearchComponent = ({ title = "Tìm kiếm Homestay lý tưởng cho chuyến đi của bạn" }) => {
@@ -16,19 +16,20 @@ const SearchComponent = ({ title = "Tìm kiếm Homestay lý tưởng cho chuy�
     const navigate = useNavigate();
     const [dataAutocomplete, setDataAutoComplete] = useState([]);
     const [guestPopoverVisible, setGuestPopoverVisible] = useState(false);
+    const debouncedQuery = useDebouncedValue(formSearch.location, 900);
 
    
 
     useEffect(() => {
         const getAuto = async () => {
-            let res = await homestayService.getAutocompleteLocation(formSearch.location)
+            let res = await homestayService.getAutocompleteLocation(debouncedQuery)
             setDataAutoComplete(res)
         }
-        formSearch.location && formSearch.location !== '' && getAuto()
-        if(!formSearch.location) {
+        debouncedQuery && debouncedQuery !== '' && getAuto()
+        if(!debouncedQuery) {
             setDataAutoComplete([])
         }
-    }, [formSearch.location])
+    }, [debouncedQuery])
 
     const handleSearch = () => {
         if (formSearch.location || (formSearch.dateOut && formSearch.dateIn) || formSearch.numberAdults || formSearch.name) {
@@ -185,7 +186,7 @@ const SearchComponent = ({ title = "Tìm kiếm Homestay lý tưởng cho chuy�
                     <p className="text-gray-600 text-sm md:text-base">Khám phá hàng ngàn Homestay tuyệt vời trên khắp Việt Nam  <i className="flex justify-center mt-2 text-blue-500 text-xl">
                         <CompassOutlined className="mr-2" />
                         <HomeOutlined className="mr-2" />
-                        <HeartOutlined />
+                        <HeartOutlined /> 
                     </i></p>
                    
                 </div>

@@ -1,9 +1,8 @@
-import { Form, Modal, Input, Button, Checkbox, InputNumber, Upload, message, Image, Select } from "antd";
+import { Form, Modal, Input, Button, Checkbox, InputNumber, Upload, message, Select } from "antd";
 import { useEffect, useState } from "react";
 import TextArea from "antd/es/input/TextArea";
 import { PlusOutlined } from "@ant-design/icons";
 import { uploadService } from "../../../services/uploadService";
-import createFromData from "../../../utils/createFormData";
 import { URL_SERVER } from "../../../constant/global";
 import roomService from "../../../services/roomService";
 
@@ -14,10 +13,9 @@ const ModalWriteRoom = ({ action, setAction, setRooms }) => {
     const [fileList, setFileList] = useState([]);
     const [listIMG_OLD, setListIMG_OLD] = useState([])
 
-
     useEffect(() => {
         // Set images
-        if (roomOld) {
+        if (idHomeStay && roomOld) {
             let listIMG_OLD = roomOld.roomImage?.split(',').map((img, index) => ({
                 uid: String(index),
                 name: `image-${index}`,
@@ -26,15 +24,29 @@ const ModalWriteRoom = ({ action, setAction, setRooms }) => {
                 urlRoot: img,
                 originFileObj: null
             })) || [];
+            form.setFieldsValue(roomOld);
             setFileList(listIMG_OLD);
             setListIMG_OLD(listIMG_OLD);
         }
-    }, [roomOld])
+        if (!idHomeStay && roomOld) {
+            setFileList([...roomOld.roomImage]);
+            form.setFieldsValue(roomOld);
+        }
+        if (isNewHomeStay) {
+            setFileList([]);
+            setListIMG_OLD([]);
+            form.resetFields();
+        }
+
+
+
+    }, [isOpen])
 
     const onClose = () => {
-        form.resetFields();
         setFileList([]);
+        setListIMG_OLD([]);
         setLoading(false);
+        form.resetFields();
         setAction(prev => ({ ...prev, isOpen: false }));
     };
 
@@ -51,11 +63,11 @@ const ModalWriteRoom = ({ action, setAction, setRooms }) => {
         setLoading(true);
         try {
             let listIMG = fileList.length > 0 ? await uploadService.upload(fileList) : [];
-            
-            var roomPayload = 
+
+            var roomPayload =
             {
                 ...values,
-                homestayID: idHomeStay,
+                homestayId: idHomeStay,
                 roomId: roomOld?.roomId || Math.floor(Math.random() * 10000),
                 hasBalcony: values.hasBalcony || false,
                 roomImage: [...listIMG, ...listIMG_OLD.length > 0 ? listIMG_OLD.map(l => l.urlRoot) : []].join(','),
@@ -65,25 +77,27 @@ const ModalWriteRoom = ({ action, setAction, setRooms }) => {
                 hasWifi: values.hasWifi || false,
                 hasHotWater: values.hasHotWater || false,
             }
-            ;
-            
-            if (isNewHomeStay) {
-                roomPayload.roomImage = fileList;
-                // Add room temporarily until homestay is saved
-                setRooms(prev => [...prev, roomPayload]);
+                ;
+
+            if (!idHomeStay) {
+                if (roomOld) {
+                    roomPayload.roomImage = fileList;
+                    setRooms(prev => prev.filter(room => room.roomId !== roomOld.roomId));
+                    setRooms(prev => [...prev, roomPayload]);
+                }
+                else {
+
+                    roomPayload.roomImage = fileList;
+                    setRooms(prev => [...prev, roomPayload]);
+                }
             } else {
                 if (roomOld) {
                     console.log(roomPayload);
                     let res = await roomService.update(roomPayload);
-                    if (res) {
-                        message.success("Cập nhật phòng thành công");
-                    }
+                    res && message.success("Cập nhật phòng thành công");
                 } else {
                     let res = await roomService.add(roomPayload);
-                    if (res) {
-                        message.success("Thêm phòng thành công");
-                    }
-                    
+                    res && message.success("Thêm phòng thành công");
                 }
                 onClose();
                 await action.refeshDetail();
@@ -135,7 +149,7 @@ const ModalWriteRoom = ({ action, setAction, setRooms }) => {
                     >
                         <Input placeholder="Nhập loại phòng" />
                     </Form.Item>
-                    
+
                     <Form.Item
                         label="Trạng thái hoạt động"
                         name="status"
@@ -277,12 +291,12 @@ const ModalWriteRoom = ({ action, setAction, setRooms }) => {
                         onRemove={handleRemove}
                         beforeUpload={() => false}
                     >
-                        
-                            <div className='block'>
-                                <PlusOutlined />
-                                <div style={{ marginTop: 8 }}>Tải lên</div>
-                            </div>
-                        
+
+                        <div className='block'>
+                            <PlusOutlined />
+                            <div style={{ marginTop: 8 }}>Tải lên</div>
+                        </div>
+
                     </Upload>
 
                 </Form.Item>

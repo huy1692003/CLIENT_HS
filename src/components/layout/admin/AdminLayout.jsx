@@ -124,7 +124,7 @@ const AdminLayout = ({ children }) => {
                                         </h3>
                                     </Dropdown>
                                 </div>
-                                <Avatar src={avatar} className='bg-white ml-3' size={45} alt="User Avatar" />
+                                <Avatar src={admin?.avatar || avatar} className='bg-white ml-3' size={45} alt="User Avatar" />
                             </div>
                         </Header>
                         <Content

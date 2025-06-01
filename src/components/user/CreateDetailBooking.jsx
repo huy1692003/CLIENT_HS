@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useMemo, useState } from 'react';
-import { Modal, Form, Input, DatePicker, InputNumber, Select, Button, notification, Tag, Row, Col, message } from 'antd';
+import { Modal, Form, Input, DatePicker, InputNumber, Select, Button, notification, Tag, Row, Col, message, Tooltip } from 'antd';
 import CardHomeStay from './CardHomeStay';
 import TextArea from 'antd/es/input/TextArea';
 import { formatPrice } from '../../utils/formatPrice';
@@ -10,6 +10,11 @@ import { convertDateTime, convertTimezoneToVN } from '../../utils/convertDate';
 import promotionService from '../../services/promotionService';
 import moment from 'moment';
 import useSignalR from '../../hooks/useSignaIR';
+import { InfoCircleOutlined } from '@ant-design/icons';
+
+// CÁCH 3: Custom cell render để hiển thị tooltip
+
+
 
 const { Option } = Select;
 const formatDate = (dateString) => {
@@ -32,7 +37,7 @@ export const getDisabledDates = (bookedDates) => {
     return disabledDates;
 };
 
-const CreateDetailBooking = ({ visible, onClose,data, room , isOwnerCreate=false}) => {
+const CreateDetailBooking = ({ visible, onClose, data, room, isOwnerCreate = false }) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false); // Đặt loading mặc định là false
     const [bookings, setBookings] = useState();
@@ -91,27 +96,27 @@ const CreateDetailBooking = ({ visible, onClose,data, room , isOwnerCreate=false
     // Hiển thị các ngày đặt từ ngày bawtsd dầu đến ngày về
     const renderDateBooking = useMemo(() => {
         if (bookings) {
-        let { dateIn, dateOut } = bookings
-        const startDate = dateIn; // Ngày bắt đầu
-        const endDate = dateOut; // Ngày kết thúc
+            let { dateIn, dateOut } = bookings
+            const startDate = dateIn; // Ngày bắt đầu
+            const endDate = dateOut; // Ngày kết thúc
 
-        // Tạo danh sách các ngày
-        const days = [];
-        if (dateIn && dateOut) {
+            // Tạo danh sách các ngày
+            const days = [];
+            if (dateIn && dateOut) {
 
 
-            let currentDay = startDate;
-            while (currentDay < endDate) {
-                days.push(currentDay.format('DD-MM-YYYY')); // Định dạng ngày
-                currentDay = currentDay.add(1, 'days'); // Tăng lên 1 ngày VD 16,17,18,19
+                let currentDay = startDate;
+                while (currentDay < endDate) {
+                    days.push(currentDay.format('DD-MM-YYYY')); // Định dạng ngày
+                    currentDay = currentDay.add(1, 'days'); // Tăng lên 1 ngày VD 16,17,18,19
+                }
             }
-        }
 
-        return days;
-    }
-    else {
-        return []
-    }
+            return days;
+        }
+        else {
+            return []
+        }
     }, [bookings])
 
     const totalBill = useMemo(() => {
@@ -154,7 +159,7 @@ const CreateDetailBooking = ({ visible, onClose,data, room , isOwnerCreate=false
             try {
                 await bookingService.create(booking)
 
-                notification.success({ message: "Đặt phòng thành công !", description: isOwnerCreate ? "Thông tin đặt phòng đã được tạo thành công " :   "Thông tin đặt phòng của bạn đã được ghi lại và đang được chờ xử lý ", showProgress: true, duration: 9 })
+                notification.success({ message: "Đặt phòng thành công !", description: isOwnerCreate ? "Thông tin đặt phòng đã được tạo thành công " : "Thông tin đặt phòng của bạn đã được ghi lại và đang được chờ xử lý ", showProgress: true, duration: 9 })
                 onClose(false)
                 form.resetFields()
             } catch (error) {
@@ -175,6 +180,7 @@ const CreateDetailBooking = ({ visible, onClose,data, room , isOwnerCreate=false
         }
         setLoading(false)
     };
+
 
     return (
         <div style={{ width: 1000 }}>
@@ -251,7 +257,8 @@ const CreateDetailBooking = ({ visible, onClose,data, room , isOwnerCreate=false
                                 <DatePicker
                                     value={bookings?.dateIn}
                                     disabledDate={disabledDate}
-                                    placeholder="Chọn ngày nhận phòng"
+
+                                    placeholder="Lưu ý: Ngày màu xám đã có người đặt trước"
                                     className="w-full"
                                     onChange={(date) => {
                                         setBookings({ ...bookings, dateIn: date })
@@ -285,7 +292,8 @@ const CreateDetailBooking = ({ visible, onClose,data, room , isOwnerCreate=false
                                     format="DD-MM-YYYY"
                                     value={bookings?.dateOut}
                                     disabledDate={disabledDate}
-                                    placeholder="Chọn ngày trả phòng"
+                                    
+                                    placeholder="Lưu ý: Ngày màu xám đã con người đặt trước"
                                     className="w-full"
                                     onChange={(date) => {
                                         if (date > bookings?.dateIn) {

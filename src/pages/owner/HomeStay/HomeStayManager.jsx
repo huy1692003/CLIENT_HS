@@ -378,7 +378,7 @@ const HomeStayManager = ({ status }) => {
                 rowKey={(record) => record.homeStay.homestayID}
             />
 
-            {dataCreateBooking.visible && <CreateDetailBooking visible={dataCreateBooking.visible} onClose={setDataCreateBooking} data={dataCreateBooking.homeStay} room={dataCreateBooking.roomCurrent} />}
+            {dataCreateBooking.visible && <CreateDetailBooking visible={dataCreateBooking.visible} onClose={setDataCreateBooking} data={dataCreateBooking.homeStay} room={dataCreateBooking.roomCurrent} isOwnerCreate={true} />}
             <PaginateShared
                 align="end"
                 page={paginate.page}

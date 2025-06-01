@@ -81,7 +81,9 @@ const FilterSide = ({ showSideFilter, setShowSideFilter, refeshData, setPaginate
 
     const applyFilters = () => {
         setPaginate(prev => ({ ...prev, page: 1 }));
+        
         setSearchParams({ ...searchParam, isCallAPI: true });
+        setShowSideFilter(false);
     };
 
     return (

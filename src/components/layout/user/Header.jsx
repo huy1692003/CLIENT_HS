@@ -3,12 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import Logo from "../../../assets/Logo/logo.png";
 import { memo, useEffect, useState } from "react";
 import { userState } from './../../../recoil/atom';
-import { useRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { settingFormat } from "../../../recoil/selector";
 
 const Header = () => {
     const navigate = useNavigate()
     const [showInfor, setShowInfor] = useState(false);
     const [user, setUser] = useRecoilState(userState)
+    const setting = useRecoilValue(settingFormat)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
@@ -95,15 +97,7 @@ const Header = () => {
                                             </div>
                                         )
                                     },
-                                    {
-                                        key: '3',
-                                        label: (
-                                            <div>
-                                                <i className="fa-solid fa-user text-blue-600 mr-2"></i>
-                                                Thông tin của tôi
-                                            </div>
-                                        )
-                                    },
+                                  
                                     {
                                         key: '4',
                                         label: (

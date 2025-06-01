@@ -263,9 +263,14 @@ const HomeStayCensor = ({ status }) => {
                             Đang hiện hành
                         </span>
                     )}
-                    {status === 2 && (
+                    {status === -1 && (
                         <span className="text-lg bg-yellow-100 text-yellow-600 px-3 py-1 rounded-md shadow-sm">
                             Bị từ chối
+                        </span>
+                    )}
+                    {status === 2 && (
+                        <span className="text-lg bg-yellow-100 text-yellow-900 px-3 py-1 rounded-md shadow-sm">
+                            Đang bảo trì
                         </span>
                     )}
                 </span>

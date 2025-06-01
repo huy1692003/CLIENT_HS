@@ -29,7 +29,7 @@ const CreateReview = ({ show,onClose, cusID, IDHomeStay, refesh ,bookingID }) =>
         setLoading(false)
         const reviewData = {
             homestayID: IDHomeStay,
-            cusID: cusID,
+            customerID: cusID,
             rating: data.rating,
             comment: data.comment,
             reviewDate: new Date(),
@@ -82,7 +82,7 @@ const CreateReview = ({ show,onClose, cusID, IDHomeStay, refesh ,bookingID }) =>
                 }}
             >
                 <Form.Item
-                    label="Số sao bạn dành cho Homestay"
+                    label={<div className="flex items-center gap-2">Số sao bạn đánh giá : {rating}<i className="fa-solid fa-star text-yellow-500"></i></div>}
                     name="rating"
                     rules={[{ required: true, message: 'Vui lòng chọn mức độ đánh giá!' }]}
                 >

@@ -1,9 +1,9 @@
 import { memo, useEffect, useState } from "react";
-import { Table, Tag, Button, Tooltip, notification, message, Select, DatePicker, Input } from "antd";
+import { Table, Tag, Button, Tooltip, notification, message, Select, DatePicker, Input, Space, Row, Col } from "antd";
 import { useRecoilValue } from "recoil";
 import { userState } from "../../../recoil/atom";
 import advertisementService from "../../../services/advertisementService";
-import { DeleteFilled, EditOutlined, EyeFilled, EyeInvisibleOutlined, EyeOutlined, MoneyCollectFilled } from "@ant-design/icons";
+import { DeleteFilled, EditOutlined, EyeFilled, EyeInvisibleOutlined, FilterOutlined, MoneyCollectFilled, SearchOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import ModalViewAdvertisement from "../../../components/shared/ModalViewAdvertisement";
 import LabelField from "../../../components/shared/LabelField";
@@ -20,8 +20,8 @@ export const initSearchAds = {
     placement: null,
     dateStart: null,
     dateEnd: null
-
 }
+
 const AdvertisementManager = () => {
     const owner = useRecoilValue(userState);
     const [advertisements, setAdvertisements] = useState([]);
@@ -32,19 +32,18 @@ const AdvertisementManager = () => {
     const navigate = useNavigate();
     const [search, setSearch] = useState(initSearchAds)
     const [searchParam, setSearchParam] = useState(initSearchAds)
-    const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại
-    const [pageSize, setPageSize] = useState(5); // Số mục trên mỗi trang
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(5);
+    const [showFilters, setShowFilters] = useState(false);
 
     useEffect(() => {
-
         fetchAdvertisements();
     }, [status, owner.idOwner, search]);
+
     const fetchAdvertisements = async () => {
         setLoading(true);
         try {
             const data = await advertisementService.getAdvertisementManager(status, owner.idOwner, search);
-            // Filter ads based on status and ownerID
-
             setAdvertisements(data);
         } catch (error) {
             console.error("Error fetching advertisements:", error);
@@ -58,10 +57,12 @@ const AdvertisementManager = () => {
         (currentPage - 1) * pageSize,
         currentPage * pageSize
     );
+
     const handleModalClose = () => {
         setIsModalVisible(false);
         setSelectedAd(null);
     };
+
     const showModal = (ad) => {
         setSelectedAd(ad);
         setIsModalVisible(true);
@@ -75,11 +76,9 @@ const AdvertisementManager = () => {
                 "fullName": owner.fullname,
                 "descrtiption": "Thanh toán tiền quảng cáo HomeStay cho mã quảng cáo #: " + ads.adID,
                 "amount": ads.cost,
-            }
-            )
-            console.log(res)
+            })
+            
             if (res && res.payUrl) {
-
                 window.open(res.payUrl, "_blank")
             }
             else {
@@ -89,29 +88,92 @@ const AdvertisementManager = () => {
             notification.error({ message: "Có lỗi khi thanh toán" })
         }
     }
-
+    
     const columns = [
+        {
+            title: 'Hành động',
+            key: 'action',
+            fixed: 'left',
+            width: "auto",
+            render: (_, record) => (
+                <Space size="small">
+                    {record.statusAd === 0 && 
+                        <Tooltip title="Chỉnh sửa">
+                            <Button 
+                                size="small"
+                                type="primary"
+                                icon={<EditOutlined />}
+                                onClick={() => handleEdit(record)}
+                            />
+                        </Tooltip>
+                    }
+                    
+                    {record.statusAd < 2 && 
+                        <Tooltip title="Xóa quảng cáo">
+                            <Button 
+                                size="small"
+                                type="default"
+                                danger
+                                icon={<DeleteFilled />}
+                                onClick={() => handleDelete(record)}
+                            />
+                        </Tooltip>
+                    }
+                    
+                    {record.statusAd === 1 &&
+                        <Tooltip title="Thanh toán">
+                            <Button 
+                                size="small"
+                                type="primary"
+                                icon={<MoneyCollectFilled />}
+                                onClick={() => paymentAds(record)}
+                            />
+                        </Tooltip>
+                    }
+                    
+                    {record.statusAd === 3 &&
+                        <Tooltip title="Ẩn quảng cáo">
+                            <Button 
+                                size="small" 
+                                onClick={() => handleHideAdver(record, fetchAdvertisements)} 
+                                type="primary" 
+                                danger 
+                                icon={<EyeInvisibleOutlined />} 
+                            />
+                        </Tooltip>
+                    }
+                    
+                    <Tooltip title="Xem chi tiết">
+                        <Button 
+                            size="small"
+                            type="primary"
+                            icon={<EyeFilled />}
+                            onClick={() => showModal(record)}
+                        />
+                    </Tooltip>
+                </Space>
+            ),
+        },
         {
             title: 'Mã',
             dataIndex: 'adID',
             key: 'adID',
+            width: 60,
         },
         {
             title: 'Tiêu đề',
             dataIndex: 'adTitle',
             key: 'adTitle',
+            ellipsis: true,
             render: (text) => <b>{text}</b>,
         },
+      
         {
-            title: 'Mô tả',
-            dataIndex: 'adDescription',
-            key: 'adDescription',
-            ellipsis: true,
-        },
-        {
-            title: "Vị trí hiển thị",
+            title: "Vị trí",
             dataIndex: "placement",
             key: "placement",
+            width: 120,
+            responsive: ['md'],
             render: (pl) => {
                 const placementMapping = {
                     1: "Banner trang chủ",
@@ -126,23 +188,30 @@ const AdvertisementManager = () => {
             title: 'Ngày bắt đầu',
             dataIndex: 'startDate',
             key: 'startDate',
+            width: 120,
+            responsive: ['md'],
             render: (date) => new Date(date).toLocaleDateString('vi-VN'),
         },
         {
             title: 'Ngày kết thúc',
             dataIndex: 'endDate',
             key: 'endDate',
+            width: 120,
+            responsive: ['md'],
             render: (date) => new Date(date).toLocaleDateString('vi-VN'),
         },
         {
             title: 'Lượt click',
             dataIndex: 'totalClick',
             key: 'totalClick',
+            width: 80,
+            responsive: ['sm'],
         },
         {
             title: 'Trạng thái',
             dataIndex: 'statusAd',
             key: 'statusAd',
+            width: 120,
             render: (status) => {
                 const inforStatus = statusAdvertisement.find(s => s.index === status)
                 return <Tag color={inforStatus.tag}>{inforStatus.des}</Tag>;
@@ -152,83 +221,11 @@ const AdvertisementManager = () => {
             title: "Ngày tạo",
             dataIndex: "createdDate",
             key: "createdDate",
+            width: 120,
+            responsive: ['lg'],
             render: (dateCreate) => {
                 return convertDate(dateCreate)
             },
-        },
-        {
-            title: 'Hành động',
-            key: 'action',
-            render: (_, record) => (
-                <div className="flex gap-1 justify-center" >
-
-                    {record.statusAd === 0 && <>
-
-
-                        <Tooltip title="Chỉnh sửa">
-                            <Button style={{ minWidth: 30 }}
-                                size="middle"
-                                type="primary"
-                                icon={<EditOutlined />}
-                                onClick={() => handleEdit(record)}
-                            />
-                        </Tooltip>
-
-
-
-                    </>}
-                    {record.statusAd < 2 && <>
-
-
-                        <Tooltip title="Xóa quảng cáo">
-                            <Button style={{ minWidth: 30 }}
-                                size="middle"
-                                type="default"
-                                danger
-                                icon={<DeleteFilled />}
-                                onClick={() => handleDelete(record)}
-                            />
-                        </Tooltip>
-
-
-                    </>}
-
-
-
-                    {
-                        record.statusAd === 1 &&
-                        <Tooltip title="Thanh toán ">
-                            <Button style={{ minWidth: 30 }}
-                                size="middle"
-                                type="primary"
-
-                                icon={<MoneyCollectFilled />}
-                                onClick={() => paymentAds(record)}
-                            />
-                        </Tooltip>
-                    }
-
-                    {record.statusAd === 3 &&
-                        <Tooltip title="Ẩn quảng cáo ">
-                            <Button style={{ minWidth: 30 }} size="middle" onClick={() => handleHideAdver(record, fetchAdvertisements)} type="primary" danger icon={<EyeInvisibleOutlined />} />
-                        </Tooltip>
-                    }
-
-
-                    <Tooltip title="Xem chi tiết">
-                        <Button style={{ minWidth: 30 }}
-                            size="middle"
-                            type="primary"
-
-                            icon={<EyeFilled />}
-                            onClick={() => showModal(record)}
-                        />
-                    </Tooltip>
-
-
-                </div>
-
-            ),
         },
     ];
 
@@ -252,105 +249,148 @@ const AdvertisementManager = () => {
     };
 
     return (
-        <>
-            <h3 className="text-xl font-bold mb-5 flex justify-between items-center">
-                <span className="flex items-center space-x-3">
-                    <span className="text-gray-800">Quản lý quảng cáo</span>
-                </span>
-                <Button
-                    type="primary"
-                    onClick={() => navigate('/owner/advertisement/write')}
-                >
-                    Tạo quảng cáo mới
-                </Button>
+        <div className="w-full">
+            <h3 className="text-xl font-bold mb-5 flex flex-wrap justify-between items-center gap-2">
+                <span className="text-gray-800">Quản lý quảng cáo</span>
+                <Space>
+                    <Button
+                        icon={<FilterOutlined />}
+                        onClick={() => setShowFilters(!showFilters)}
+                    >
+                        Bộ lọc
+                    </Button>
+                    <Button
+                        type="primary"
+                        onClick={() => navigate('/owner/advertisement/write')}
+                    >
+                        Tạo quảng cáo mới
+                    </Button>
+                </Space>
             </h3>
 
-            <div className="my-3 flex flex-wrap gap-4">
-                <LabelField label="Tiêu đề quảng cáo"><Input
-                    className="min-w-[300px]"
-                    value={searchParam.title} allowClear onChange={(e) => setSearchParam({
-                        ...searchParam, title: e.target.
-                            value
-                    })} ></Input></LabelField>
+            {showFilters && (
+                <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
+                    <Row gutter={[16, 16]}>
+                        <Col xs={24} sm={12} lg={8}>
+                            <LabelField label="Tiêu đề quảng cáo">
+                                <Input
+                                    value={searchParam.title} 
+                                    allowClear 
+                                    onChange={(e) => setSearchParam({
+                                        ...searchParam, 
+                                        title: e.target.value
+                                    })} 
+                                />
+                            </LabelField>
+                        </Col>
+                        
+                        <Col xs={24} sm={12} lg={8}>
+                            <LabelField label="Ngày bắt đầu">
+                                <DatePicker
+                                    type="date"
+                                    format="DD/MM/YYYY"
+                                    className="w-full"
+                                    value={searchParam.dateStart ? dayjs(searchParam.dateStart) : null}
+                                    onChange={(date) => {
+                                        setSearchParam({ 
+                                            ...searchParam, 
+                                            dateStart: date ? date.format('YYYY-MM-DD') : null 
+                                        });
+                                    }}
+                                />
+                            </LabelField>
+                        </Col>
+                        
+                        <Col xs={24} sm={12} lg={8}>
+                            <LabelField label="Ngày kết thúc">
+                                <DatePicker
+                                    format="DD/MM/YYYY"
+                                    className="w-full"
+                                    value={searchParam.dateEnd ? dayjs(searchParam.dateEnd) : null}
+                                    onChange={(date) => setSearchParam({ 
+                                        ...searchParam, 
+                                        dateEnd: date ? date.format('YYYY-MM-DD') : null 
+                                    })}
+                                />
+                            </LabelField>
+                        </Col>
+                        
+                        <Col xs={24} sm={12} lg={8}>
+                            <LabelField label="Vị trí hiển thị">
+                                <Select
+                                    value={searchParam.placement}
+                                    onChange={(value) => setSearchParam({ ...searchParam, placement: value })}
+                                    className="w-full"
+                                    allowClear
+                                >
+                                    <Option value={1}>Banner trang chủ</Option>
+                                    <Option value={2}>Sidebar trang chủ</Option>
+                                    <Option value={3}>Homestay nổi bật</Option>
+                                </Select>
+                            </LabelField>
+                        </Col>
+                        
+                        <Col xs={24} sm={12} lg={8}>
+                            <LabelField label="Trạng Thái">
+                                <Select
+                                    value={status}
+                                    onChange={(value) => setStatus(value)}
+                                    className="w-full"
+                                >
+                                    {statusAdvertisement.map((item) => (
+                                        <Option key={item.index} value={item.index}>
+                                            {item.des}
+                                        </Option>
+                                    ))}
+                                </Select>
+                            </LabelField>
+                        </Col>
+                        
+                        <Col xs={24} sm={12} lg={8}>
+                            <Button 
+                                type="primary" 
+                                onClick={() => setSearch(searchParam)}
+                                icon={<SearchOutlined />}
+                                className="mt-6"
+                                block
+                            >
+                                Tìm kiếm
+                            </Button>
+                        </Col>
+                    </Row>
+                </div>
+            )}
 
-                <LabelField label="Ngày bắt đầu">
-                    <DatePicker
-                        type="date"
-                        format="DD/MM/YYYY"
-                        className="min-w-[300px]"
-                        value={searchParam.dateStart ? dayjs(searchParam.dateStart) : null} // Chuyển giá trị thành dayjs nếu cần
-                        onChange={(date, dateString) => {
-                            setSearchParam({ ...searchParam, dateStart: date ? date.format('YYYY-MM-DD') : null }); // Lưu trữ dưới dạng chuỗi ngày nếu cần
-                        }}
-
-                    />
-                </LabelField>
-
-                <LabelField label="Ngày kết thúc">
-                    <DatePicker
-                        format="DD/MM/YYYY"
-                        className="min-w-[300px]"
-                        value={searchParam.dateEnd ? dayjs(searchParam.dateEnd) : null} // Chuyển đổi endDate thành dayjs nếu có giá trị
-                        onChange={(date) => setSearchParam({ ...searchParam, dateEnd: date ? date.format('YYYY-MM-DD') : null })} // Chuyển date thành chuỗi ngày nếu cần
-
-                    />
-                </LabelField>
-
-                <LabelField label={"Vị trí hiển thị"}>
-                    <Select
-
-                        value={searchParam.placement}
-                        onChange={(value) => setSearchParam({ ...searchParam, placement: value })}
-                        style={{ width: 300 }}
-                    >
-
-                        <Option key={1} value={1}>Banner trang chủ</Option>
-                        <Option key={1} value={2}>Sidebar trang chủ</Option>
-                        <Option key={1} value={3}>Homestay nổi bật </Option>
-
-                    </Select>
-                </LabelField>
-
-                <LabelField label={"Trạng Thái"}>  <Select
-                    value={status}
-                    onChange={(value) => setStatus(value)}
-                    style={{ width: 300 }}
-                >
-                    {statusAdvertisement.map((item) => (
-                        <Option key={item.index} value={item.index}>
-                            {item.des}
-                        </Option>
-                    ))}</Select></LabelField>
-                <LabelField label={<br />}>
-
-                    <Button type="primary" onClick={() => setSearch(searchParam)}                >
-                        Tìm kiếm ngay
-                    </Button>
-                </LabelField>
+            <div className="overflow-x-auto">
+                <Table
+                    loading={loading}
+                    bordered
+                    className="w-full"
+                    columns={columns}
+                    dataSource={currentAdvertisements}
+                    rowKey="adID"
+                    scroll={{ x: 'max-content' }}
+                    pagination={{
+                        current: currentPage,
+                        pageSize: pageSize,
+                        total: advertisements.length,
+                        showSizeChanger: true,
+                        pageSizeOptions: [5, 10, 20, 50, 100, 200],
+                        onChange: (page, pageSize) => {
+                            setCurrentPage(page);
+                            setPageSize(pageSize);
+                        },
+                        responsive: true,
+                    }}
+                />
             </div>
-
-            <Table
-                loading={loading}
-                bordered
-                columns={columns}
-                dataSource={currentAdvertisements} // Chỉ hiển thị dữ liệu của trang hiện tại
-                rowKey="adID"
-                
-                pagination={{
-                    current: currentPage,
-                    pageSize: pageSize,
-                    total: advertisements.length, // Tổng số quảng cáo
-                    showSizeChanger: true,
-                    pageSizeOptions:[5,10,20,50,100,200],
-                    onChange: (page, pageSize) => {
-                        setCurrentPage(page);
-                        setPageSize(pageSize);
-                    },
-                }}
+            
+            <ModalViewAdvertisement 
+                handleModalClose={handleModalClose} 
+                selectedAd={selectedAd} 
+                isModalVisible={isModalVisible} 
             />
-            <ModalViewAdvertisement handleModalClose={handleModalClose} selectedAd={selectedAd} isModalVisible={isModalVisible} />
-
-        </>
+        </div>
     );
 };
 

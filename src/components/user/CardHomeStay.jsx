@@ -139,6 +139,13 @@ const CardHomeStay = ({ data, width = "100%" , isTopView = false }) => {
                         <span className="font-bold">{data.homeStay.averageRating.toFixed(1)}</span>
                     </div>
                 )}
+                {data.homeStay.viewCount > 0 && (
+                    <div className={`absolute bg-white px-2 py-1 rounded-lg shadow-md flex items-center ${isTopView ? 'bottom-5 right-2' : 'bottom-3 left-3'}`}>
+                        <Tooltip title={`${data.homeStay.viewCount} lượt xem`}>
+                            <span className="text-gray-600 font-bold"><i className="mr-1 fa-solid fa-eye text-blue-700"></i>{data.homeStay.viewCount} </span>
+                        </Tooltip>
+                    </div>
+                )}
             </div>
             
             <div 
@@ -147,9 +154,7 @@ const CardHomeStay = ({ data, width = "100%" , isTopView = false }) => {
             >
                 <div className="flex justify-between items-start mb-2">
                     <h3 className="text-lg font-bold text-gray-800 truncate mr-2">{data.homeStay.homestayName}</h3>
-                    {data.homeStay.viewCount > 0 && (
-                        <span className="text-xs text-gray-500">{data.homeStay.viewCount} lượt xem</span>
-                    )}
+                   
                 </div>
                 
                 <div className="flex items-center mb-2 text-gray-600">
@@ -167,7 +172,7 @@ const CardHomeStay = ({ data, width = "100%" , isTopView = false }) => {
                     </p>
                 </div>
                 
-                <div className="mb-3 flex flex-wrap gap-1 gap-y-2">
+                <div className="mb-3 flex flex-wrap  gap-y-2">
                     {getFeatures().map((feature, index) => (
                         <Tag key={index} color="blue">{feature}</Tag>
                     ))}
@@ -184,8 +189,10 @@ const CardHomeStay = ({ data, width = "100%" , isTopView = false }) => {
                     </div>
                     <Button type="primary" size="small" className="bg-blue-500">
                         Xem chi tiết
+                        
                     </Button>
                 </div>
+
             </div>
         </div>
     );

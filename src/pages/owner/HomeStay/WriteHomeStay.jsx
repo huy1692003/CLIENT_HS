@@ -1,14 +1,12 @@
 import React, { memo, useEffect, useState } from 'react';
 import { Form, Input, Button, Upload, message, Select, Checkbox, Image, Alert, notification, TimePicker, Switch, Card, Divider, Modal, Carousel } from 'antd';
 import { UploadOutlined, PlusOutlined, DeleteOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import amenitiesService from '../../../services/amenitiesService';
 import { uploadService } from '../../../services/uploadService';
 import homestayService from '../../../services/homestayService';
 import { useRecoilState } from 'recoil';
 import { userState } from '../../../recoil/atom';
-import createFromData from '../../../utils/createFormData';
-import TextArea from 'antd/es/input/TextArea';
 import { URL_SERVER } from '../../../constant/global';
 import data_province from '../../../assets/Data/data_province.json';
 import { Option } from 'antd/es/mentions';
@@ -32,6 +30,7 @@ const WriteHomeStay = () => {
     const [selectedDistrict, setSelectedDistrict] = useState()
     const [listIMG_OLD, setListIMG_OLD] = useState([])
     const [rooms, setRooms] = useState([]);
+    const navigate = useNavigate();
     const [profileOwner, setProfileOwner] = useState(null)
     const [actionModalWriteRoom, setActionModalWriteRoom] = useState({ isOpen: false, isNewHomeStay: true, roomOld: null })
     useEffect(() => {
@@ -59,8 +58,7 @@ const WriteHomeStay = () => {
         setProfileOwner(profile?.owner);
     }
 
-    console.log(profileOwner)
-    // Call Api lấy về chi tiết HomeStay khi sửa
+
     const fillDataOnEdit = async () => {
         try {
             const data = await homestayService.getDetail(idHomeStay);
@@ -111,14 +109,15 @@ const WriteHomeStay = () => {
         }
     }, [idHomeStay]);
 
-   
+
 
     const onFinish = async (data) => {
         setLoading(true);
+        let roomsTMP = rooms
         try {
             let listIMG = fileList.length > 0 ? await uploadService.upload(fileList) : [];
 
-            if (!idHomeStay) {
+            if (!idHomeStay && listIMG.length === 0) {
                 message.error("Vui lòng chọn ảnh khi thêm mới homestay!")
                 return
             }
@@ -127,12 +126,14 @@ const WriteHomeStay = () => {
                 return
             }
             if (!idHomeStay) {
-                rooms.forEach(async (room, index) => {
-
+                await Promise.all(roomsTMP.map(async (room, index) => {
+                    room.homestayId = idHomeStay ? parseInt(idHomeStay) : 0
+                    room.roomId = 0
                     let listIMG_ROOM = await uploadService.upload(room.roomImage);
                     room.roomImage = listIMG_ROOM.join(',');
+                }));
 
-                });
+
             }
 
             const homestayPayload = {
@@ -172,22 +173,24 @@ const WriteHomeStay = () => {
                     riceFieldView: data.riceFieldView || false,
                     policies: data.policies || '',
                 },
-                rooms: rooms
-            };
+                rooms: roomsTMP
+            }
 
             console.log(homestayPayload)
             let res = idHomeStay
                 ? await homestayService.update(homestayPayload)
                 : await homestayService.add(homestayPayload);
 
-            res && notification.success({
-                message: idHomeStay ? "Cập nhật thành công" : "Thêm thành công",
-                description: idHomeStay
-                    ? "Bạn đã cập nhật thông tin homestay thành công."
-                    : "Bạn đã thêm mới homestay thành công.",
-            });
-
-            idHomeStay && fillDataOnEdit();
+            if (res) {
+                res && notification.success({
+                    message: idHomeStay ? "Cập nhật thành công" : "Thêm thành công",
+                    description: idHomeStay
+                        ? "Bạn đã cập nhật thông tin homestay thành công."
+                        : "Bạn đã thêm mới homestay thành công.",
+                });
+                !idHomeStay && navigate("/owner/homestay-waiting");
+                idHomeStay && fillDataOnEdit();
+            }
 
         } catch (error) {
             console.log(error);
@@ -338,6 +341,11 @@ const WriteHomeStay = () => {
                 <Card title="Tiện nghi" className="mb-4">
                     <Form.Item label="Chọn Tiện Nghi">
                         <Select
+                            showSearch
+                            optionFilterProp="label"
+                            filterOption={(input, option) =>
+                                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                            }
                             mode="multiple"
                             allowClear
                             value={selectedAmenities}
@@ -354,7 +362,7 @@ const WriteHomeStay = () => {
 
                 {/* Chi tiết homestay */}
                 <Card title="Chi tiết Homestay" className="mb-4">
-                   
+
 
                     <Divider className='mb-2'>Tiện ích và Khung cảnh</Divider>
                     <div className="  grid grid-cols-4 gap-2">
@@ -387,7 +395,7 @@ const WriteHomeStay = () => {
                         name="noteHomestay"
                         label="Ghi chú về Homestay"
                     >
-                         <CKEditorField placeholder="Nhập ghi chú về homestay..." />
+                        <CKEditorField placeholder="Nhập ghi chú về homestay..." />
                     </Form.Item>
 
                     <Form.Item
@@ -395,7 +403,7 @@ const WriteHomeStay = () => {
                         label="Nội quy lưu trú"
                         initialValue={profileOwner?.defaultRules || ''}
                     >
-                         <CKEditorField placeholder="Nhập nội quy lưu trú..." />
+                        <CKEditorField placeholder="Nhập nội quy lưu trú..." />
                     </Form.Item>
 
                     <Form.Item
@@ -403,11 +411,11 @@ const WriteHomeStay = () => {
                         label="Chính sách"
                         initialValue={profileOwner?.defaultPolicies || ''}
                     >
-                         <CKEditorField placeholder="Nhập chính sách..." />
+                        <CKEditorField placeholder="Nhập chính sách..." />
                     </Form.Item>
                 </Card>
 
-                
+
                 {/* Upload ảnh */}
                 <Card title="Hình ảnh tổng quan Homestay" className="mb-4">
                     <Form.Item label="Ảnh liên quan">
@@ -419,7 +427,7 @@ const WriteHomeStay = () => {
                             fileList={fileList}
                             onChange={handleUploadChange}
                             onRemove={handleRemove}
-                          
+
                         >
                             <div className='block'>
                                 <PlusOutlined />
@@ -441,6 +449,7 @@ const WriteHomeStay = () => {
                     {rooms.length > 0 && rooms.map((room, index) => (
                         <div key={index} >
                             <CardRoom
+                                isAdd={idHomeStay ? false : true}
                                 room={room}
                                 ButtonAction={<>
                                     <Button type="primary" size="small" className="flex items-center" onClick={() => setActionModalWriteRoom(prev => ({ ...prev, isOpen: true, isNewHomeStay: false, idHomeStay: idHomeStay, refeshDetail: fillDataOnEdit, roomOld: room }))} >

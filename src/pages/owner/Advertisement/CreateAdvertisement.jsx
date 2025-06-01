@@ -1,15 +1,19 @@
 import React, { memo, useEffect, useState } from 'react';
-import { Form, Input, Button, Upload, message, Image, notification, Alert } from 'antd';
+import { Form, Input, Button, Upload, message, Image, notification, Alert, DatePicker } from 'antd';
 import { PlusOutlined, CheckCircleFilled } from '@ant-design/icons';
 import { useSearchParams } from 'react-router-dom';
 import { uploadService } from '../../../services/uploadService';
 import advertisementService from '../../../services/advertisementService';
-import { useRecoilState } from 'recoil';
+import { useRecoilState, useRecoilValue } from 'recoil';
 import { userState } from '../../../recoil/atom';
 import createFromData from '../../../utils/createFormData';
 import TextArea from 'antd/es/input/TextArea';
 import { URL_SERVER } from '../../../constant/global';
 import moment from 'moment';
+import { settingFormat } from '../../../recoil/selector';
+import { formatPrice } from '../../../utils/formatPrice';
+import { convertTimezoneToVN } from '../../../utils/convertDate';
+import dayjs from 'dayjs';
 
 const CreateAdvertisement = () => {
     const [paramURL] = useSearchParams();
@@ -22,14 +26,29 @@ const CreateAdvertisement = () => {
     const [selectedPlacement, setSelectedPlacement] = useState(1);
     const [totalCost, setTotalCost] = useState(0);
     const [totalDays, setTotalDays] = useState(0);
+    const setting = useRecoilValue(settingFormat)
+    const [pricePlacement, setPricePlacement] = useState({
+        1: 100000, // Banner
+        2: 75000, // Sidebar
+        3: 50000
+    })
 
+    useEffect(() => {
+        if (setting) {
+            setPricePlacement({
+                1: setting["adBannerPrice"]?.value,
+                2: setting["adSideBarLeftPrice"]?.value,
+                3: setting["adFooterPrice"]?.value
+            })
+        }
+    }, [setting])
     // Call Api lấy về chi tiết Advertisement khi sửa
     const fillDataOnEdit = async () => {
         try {
             const data = await advertisementService.getAdvertisementById(adId);
             console.log(data);
             if (data) {
-                form.setFieldsValue({ ...data, endDate: data.endDate.slice(0, 10), startDate: data.startDate.slice(0, 10) });
+                form.setFieldsValue({ ...data, endDate: dayjs(data.endDate), startDate: dayjs(data.startDate) });
                 setSelectedPlacement(data.placement);
                 let listIMG_OLD = [{
                     uid: '1',
@@ -73,11 +92,7 @@ const CreateAdvertisement = () => {
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
         // Giá theo vị trí
-        const pricePerDay = {
-            1: 100000, // Banner
-            2: 75000, // Sidebar
-            3: 50000  // Homestay nổi bật
-        };
+        const pricePerDay = pricePlacement
 
         setTotalDays(diffDays);
         const cost = diffDays * pricePerDay[placement];
@@ -91,7 +106,6 @@ const CreateAdvertisement = () => {
             let resUpload = (listFileOrigin.length > 0) ? await uploadService.postMany(createFromData.many(listFileOrigin)) : [];
             let listIMG = resUpload.filePaths || [];
 
-
             const advertisementPayload = {
                 adID: adId ? adId : 0,
                 ownerID: owner.idOwner,
@@ -99,8 +113,8 @@ const CreateAdvertisement = () => {
                 adDescription: data.adDescription,
                 adPicture: listIMG.length > 0 ? listIMG[0] : (listIMG_OLD[0]?.urlRoot || ''),
                 urlClick: data.urlClick,
-                startDate: moment(data.startDate).toISOString(), // Hoặc .format("YYYY-MM-DDTHH:mm:ss")
-                endDate: moment(data.endDate).toISOString(),
+                startDate: convertTimezoneToVN(data.startDate), // Hoặc .format("YYYY-MM-DDTHH:mm:ss")
+                endDate: convertTimezoneToVN(data.endDate),
                 placement: selectedPlacement,
                 statusAd: 0, // Chờ duyệt
                 totalClick: 0,
@@ -108,7 +122,6 @@ const CreateAdvertisement = () => {
                 createdDate: new Date(),
                 updatedDate: new Date()
             };
-            console.log(advertisementPayload);
             let res = adId
                 ? await advertisementService.updateAdvertisement(adId, advertisementPayload)
                 : await advertisementService.createAdvertisement(advertisementPayload);
@@ -152,7 +165,8 @@ const CreateAdvertisement = () => {
 
     // Handle date changes
     const handleDateChange = (e, field) => {
-        const value = e.target.value;
+        console.log(e)
+        const value = e;
         form.setFieldsValue({ [field]: value });
 
         const startDate = field === 'startDate' ? value : form.getFieldValue('startDate');
@@ -216,7 +230,7 @@ const CreateAdvertisement = () => {
                                 onClick={() => handlePlacementSelect(1)}
 
                             >
-                                1.Phần Banner (100.000đ/ngày)
+                                1.Phần Banner ({formatPrice(pricePlacement[1])}/ngày)
                                 {selectedPlacement === 1 && (
                                     <CheckCircleFilled className="absolute right-2 text-blue-500 text-xl" />
                                 )}
@@ -229,7 +243,7 @@ const CreateAdvertisement = () => {
                                     onClick={() => handlePlacementSelect(2)}
 
                                 >
-                                    2.Phần Sidebar (75.000đ/ngày)
+                                    2.Phần Sidebar ({formatPrice(pricePlacement[2])}/ngày)
                                     {selectedPlacement === 2 && (
                                         <CheckCircleFilled className="absolute right-2 text-blue-500 text-xl" />
                                     )}
@@ -249,7 +263,7 @@ const CreateAdvertisement = () => {
                                 onClick={() => handlePlacementSelect(3)}
 
                             >
-                                3.Phần Homestay nổi bật (50.000đ/ngày)
+                                3.Phần Homestay nổi bật ({formatPrice(pricePlacement[3])}/ngày)
                                 {selectedPlacement === 3 && (
                                     <CheckCircleFilled className="absolute right-2 text-blue-500 text-xl" />
                                 )}
@@ -282,6 +296,7 @@ const CreateAdvertisement = () => {
                 <Form.Item
                     name="startDate"
                     label="Ngày bắt đầu"
+                    
                     rules={[
                         { required: true, message: 'Vui lòng chọn ngày bắt đầu!' },
                         () => ({
@@ -294,7 +309,7 @@ const CreateAdvertisement = () => {
                         }),
                     ]}
                 >
-                    <Input type="date" onChange={(e) => handleDateChange(e, 'startDate')} />
+                    <DatePicker className='w-full' type="date" format="DD-MM-YYYY" onChange={(e) => handleDateChange(e, 'startDate')} />
                 </Form.Item>
 
                 <Form.Item
@@ -313,7 +328,7 @@ const CreateAdvertisement = () => {
                         }),
                     ]}
                 >
-                    <Input type="date" onChange={(e) => handleDateChange(e, 'endDate')} />
+                    <DatePicker className='w-full' type="date" format="DD-MM-YYYY" onChange={(e) => handleDateChange(e, 'endDate')} />
                 </Form.Item>
 
                 {totalCost > 0 && (

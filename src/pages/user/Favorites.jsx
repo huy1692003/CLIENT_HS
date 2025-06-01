@@ -18,7 +18,7 @@ const Favorites = () => {
     const getHomeStayFavorites = async (cus) => {
         let res = await favoritesService.getHomeStayFavorites(cus?.idCus || 1)
         setFavorites(res)
-
+        console.log(res)
     }
 
     console.log(favoties)
@@ -32,8 +32,8 @@ const Favorites = () => {
             <div>
                 {
                     favoties.length === 0 ? <div>Bạn chưa có Homestays yêu thích nào</div> :
-                        <div className="flex flex-wrap gap-4 p-4 pb-6">
-                            {favoties.map(f => <CardFavorites idFav={f.favoriteID} data={f.homestay} detailHomeStay={f.detailHomeStay} refeshData={getHomeStayFavorites} />)}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {favoties.map(f => <CardFavorites  data={{favoriteID:f.favoriteID,homestay:f.homestay,detailHomeStay:f.detailHomeStay,rooms:f.rooms}}  refeshData={getHomeStayFavorites} />)}
                         </div>
                 }
             </div>

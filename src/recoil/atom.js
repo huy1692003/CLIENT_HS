@@ -13,6 +13,11 @@ export const adminState = atom({
     default: adminLocal || null
 })
 
+var settingLocal = sessionStorage.getItem("setting") && JSON.parse(sessionStorage.getItem("setting"))
+export const settingState = atom({
+    key: "settingState",
+    default: settingLocal || []
+})
 
 export const isLoadingAdmin = atom({
     key: "isLoadingAdmin",
