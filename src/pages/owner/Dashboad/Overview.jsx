@@ -17,7 +17,7 @@ const Overview = () => {
     const [dataChatRevenue, setDataChatRevenue] = useState();
     const [dataChatAds, setDataChatAds] = useState();
     const owner = useRecoilValue(userState);
-    const navigate =useNavigate()
+    const navigate = useNavigate()
 
     const options = {
         responsive: true,
@@ -94,31 +94,31 @@ const Overview = () => {
             <div>
                 <div className="grid grid-cols-5 gap-4">
                     {/* Homestay */}
-                    <div onClick={()=>{navigate("/owner/homestay-current")}} className="flex justify-center items-center py-8 rounded-lg bg-blue-600 text-white text-xl hover:bg-white hover:text-blue-600 hover:border-l-2 border-blue-600 transition-all duration-300 cursor-pointer">
+                    <div onClick={() => { navigate("/owner/homestay-current") }} className="flex justify-center items-center py-8 rounded-lg bg-blue-600 text-white text-xl hover:bg-white hover:text-blue-600 hover:border-l-2 border-blue-600 transition-all duration-300 cursor-pointer">
                         <i className="fas fa-home mr-4"></i>
                         {data.totalHomeStay} Homestay
                     </div>
 
                     {/* Đơn đặt phòng chờ xác nhận */}
-                    <div onClick={()=>{navigate("/owner/booking-manager")}} className="flex px-2 justify-center items-center py-3 rounded-lg bg-green-600 text-white text-xl hover:bg-white hover:text-green-600 hover:border-l-2 border-green-600 transition-all duration-300 cursor-pointer">
+                    <div onClick={() => { navigate("/owner/booking-manager") }} className="flex px-2 justify-center items-center py-3 rounded-lg bg-green-600 text-white text-xl hover:bg-white hover:text-green-600 hover:border-l-2 border-green-600 transition-all duration-300 cursor-pointer">
                         <i className="fas fa-clock mr-4"></i>
                         {data.totalBookingWaiting} đơn đặt phòng chờ xác nhận
                     </div>
 
                     {/* Doanh thu */}
-                    <div  className="flex px-2 justify-center items-center py-3 rounded-lg bg-yellow-600 text-white text-xl hover:bg-white hover:text-yellow-600 hover:border-l-2 border-yellow-600 transition-all duration-300 cursor-pointer">
+                    <div className="flex px-2 justify-center items-center py-3 rounded-lg bg-yellow-600 text-white text-xl hover:bg-white hover:text-yellow-600 hover:border-l-2 border-yellow-600 transition-all duration-300 cursor-pointer">
                         <i className="fas fa-dollar-sign mr-4"></i>
                         Doanh thu {formatPrice(data.sumRevenue)}
                     </div>
 
                     {/* Quảng cáo */}
-                    <div onClick={()=>{navigate("/owner/advertisement-manager")}} className="flex px-2 justify-center items-center py-3 rounded-lg bg-red-600 text-white text-xl hover:bg-white hover:text-red-600 hover:border-l-2 border-red-600 transition-all duration-300 cursor-pointer">
+                    <div onClick={() => { navigate("/owner/advertisement-manager") }} className="flex px-2 justify-center items-center py-3 rounded-lg bg-red-600 text-white text-xl hover:bg-white hover:text-red-600 hover:border-l-2 border-red-600 transition-all duration-300 cursor-pointer">
                         <i className="fas fa-ad mr-4"></i>
                         {data.totalAds} quảng cáo
                     </div>
 
                     {/* Thanh toán hoàn thành */}
-                    <div onClick={()=>{navigate("/owner/history-payment-booking")}} className="flex px-2 justify-center items-center py-3 rounded-lg bg-purple-600 text-white text-xl hover:bg-white hover:text-purple-600 hover:border-l-2 border-purple-600 transition-all duration-300 cursor-pointer">
+                    <div onClick={() => { navigate("/owner/history-payment-booking") }} className="flex px-2 justify-center items-center py-3 rounded-lg bg-purple-600 text-white text-xl hover:bg-white hover:text-purple-600 hover:border-l-2 border-purple-600 transition-all duration-300 cursor-pointer">
                         <i className="fas fa-credit-card mr-4"></i>
                         {data.totalPayment} thanh toán hoàn thành
                     </div>
@@ -126,8 +126,6 @@ const Overview = () => {
             </div>
 
             <div>
-                <h3 className="text-2xl font-semibold mt-[30px] my-2">Thống kê doanh thu</h3>
-                {dataChatRevenue ? <Bar data={dataChatRevenue} options={options} /> : <Spin />}
                 <h3 className="text-2xl font-semibold mt-[60px] mb-3">Thống kê quảng cáo</h3>
                 {dataChatAds ?
 
@@ -150,6 +148,8 @@ const Overview = () => {
 
 
                     : <Spin />}
+                <h3 className="text-2xl font-semibold mt-[30px] my-2">Thống kê doanh thu</h3>
+                {dataChatRevenue ? <Bar data={dataChatRevenue} options={options} /> : <Spin />}
             </div>
 
         </div>
