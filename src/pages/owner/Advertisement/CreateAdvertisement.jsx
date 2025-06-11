@@ -1,7 +1,7 @@
 import React, { memo, useEffect, useState } from 'react';
 import { Form, Input, Button, Upload, message, Image, notification, Alert, DatePicker } from 'antd';
 import { PlusOutlined, CheckCircleFilled } from '@ant-design/icons';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { uploadService } from '../../../services/uploadService';
 import advertisementService from '../../../services/advertisementService';
 import { useRecoilState, useRecoilValue } from 'recoil';
@@ -26,6 +26,7 @@ const CreateAdvertisement = () => {
     const [selectedPlacement, setSelectedPlacement] = useState(1);
     const [totalCost, setTotalCost] = useState(0);
     const [totalDays, setTotalDays] = useState(0);
+    const navigate = useNavigate();
     const setting = useRecoilValue(settingFormat)
     const [pricePlacement, setPricePlacement] = useState({
         1: 100000, // Banner
@@ -177,8 +178,14 @@ const CreateAdvertisement = () => {
 
     return (
         <div className="w-full h-full mx-auto">
-            <h2 className="text-2xl font-bold mb-5">
+            <h2 className="text-2xl font-bold mb-5 flex items-center justify-between">
+                <span>
                 {adId ? `Cập nhật Quảng cáo | Mã:${adId}` : "Tạo Quảng cáo mới"}
+                </span>
+                <Button type="link" onClick={() => navigate('/owner/advertisement-manager')} className="text-blue-500 hover:text-blue-700">
+                    <i className="fas fa-arrow-left mr-2"></i>
+                    Quay lại danh sách quảng cáo
+                </Button>
             </h2>
 
             <Form

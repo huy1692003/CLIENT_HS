@@ -1,9 +1,9 @@
 import React, { memo, useEffect, useState } from 'react';
-import { Table, Input, Button, Modal, Form, notification, Space } from 'antd';
+import { Table, Input, Button, Modal, Form, notification, Space, Popconfirm } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import categoryArticleService from '../../../services/categoryArticleService';
 
- const CategoryArticleManager = () => {
+const CategoryArticleManager = () => {
     const [categories, setCategories] = useState([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -102,14 +102,18 @@ import categoryArticleService from '../../../services/categoryArticleService';
                         key: 'action',
                         render: (text, record) => (
                             <Space size="middle">
-                                <Button
-                                    icon={<EditOutlined />}
-                                    onClick={() => showModal(record)}
-                                />
-                                <Button
-                                    icon={<DeleteOutlined />}
-                                    onClick={() => handleDelete(record.cateID)}
-                                />
+                                <span className='inline-block w-[100px]'>
+                                    <Button type='primary' icon={<EditOutlined />} onClick={() => showModal(record)} style={{ marginRight: 10 }} />
+                                    <Popconfirm
+                                        title="Bạn có chắc chắn muốn thể loại bài viết này không?"
+                                        onConfirm={() => handleDelete(record.cateID)}
+                                        okText="Có"
+                                        cancelText="Không"
+                                    >
+                                        <Button type='primary' icon={<DeleteOutlined />} danger />
+                                    </Popconfirm>
+                                </span>
+                                
                             </Space>
                         ),
                     },

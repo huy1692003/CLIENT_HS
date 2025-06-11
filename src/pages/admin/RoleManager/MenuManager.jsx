@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useState } from 'react';
-import { Table, Input, Button, Modal, Form, notification, Space, Popconfirm, Select } from 'antd';
+import { Table, Input, Button, Modal, Form, notification, Space, Popconfirm, Select, InputNumber } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, LogoutOutlined } from '@ant-design/icons';
 import menuService from '../../../services/menuService';
 import { useNavigate } from 'react-router-dom';
@@ -38,6 +38,7 @@ const MenuManager = () => {
                 url: menu.url,
                 icon: menu.icon,
                 parentMenuID: menu.parentMenuID,
+                sort:menu.sort
             });
         } else {
             form.resetFields();
@@ -223,15 +224,22 @@ const MenuManager = () => {
                     <Form.Item
                         label="URL"
                         name="url"
-                        rules={[{ required: true, message: 'Vui lòng nhập URL của menu!' }]}>
+                       >
                         <Input />
                     </Form.Item>
                     <Form.Item
                         label="Icon"
                         name="icon"
-                        rules={[{ required: true, message: 'Vui lòng nhập class của icon!' }]}
+                     
                     >
                         <Input placeholder="Nhập class của icon, ví dụ: 'fa fa-home'" />
+                    </Form.Item>
+                    <Form.Item
+                        label="Sắp xếp"
+                        name="sort"
+                     
+                    >
+                        <InputNumber className='w-full' placeholder="Sắp xếp" />
                     </Form.Item>
                     <Form.Item
                         label="Menu Cha"

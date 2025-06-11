@@ -23,7 +23,8 @@ const initSearch = {
     phone: "",
 };
 
-const HomeStayCensor = ({ status }) => {
+const HomeStayCensor = () => {
+    const [status, setStatus] = useState(0); // Trạng thái: 0 - Chờ phê duyệt, 1 - Đang hiển thị, -1 - Bị từ chối, 2 - Đang bảo trì
     const [homeStays, setHomeStays] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchParams, setSearchParams] = useState(initSearch)
@@ -206,6 +207,7 @@ const HomeStayCensor = ({ status }) => {
         {
             title: 'Hành động',
             key: 'action',
+            fixed:"right",
             render: (_, record) => (
                 <div className="text-center" style={{ width: 120 }}>
                     <Tooltip title="Xem chi tiết">
@@ -333,7 +335,22 @@ const HomeStayCensor = ({ status }) => {
                     {/* Nút tìm kiếm */}
                     <div className="col-span-5 mb-2 mt-4">
                         <div className="w-full flex gap-3 justify-between">
-                            <span className="text-2xl font-bold">Danh sách</span>
+                            <span className="text-base font-semibold inline-block mr-2">Trạng thái 
+                                <Select
+                                    value={status}
+                                    onChange={(value) => {
+                                        setStatus(value);
+                                        setPaginate({ ...paginate, page: 1 });
+                                    }}
+                                    className="ml-2"
+                                    placeholder="Chọn trạng thái"
+                                >
+                                    <Option value={0} > Chờ phê duyệt</Option>
+                                    <Option value={1}>Đang hiển thị</Option>
+                                    <Option value={-1}>Bị từ chối</Option>
+                                    <Option value={2}>Đang bảo trì</Option>
+                                </Select>
+                            </span>
                             <span className="flex gap-2">
                                 <Form.Item className="mb-2">
                                     <Button type="primary" htmlType="submit" block icon={<SearchOutlined />}>

@@ -32,7 +32,7 @@ const CardNotification = ({ notification, refeshData }) => {
       color={notification.isRead ? "green" : "red"}
     >
       <Card
-        title={notification.title}
+        title={<p className="">{notification.title}</p>}
         bordered={true}
         style={{ width: "100%", margin: "10px auto" }}
       >

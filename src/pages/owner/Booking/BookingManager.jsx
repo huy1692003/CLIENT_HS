@@ -3,8 +3,8 @@ import { memo, useEffect, useState } from "react";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { isLoadingOwner, userState } from "../../../recoil/atom";
 import bookingService from "../../../services/bookingService";
-import { CheckCircleFilled, CloseSquareFilled, EyeFilled, ProfileTwoTone } from '@ant-design/icons';
-import { convertDate } from "../../../utils/convertDate";
+import { CheckCircleFilled, CloseSquareFilled, EyeFilled, FilePdfOutlined, ProfileTwoTone } from '@ant-design/icons';
+import { convertDate, convertDateTime } from "../../../utils/convertDate";
 import StepProcessBooking from "../../../components/shared/StepProcessBooking";
 import { Option } from "antd/es/mentions";
 import LabelField from "../../../components/shared/LabelField";
@@ -13,6 +13,7 @@ import PaginateShared from "../../../components/shared/PaginateShared";
 import useSignalR from "../../../hooks/useSignaIR";
 import { useNavigate } from "react-router-dom";
 import { formatPrice } from "../../../utils/formatPrice";
+import { URL_SERVER } from "../../../constant/global";
 const initSearch = {
     name: '',
     email: '',
@@ -158,6 +159,7 @@ const BookingManager = () => {
         }
     }
 
+    console.log(selectedBooking)
 
     const handleReject = (record) => {
         setReason("")
@@ -175,21 +177,16 @@ const BookingManager = () => {
             ),
             onOk: async () => {
                 setLoading(true);
+                let reasonCancel = reason ? reason : "Chúng tôi rất làm tiếc với quý khách, phòng này đang gặp sự cố, vui lòng chọn ngày khác!"
                 try {
-                    if (reason) {
 
-                        await bookingService.cancel(record.bookingID, reason); // Truyền lý do từ chối vào service
-                        notification.success({
-                            message: "Đã Từ Chối",
-                            description: `Từ chối đơn đặt phòng #${record.bookingID} thành công!`,
-                        });
-                        getData();
-                    }
-                    notification.error({
-                        message: "Lỗi",
-                        description: `Hãy nhập lý do hủy đơn!`,
+                    await bookingService.cancel(record.bookingID, reasonCancel); // Truyền lý do từ chối vào service
+                    notification.success({
+                        message: "Đã Từ Chối",
+                        description: `Từ chối đơn đặt phòng #${record.bookingID} thành công!`,
                     });
-                    return
+                    getData();
+
                 } catch (error) {
                     notification.error({
                         message: "Lỗi",
@@ -204,26 +201,7 @@ const BookingManager = () => {
     }
 
     const columns = [
-        {
-            title: "Hành Động",
-            key: "action",
-            render: (record) => (
-                <span className="flex gap-2 w-[100]">
-                    {status === 1 && <ButtonPending record={record} />}
-                    {status === 2 && <Tooltip title="Hủy Đơn Đặt Phòng">
-                        <Button
-                            type="primary"
-                            shape="circle"
-                            icon={<CloseSquareFilled />}
-                            onClick={() => handleReject(record)}
-                            style={{ backgroundColor: 'red', borderColor: 'red' }}
-                        />
-                    </Tooltip>}
-                    {status > 2 && status < 6 && <ButtonWaiting record={record} />}
-                    <ButtonViewDetail record={record} />
-                </span>
-            ),
-        },
+      
         {
             title: "Mã Đặt Phòng",
             dataIndex: "bookingID",
@@ -271,6 +249,12 @@ const BookingManager = () => {
             render: (price) => `${price.toLocaleString()} VNĐ`,
         },
         {
+            title: "Ngày Đặt",
+            dataIndex: "bookingDate",
+            key: "bookingDate",
+            render: (date) => convertDateTime(date),
+        },
+        {
             title: "Trạng Thái",
             key: "status",
             render: (record) => {
@@ -287,6 +271,38 @@ const BookingManager = () => {
                 return <Tag color="gray">Không xác định</Tag>;
             },
         },
+        {
+            title: "Hành Động",
+            key: "action",
+            fixed: 'right',
+            render: (record) => (
+                <span className="flex gap-2 justify-center w-[100]">
+                    {status === 1 && <ButtonPending record={record} />}
+                    {status === 2 && <Tooltip title="Hủy Đơn Đặt Phòng">
+                        <Button
+                            type="primary"
+                            shape="circle"
+                            icon={<CloseSquareFilled />}
+                            onClick={() => handleReject(record)}
+                            style={{ backgroundColor: 'red', borderColor: 'red' }}
+                        />
+                    </Tooltip>}
+                    {status > 2 && status < 6 && <ButtonWaiting record={record} />}
+                    <ButtonViewDetail record={record} />
+                    {record.linkBill &&
+                        <Tooltip title="Xem hóa đơn">
+                            <a href={URL_SERVER+record.linkBill} target="_blank" rel="noopener noreferrer">
+                                <Button
+                                    className="bg-green-500 text-white"
+                                    shape="circle"
+                                    icon={<FilePdfOutlined />}
+                                />
+                            </a>
+                        </Tooltip>
+                    }
+                </span>
+            ),
+        }
     ];
     const ButtonPending = ({ record }) => {
         return (
@@ -403,7 +419,7 @@ const BookingManager = () => {
                     setSearch(searchLocal)
                 }}>Lọc kết quả tìm kiếm</Button>
                 <Button className="bg-gradient-to-r from-orange-500 to-orange-600 text-white" onClick={() => {
-                    navigate(`/owner/homestay-current?isCreateBooking=true`)
+                    navigate(`/owner/homestay-list?isCreateBooking=true`)
                 }}>Tạo mới đơn đặt phòng</Button>
             </div>
 
@@ -426,7 +442,7 @@ const BookingManager = () => {
                 title={`Chi Tiết Đơn Đặt Phòng #${selectedBooking?.bookingID}`}
                 visible={isModalVisible}
                 onCancel={handleModalClose}
-                width={900}
+                width={"90vw"}
                 footer={[
                     <Button key="close" onClick={handleModalClose}>
                         Đóng
@@ -434,8 +450,8 @@ const BookingManager = () => {
                 ]}
             >
                 {selectedBooking && (
-                    <div className="flex justify-between ">
-                        <Descriptions bordered column={1}>
+                    <div className="flex gap-5 ">
+                        <Descriptions className="w-[55vw]" bordered column={1}>
                             <Descriptions.Item label="Mã HomeStay">
                                 <b className="">#{selectedBooking.homeStayID}</b>
                             </Descriptions.Item>
@@ -444,11 +460,56 @@ const BookingManager = () => {
                                 <p>Email  : {selectedBooking.email}</p>
                                 <p>Số ĐT  : {selectedBooking.phone}</p>
                             </Descriptions.Item>
-                            <Descriptions.Item label={"Số người (" + (selectedBooking.numberAdults + selectedBooking.numberChildren + selectedBooking.numberBaby) + ")"}>
-                                {selectedBooking.numberAdults + " người lớn, " +
-                                    selectedBooking.numberChildren + " trẻ em, " +
-                                    selectedBooking.numberBaby + " trẻ sơ sinh"}
-
+                            <Descriptions.Item label={"Thông tin phòng"}>
+                                <Table
+                                    dataSource={selectedBooking.detailBooking}
+                                    pagination={false}
+                                    bordered
+                                    size="small"
+                                    rowKey="roomId"
+                                    columns={[
+                                        {
+                                            title: 'Mã',
+                                            dataIndex: 'roomId',
+                                            key: 'roomId',
+                                            align: 'center',
+                                        },
+                                        {
+                                            title: 'Tên phòng',
+                                            dataIndex: 'roomName',
+                                            key: 'roomName',
+                                        },
+                                        {
+                                            title: 'Loại',
+                                            dataIndex: 'roomType',
+                                            key: 'roomType',
+                                        },
+                                        {
+                                            title: 'Người lớn',
+                                            key: 'adults',
+                                            align: 'center',
+                                            render: (_, record) => (
+                                                <span>{record.numberAdults}/{record.maxAdults}</span>
+                                            ),
+                                        },
+                                        {
+                                            title: 'Trẻ em',
+                                            key: 'children',
+                                            align: 'center',
+                                            render: (_, record) => (
+                                                <span>{record.numberChildren}/{record.maxChildren}</span>
+                                            ),
+                                        },
+                                        {
+                                            title: 'Em bé',
+                                            key: 'baby',
+                                            align: 'center',
+                                            render: (_, record) => (
+                                                <span>{record.numberBaby}/{record.maxBaby}</span>
+                                            ),
+                                        },
+                                    ]}
+                                />
                             </Descriptions.Item>
 
                             <Descriptions.Item label="Ngày Sử Dụng">
@@ -457,24 +518,52 @@ const BookingManager = () => {
                             </Descriptions.Item>
 
                             <Descriptions.Item label="Chi Phí">
-                                <div>
-                                    {selectedBooking.originalPrice
-                                        ? <p>Giá phòng gốc: {formatPrice(selectedBooking.originalPrice)}</p>
-                                        : <p>Giá phòng gốc: Không có</p>}
+                                <div className="space-y-2">
+                                    <div className="flex items-center">
+                                        <span className="w-48 text-gray-600">Giá phòng gốc:</span>
+                                        <span className="font-medium">
+                                            {selectedBooking.originalPrice
+                                                ? formatPrice(selectedBooking.originalPrice)
+                                                : "Không có"}
+                                        </span>
+                                    </div>
 
-                                    {selectedBooking.discountPrice
-                                        ? <p>Giảm giá: {formatPrice(selectedBooking.discountPrice)}</p>
-                                        : <p>Giảm giá: Không có</p>}
+                                    <div className="flex items-center">
+                                        <span className="w-48 text-gray-600">Giảm giá:</span>
+                                        <span className="font-medium text-red-500">
+                                            {selectedBooking.discountPrice
+                                                ? formatPrice(selectedBooking.discountPrice)
+                                                : "Không có"}
+                                        </span>
+                                    </div>
 
-                                    <p>Mã giảm giá: {selectedBooking.discountCode || "Không có"}</p>
-                                    <p>Tổng tiền phòng phải trả: {formatPrice(selectedBooking.totalPrice)}</p>
+                                    <div className="flex items-center">
+                                        <span className="w-48 text-gray-600">Mã giảm giá:</span>
+                                        <span className="font-medium">
+                                            {selectedBooking.discountCode || "Không có"}
+                                        </span>
+                                    </div>
 
-                                    {selectedBooking.extraCost
-                                        ? <p>Phụ phí phát sinh: {formatPrice(selectedBooking.extraCost)}</p>
-                                        : <p>Phụ phí phát sinh: Không có</p>}
+                                    <div className="flex items-center font-bold">
+                                        <span className="w-48 text-gray-600">Tổng tiền phòng:</span>
+                                        <span className="text-blue-600">
+                                            {formatPrice(selectedBooking.totalPrice)}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center">
+                                        <span className="w-48 text-gray-600">Phụ phí phát sinh:</span>
+                                        <span className={`font-medium ${selectedBooking.extraCost ? 'text-orange-500' : ''}`}>
+                                            {selectedBooking.extraCost
+                                                ? formatPrice(selectedBooking.extraCost)
+                                                : "Được tính khi checkout"}
+                                        </span>
+                                    </div>
                                 </div>
                             </Descriptions.Item>
-
+                            <Descriptions.Item label="Ghi chú">
+                                {selectedBooking.description ?? "Không có"}
+                            </Descriptions.Item>
 
                             <Descriptions.Item label="Trạng Thái">
                                 <Tag color="orange">
@@ -492,7 +581,7 @@ const BookingManager = () => {
 
 
                         </Descriptions>
-                        {selectedBooking.isSuccess === 1 &&
+                        {selectedBooking.isConfirm &&
                             <div className="mt-7">
                                 <h3 className="text-xl font-bold mb-1">Thông tin chi tiết</h3>
                                 <StepProcessBooking selectedBooking={selectedBooking} confirmCheckIn={confirmCheckIn} confirmCheckOut={confirmCheckOut} />

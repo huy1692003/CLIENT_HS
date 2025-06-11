@@ -3,7 +3,7 @@ import { DeleteOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons'
 import React, { useState, useEffect, memo } from "react";
 import UserService from "../../../services/userService";
 
- const UserManager = () => {
+const UserManager = () => {
     const [users, setUsers] = useState([]);
     const [searchTerm, setSearchTerm] = useState(""); // Khởi tạo state cho tìm kiếm
 
@@ -18,10 +18,10 @@ import UserService from "../../../services/userService";
 
 
     // Xử lý khóa người dùng
-    const handleToggleStatus = async (userID,statusCurrend) => {
+    const handleToggleStatus = async (userID, statusCurrend) => {
         // Gọi API để khóa hoặc kích hoạt người dùng
-        await UserService.updateStatus(userID,statusCurrend===1?0:1); // Thay đổi để gọi API khóa/kích hoạt người dùng
-        notification.success({message:"Cập nhật trạng thái thành công"})
+        await UserService.updateStatus(userID, statusCurrend === 1 ? 0 : 1); // Thay đổi để gọi API khóa/kích hoạt người dùng
+        notification.success({ message: "Cập nhật trạng thái thành công" })
         fetchUsers()
     };
 
@@ -56,10 +56,10 @@ import UserService from "../../../services/userService";
             render: (text) => text || "Trống", // Hiển thị 'Trống' nếu address là null
         },
         {
-            title: "Loại tài khoản", 
+            title: "Loại tài khoản",
             dataIndex: "typeUser",
             key: "typeUser",
-            render: (role) => <Tag color={role === 0 ? "blue" : "orange"}>{role === 0 ? "Quản trị viên" : "Khách hàng"}</Tag>,
+            render: (role) => <Tag color={role === 0 ? "blue" : "orange"}>{role === 0 ? "Quản trị viên" : role === 1 ? "Chủ Homestay" : "Khách hàng"}</Tag>,
         },
         {
             title: "Trạng thái",
@@ -98,7 +98,7 @@ import UserService from "../../../services/userService";
                             size="large" // Thay đổi kích thước nút
                             icon={record.status === 1 ? <LockOutlined style={{ fontSize: '16px' }} /> : <UnlockOutlined style={{ fontSize: '20px' }} />} // Tăng kích thước biểu tượng
                             style={{ width: 30, height: 30, backgroundColor: record.status === 1 ? "#f5222d" : "#52c41a", color: "#fff" }} // Thay đổi màu nền cho nút
-                            onClick={() => handleToggleStatus(record.userID,record.status)}
+                            onClick={() => handleToggleStatus(record.userID, record.status)}
                         />
                     </Tooltip>
                 </div>

@@ -9,6 +9,14 @@ const dashboardService = {
             throw error
         }
     },
+    getRevenueOwner: async (idOwner,req) => {
+        try {
+            let res = await API.post("/Dasboard/owner/getBookingStatistics?OwnerId="+idOwner,req)
+            return res?.data
+        } catch (error) {
+            throw error
+        }
+    },
     getDashboadAdmin: async () => {
         try {
             let res = await API.get("/Dasboard/admin")

@@ -18,17 +18,20 @@ const SupportCustomer = ({ type = 1 }) => {
     const [loading, setLoading] = useState(false);
     const user = useRecoilValue(userState);
     const [showChatApp, setShowChatApp] = useState(false)
-    
+
     useEffect(() => {
-        getListConversation();
-        SignalR.startConnection()
-        SignalR.onSeverSendData("ReceiverMessage", (mesNew, idConversation, userReceiver) => {
-            if (user.idUser === userReceiver) {
-                getListConversation()
+        if (user && user?.idUser) {
+
+            getListConversation();
+            SignalR.startConnection()
+            SignalR.onSeverSendData("ReceiverMessage", (mesNew, idConversation, userReceiver) => {
+                if (user.idUser === userReceiver) {
+                    getListConversation()
+                }
+            })
+            return () => {
+                SignalR.connection.stop()
             }
-        })
-        return () => {
-            SignalR.connection.stop()
         }
     }, []);
 
@@ -54,7 +57,7 @@ const SupportCustomer = ({ type = 1 }) => {
                 <MessageOutlined className="mr-2" /> Hỗ trợ khách hàng
             </Title>
             <Divider className="my-4" />
-            
+
             {loading ? (
                 <div className="flex justify-center p-10">
                     <Spin size="large" />
@@ -82,9 +85,9 @@ const SupportCustomer = ({ type = 1 }) => {
                                             <Text strong className="text-lg">
                                                 {(type === 2 ? item.s.userName1 : item.s.userName2)}
                                             </Text>
-                                            <Badge 
-                                                status={item.lastMessage?.isRead ? "default" : "processing"} 
-                                                className="ml-2" 
+                                            <Badge
+                                                status={item.lastMessage?.isRead ? "default" : "processing"}
+                                                className="ml-2"
                                             />
                                         </div>
                                         <div className="message-preview bg-gray-50 p-2 rounded-lg max-h-12 overflow-hidden">
@@ -102,8 +105,8 @@ const SupportCustomer = ({ type = 1 }) => {
                                         </div>
                                     </Col>
                                     <Col span={4} className="flex justify-center items-center bg-gray-50">
-                                        <Button 
-                                            type="primary" 
+                                        <Button
+                                            type="primary"
                                             icon={<CommentOutlined />}
                                             className="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 border-none shadow-md"
                                             onClick={() => {
@@ -119,18 +122,18 @@ const SupportCustomer = ({ type = 1 }) => {
                         ))
                     ) : (
                         <Card className="text-center p-10">
-                            <Empty 
-                                description="Không có hội thoại nào" 
+                            <Empty
+                                description="Không có hội thoại nào"
                                 image={Empty.PRESENTED_IMAGE_SIMPLE}
                             />
                         </Card>
                     )}
                 </div>
             )}
-            {converSelected && showChatApp && 
-                <ChatAppCard 
-                    convertion={converSelected} 
-                    stateOpen={{ open: showChatApp, setOpen: setShowChatApp }} 
+            {converSelected && showChatApp &&
+                <ChatAppCard
+                    convertion={converSelected}
+                    stateOpen={{ open: showChatApp, setOpen: setShowChatApp }}
                 />
             }
         </div>

@@ -125,6 +125,7 @@ const WriteHomeStay = () => {
                 message.error("Vui lòng thêm ít nhất 1 phòng!")
                 return
             }
+            console.log(rooms)
             if (!idHomeStay) {
                 await Promise.all(roomsTMP.map(async (room, index) => {
                     room.homestayId = idHomeStay ? parseInt(idHomeStay) : 0
@@ -188,7 +189,7 @@ const WriteHomeStay = () => {
                         ? "Bạn đã cập nhật thông tin homestay thành công."
                         : "Bạn đã thêm mới homestay thành công.",
                 });
-                !idHomeStay && navigate("/owner/homestay-waiting");
+                !idHomeStay && navigate("/owner/homestay-list");
                 idHomeStay && fillDataOnEdit();
             }
 
@@ -243,8 +244,15 @@ const WriteHomeStay = () => {
 
     return (
         <div className="w-full h-full mx-auto">
-            <h2 className="text-2xl font-bold mb-5">
-                {idHomeStay ? `Cập nhật Homestay | Mã:${idHomeStay}` : "Thêm Homestay"}
+            <h2 className="text-2xl font-bold mb-5 flex justify-between">
+                <span>
+
+                    {idHomeStay ? `Cập nhật Homestay | Mã:${idHomeStay}` : "Thêm Homestay"}
+                </span>
+                <Button type="link" onClick={() => navigate("/owner/homestay-list")} className='flex items-center'>
+                    <LeftOutlined className='' />
+                    Quay lại danh sách Homestay
+                </Button>
             </h2>
 
             <Form form={form} layout="vertical" onFinish={onFinish}>
@@ -449,13 +457,14 @@ const WriteHomeStay = () => {
                     {rooms.length > 0 && rooms.map((room, index) => (
                         <div key={index} >
                             <CardRoom
+                                isPageOwner={idHomeStay}
                                 isAdd={idHomeStay ? false : true}
                                 room={room}
                                 ButtonAction={<>
-                                    <Button type="primary" size="small" className="flex items-center" onClick={() => setActionModalWriteRoom(prev => ({ ...prev, isOpen: true, isNewHomeStay: false, idHomeStay: idHomeStay, refeshDetail: fillDataOnEdit, roomOld: room }))} >
+                                    <Button type="primary" size="middle" className="flex items-center" onClick={() => setActionModalWriteRoom(prev => ({ ...prev, isOpen: true, isNewHomeStay: false, idHomeStay: idHomeStay, refeshDetail: fillDataOnEdit, roomOld: room }))} >
                                         <span className="hidden sm:inline" >Sửa</span>
                                     </Button>
-                                    <Button danger size="small" className="flex items-center" onClick={() => handleDeleteRoom(room.roomId)}>
+                                    <Button danger size="middle" className="flex items-center" onClick={() => handleDeleteRoom(room.roomId)}>
                                         <span className="hidden sm:inline" >Xóa</span>
                                     </Button>
                                 </>

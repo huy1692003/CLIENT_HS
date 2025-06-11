@@ -2,33 +2,87 @@ import { Button, notification, Spin, Table } from "antd";
 import { memo, useEffect, useState } from "react";
 import dashboardService from "../../../services/dashboardService";
 import { useNavigate } from "react-router-dom";
-import { Bar } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import { Bar, Doughnut, Line } from 'react-chartjs-2';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+    ArcElement,
+    PointElement,
+    LineElement
+} from 'chart.js';
 import { formatPrice } from "../../../utils/formatPrice";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+    ArcElement,
+    PointElement,
+    LineElement
+);
 
 const months = Array.from({ length: 12 }, (_, i) => i + 1);
 
 const AdminDashboard = () => {
     const [data, setData] = useState();
     const [dataChatRevenue, setDataChatRevenue] = useState();
+    const [dataAdsRevenue, setDataAdsRevenue] = useState();
+    const [dataBookingChart, setDataBookingChart] = useState();
     const navigate = useNavigate();
 
     const options = {
         responsive: true,
         plugins: {
-            title: {
+            legend: {
                 display: true,
-                text: 'Thống kê doanh thu theo tháng',
+                position: 'top',
             },
         },
         scales: {
             y: {
                 beginAtZero: true,
+                ticks: {
+                    callback: function (value) {
+                        return new Intl.NumberFormat('vi-VN', {
+                            style: 'currency',
+                            currency: 'VND'
+                        }).format(value);
+                    }
+                }
             },
         },
     };
+
+    const optionsTotalBooking = {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'top',    
+            },
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function (value) {
+                        return value + " đơn";
+                    }
+                }
+            },
+        },
+    };
+
+
+
 
     useEffect(() => {
         const getData = async () => {
@@ -36,9 +90,15 @@ const AdminDashboard = () => {
                 let res = await dashboardService.getDashboadAdmin();
                 setData(res);
 
+                // Biểu đồ doanh thu theo tháng (existing)
                 const revenueData = months.map(month => {
                     const monthData = res.revenueByMonth.find(data => data.month === month);
                     return monthData ? monthData.totalRevenue : 0;
+                });
+
+                const countBooking = months.map(month => {
+                    const monthData = res.revenueByMonth.find(data => data.month === month);
+                    return monthData ? monthData.totalBooking : 0;
                 });
 
                 const chartData = {
@@ -47,13 +107,75 @@ const AdminDashboard = () => {
                         {
                             label: 'Doanh thu',
                             data: revenueData,
-                            backgroundColor: '#FFA500', // Màu cam
+                            backgroundColor: '#FFA500',
                             borderColor: '#FFA500',
                             borderWidth: 1,
                         },
                     ],
                 };
                 setDataChatRevenue(chartData);
+
+                const chartBooking = {
+                    labels: months.map(month => `Tháng ${month}`),
+                    datasets: [
+                        {
+                            label: 'Số lượng đơn đặt phòng',
+                            data: countBooking,
+                            backgroundColor: '#FFA500',
+                            borderColor: '#FFA500',
+                            borderWidth: 1,
+                        },
+                    ],
+                };
+                setDataBookingChart(chartBooking);
+
+                // Biểu đồ doanh thu quảng cáo tháng này
+                const currentMonth = new Date().getMonth() + 1;
+                const currentYear = new Date().getFullYear();
+
+                const currentMonthAds = res.revenueAds.filter(ad => {
+                    const adDate = new Date(ad.timePayment);
+                    return adDate.getMonth() + 1 === currentMonth && adDate.getFullYear() === currentYear;
+                });
+
+                // Nhóm theo vị trí đặt quảng cáo
+                const placementRevenue = {};
+                const placementNames = {
+                    1: 'Phần Banner',
+                    2: 'Phần Sidebar',
+                    3: 'Phần Homestay nổi bật'
+                };
+
+                currentMonthAds.forEach(ad => {
+                    const placement = ad.placement;
+                    if (!placementRevenue[placement]) {
+                        placementRevenue[placement] = 0;
+                    }
+                    placementRevenue[placement] += ad.cost;
+                });
+
+                const adsRevenueData = {
+                    labels: Object.keys(placementRevenue).map(key => placementNames[key] || `Vị trí ${key}`),
+                    datasets: [
+                        {
+                            label: 'Doanh thu quảng cáo',
+                            data: Object.values(placementRevenue),
+                            backgroundColor: [
+                                '#FF6384',
+                                '#36A2EB',
+                                '#FFCE56',
+                                '#4BC0C0',
+                                '#9966FF'
+                            ],
+                            borderWidth: 1,
+                        },
+                    ],
+                };
+                setDataAdsRevenue(adsRevenueData);
+
+              
+
+
             } catch (error) {
                 console.log(error);
                 notification.error({ message: "Có lỗi xảy ra khi lấy dữ liệu !" });
@@ -69,7 +191,7 @@ const AdminDashboard = () => {
 
     return (
         <div>
-            <h3 className="text-xl font-bold mb-3">Dashboard - Admin</h3>
+            <h3 className="text-xl font-bold mb-3">Dashboard</h3>
             <div>
                 <div className="grid grid-cols-5 gap-6">
                     {/* Chủ sở hữu */}
@@ -112,13 +234,39 @@ const AdminDashboard = () => {
                         </div>
                     </div>
                 </div>
-
             </div>
 
-            <div>
-                <h3 className="text-2xl font-semibold mt-[30px] my-2">Thống kê doanh thu</h3>
-                {dataChatRevenue ? <Bar data={dataChatRevenue} options={options} /> : <Spin />}
+            {/* Biểu đồ section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                {/* Biểu đồ số lượng đơn hàng theo tháng */}
+                <div className="bg-white w-full p-4 rounded-lg shadow">
+                    <h3 className="text-xl font-semibold mb-4">Số lượng đơn đặt phòng theo tháng</h3>
+                    {dataBookingChart ? <Line data={dataBookingChart} options={optionsTotalBooking} /> : <Spin />}
+                </div>
+
+                {/* Biểu đồ doanh thu quảng cáo tháng này */}
+                <div className="bg-white p-4 rounded-lg shadow">
+                    <h3 className="text-xl font-semibold mb-4">Doanh thu quảng cáo tháng {new Date().getMonth() + 1}</h3>
+                    {dataAdsRevenue ? (
+                        dataAdsRevenue.datasets[0].data.length > 0 ?
+                            <Bar data={dataAdsRevenue} options={options} /> :
+                            <div className="text-center text-gray-500 py-8">Chưa có dữ liệu quảng cáo tháng này</div>
+                    ) : <Spin />}
+
+
+                </div>
+
             </div>
+                
+
+
+                {/* Biểu đồ doanh thu theo tháng */}
+                <div className="bg-white p-4 rounded-lg shadow">
+                    <h3 className="text-xl font-semibold mb-4">Doanh thu năm</h3>
+                    {dataChatRevenue ? <Bar data={dataChatRevenue} options={options} /> : <Spin />}
+                </div>
+
+
         </div>
     );
 };

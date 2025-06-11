@@ -26,7 +26,7 @@ const ReviewItem = ({ review }) => {
             </div>
             
             <div className="mt-2 sm:mt-3">
-                <Text type="secondary" className="text-xs sm:text-sm">Đã thuê: <Text strong className="text-blue-600">{review.roomName}</Text></Text>
+                <Text type="secondary" className="text-xs sm:text-sm">Đã thuê: <Text strong className="text-blue-600">{review?.detailBooking?.length||1} phòng : {review?.detailBooking?.map(room => room.roomName).join(', ')}</Text></Text>
             </div>
             
             <Divider className="my-2 sm:my-3" />

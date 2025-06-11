@@ -55,7 +55,7 @@ const OwnerLayout = ({ children }) => {
             notification.info({
                 message: notifi.title,
                 description: notifi.message,
-                duration: 7,
+                duration: 12,
                 showProgress: true
             });
             fetchNotifications();
@@ -69,7 +69,7 @@ const OwnerLayout = ({ children }) => {
             notification.info({
                 message: notifi.title,
                 description: notifi.message,
-                duration: 7,
+                duration: 12,
                 showProgress: true
             });
             fetchNotifications();
@@ -96,7 +96,7 @@ const OwnerLayout = ({ children }) => {
         if (owner.idUser === userReceiver) {
             let total_new = await getListConversation()
             if (total_new > totalConver) {
-                notification.success({ message: "Yêu cầu hỗ trợ mới", description: "Bạn có một yêu cầu hỗ trợ mới !" })
+                notification.success({ message: "Yêu cầu hỗ trợ mới", description: "Bạn có một yêu cầu hỗ trợ mới !" ,duration:10})
             }
             setTotalConver(total_new)
         }
@@ -156,6 +156,7 @@ const OwnerLayout = ({ children }) => {
                         width={250}
                         trigger={null}
                         theme="light"
+                        className=""
                         collapsible
                         collapsed={collapsed}
                     >
@@ -276,7 +277,7 @@ const OwnerLayout = ({ children }) => {
                         placement="right"
                         onClose={() => setIsDrawerOpen(false)}
                         open={isDrawerOpen}
-                        width={"40vw"}
+                        width={"50vw"}
                     >
                         <GroupNotification list={notifications} refeshData={fetchNotifications} />
                     </Drawer>

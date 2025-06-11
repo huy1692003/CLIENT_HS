@@ -14,6 +14,7 @@ import moment from 'moment-timezone';
 import dayjs from "dayjs";
 import PaginateShared from "../../../components/shared/PaginateShared";
 import { URL_SERVER } from "../../../constant/global";
+import { formatPrice } from "../../../utils/formatPrice";
 const initSearch = {
     name: '',
     email: '',
@@ -324,7 +325,7 @@ const CheckoutManager = () => {
                 title={`Chi Tiết Đơn Đặt Phòng #${selectedBooking?.bookingID}`}
                 visible={isModalVisible}
                 onCancel={handleModalClose}
-                width={900}
+                width={"90vw"}
                 footer={[
                     <Button key="close" onClick={handleModalClose}>
                         Đóng
@@ -332,40 +333,139 @@ const CheckoutManager = () => {
                 ]}
             >
                 {selectedBooking && (
-                    <div className="flex justify-between ">
-                        <Descriptions bordered column={1}>
-                            <Descriptions.Item label="Mã Đặt Phòng">
-                                {selectedBooking.bookingID}
-                            </Descriptions.Item>
+                    <div className="flex gap-5 ">
+                        <Descriptions className="w-[55vw]" bordered column={1}>
                             <Descriptions.Item label="Mã HomeStay">
-                                {selectedBooking.homeStayID}
+                                <b className="">#{selectedBooking.homeStayID}</b>
                             </Descriptions.Item>
-                            <Descriptions.Item label="Tên Khách">
-                                {selectedBooking.name}
+                            <Descriptions.Item label="Thông Tin Khách">
+                                <p>Họ tên : {selectedBooking.name}</p>
+                                <p>Email  : {selectedBooking.email}</p>
+                                <p>Số ĐT  : {selectedBooking.phone}</p>
                             </Descriptions.Item>
-                            <Descriptions.Item label="Email">
-                                {selectedBooking.email}
+                            <Descriptions.Item label={"Thông tin phòng"}>
+                                <Table
+
+                                    dataSource={selectedBooking.detailBooking}
+                                    pagination={false}
+                                    bordered
+                                    size="small"
+                                    rowKey="roomId"
+                                    columns={[
+                                        {
+                                            title: 'Mã',
+                                            dataIndex: 'roomId',
+                                            key: 'roomId',
+                                            align: 'center',
+                                        },
+                                        {
+                                            title: 'Tên phòng',
+                                            dataIndex: 'roomName',
+                                            key: 'roomName',
+                                        },
+                                        {
+                                            title: 'Loại',
+                                            dataIndex: 'roomType',
+                                            key: 'roomType',
+                                        },
+                                        {
+                                            title: 'Người lớn',
+                                            key: 'adults',
+                                            align: 'center',
+                                            render: (_, record) => (
+                                                <span>{record.numberAdults}/{record.maxAdults}</span>
+                                            ),
+                                        },
+                                        {
+                                            title: 'Trẻ em',
+                                            key: 'children',
+                                            align: 'center',
+                                            render: (_, record) => (
+                                                <span>{record.numberChildren}/{record.maxChildren}</span>
+                                            ),
+                                        },
+                                        {
+                                            title: 'Em bé',
+                                            key: 'baby',
+                                            align: 'center',
+                                            render: (_, record) => (
+                                                <span>{record.numberBaby}/{record.maxBaby}</span>
+                                            ),
+                                        },
+                                    ]}
+                                />
                             </Descriptions.Item>
-                            <Descriptions.Item label="Số Điện Thoại">
-                                {selectedBooking.phone}
-                            </Descriptions.Item>
-                            <Descriptions.Item label="Tổng số người sử dụng">
-                                {selectedBooking.numberOfGuests + " người"}
-                            </Descriptions.Item>
-                            <Descriptions.Item label="Ngày Đến">
-                                {new Date(selectedBooking.checkInDate).toLocaleDateString()}
-                            </Descriptions.Item>
-                            <Descriptions.Item label="Ngày Về">
+
+                            <Descriptions.Item label="Ngày Sử Dụng">
+                                {new Date(selectedBooking.checkInDate).toLocaleDateString()} <span className="text-blue-700"> đến </span>
                                 {new Date(selectedBooking.checkOutDate).toLocaleDateString()}
                             </Descriptions.Item>
-                            <Descriptions.Item label="Tổng Giá Tiền">
-                                {`${selectedBooking.totalPrice.toLocaleString()} VND`}
+
+                            <Descriptions.Item label="Chi Phí">
+                                <div className="space-y-2">
+                                    <div className="flex items-center">
+                                        <span className="w-48 text-gray-600">Giá phòng gốc:</span>
+                                        <span className="font-medium">
+                                            {selectedBooking.originalPrice
+                                                ? formatPrice(selectedBooking.originalPrice)
+                                                : "Không có"}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center">
+                                        <span className="w-48 text-gray-600">Giảm giá:</span>
+                                        <span className="font-medium text-red-500">
+                                            {selectedBooking.discountPrice
+                                                ? formatPrice(selectedBooking.discountPrice)
+                                                : "Không có"}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center">
+                                        <span className="w-48 text-gray-600">Mã giảm giá:</span>
+                                        <span className="font-medium">
+                                            {selectedBooking.discountCode || "Không có"}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center font-bold">
+                                        <span className="w-48 text-gray-600">Tổng tiền phòng:</span>
+                                        <span className="text-blue-600">
+                                            {formatPrice(selectedBooking.totalPrice)}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center">
+                                        <span className="w-48 text-gray-600">Phụ phí phát sinh:</span>
+                                        <span className={`font-medium ${selectedBooking.extraCost ? 'text-orange-500' : ''}`}>
+                                            {selectedBooking.extraCost
+                                                ? formatPrice(selectedBooking.extraCost)
+                                                : "Được tính khi checkout"}
+                                        </span>
+                                    </div>
+                                </div>
                             </Descriptions.Item>
+                            <Descriptions.Item label="Ghi chú">
+                                {selectedBooking.description ?? "Không có"}
+                            </Descriptions.Item>
+
                             <Descriptions.Item label="Trạng Thái">
-                                {getStatus(selectedBooking.status)?.des || "Không xác định"}
+                                <Tag color="orange">
+
+                                    {getStatus(selectedBooking.status)?.des || "Không xác định"}
+                                </Tag>
                             </Descriptions.Item>
+                            {
+                                selectedBooking.reasonCancel && (
+                                    <Descriptions.Item label="Lý Do Hủy">
+                                        {selectedBooking.reasonCancel}
+                                    </Descriptions.Item>
+                                )
+                            }
+
+
                         </Descriptions>
-                        {selectedBooking.isSuccess === 1 &&
+                        {selectedBooking.isConfirm &&
                             <div className="mt-7">
                                 <h3 className="text-xl font-bold mb-1">Thông tin chi tiết</h3>
                                 <StepProcessBooking selectedBooking={selectedBooking} confirmCheckIn={confirmCheckIn} confirmCheckOut={confirmCheckOut} />

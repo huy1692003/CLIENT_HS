@@ -111,7 +111,7 @@ const OwnerManager = () => {
             key: "status",
             render: (text) => (
                 <Tag bordered={false} color={text.user.status === 1 ? "success" : "error"}>
-                    {text.user.status === 1 ? "Kích hoạt" : "Đã khóa"}
+                    {text.user.status === 1 ? "Hoạt động" : "Đã khóa"}
                 </Tag>
             ),
         },
@@ -142,16 +142,7 @@ const OwnerManager = () => {
                         />
                     </Tooltip>
 
-                    <Popconfirm
-                        title="Bạn có chắc chắn muốn hủy hợp tác với chủ HomeStay này?"
-                        onConfirm={() => handleDelete(record.idOwner)}
-                        okText="Có"
-                        cancelText="Không"
-                    >
-                        <Tooltip title="Hủy hợp tác">
-                            <Button type="primary" danger icon={<CloseOutlined />} />
-                        </Tooltip>
-                    </Popconfirm>
+                    
                 </Space>
             ),
         },

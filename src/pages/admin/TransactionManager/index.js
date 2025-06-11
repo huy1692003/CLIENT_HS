@@ -56,11 +56,7 @@ const TransactionManager = ({ type }) => {
     }
 
     const columns = [
-        {
-            title: "ID",
-            dataIndex: "paymentID",
-            key: "paymentID",
-        },
+        
         ...[type === 1 ?
             {
                 title: "ID Booking",

@@ -14,7 +14,7 @@ const ResultSearchHomeStay = () => {
     const paramSearch = useRecoilValue(paramSearchHT);
     const [paramURL] = useSearchParams()
     const locationParam = paramURL.get("location")
-    const [paginate, setPaginate] = useState({ page: 1, pageSize: 10 });
+    const [paginate, setPaginate] = useState({ page: 1, pageSize: 20 });
     const [resHomeStay, setResHomeStay] = useState([]);
     const [loading, setLoading] = useState(false);
     const [priceRange, setPriceRange] = useState([0, 20000000])

@@ -133,7 +133,7 @@ const CardHomeStay = ({ data, width = "100%" , isTopView = false }) => {
                         </div>)}
                 </Carousel>
                 
-                {data.homeStay.averageRating >= 0 && (
+                {data.homeStay.averageRating > 0 && (
                     <div className={`absolute  bg-white px-2 py-1 rounded-lg shadow-md flex items-center ${isTopView ? 'bottom-5 left-2' : 'top-3 left-3'}`}>
                         <StarOutlined className="text-yellow-500 mr-1" />
                         <span className="font-bold">{data.homeStay.averageRating.toFixed(1)}</span>
@@ -173,10 +173,10 @@ const CardHomeStay = ({ data, width = "100%" , isTopView = false }) => {
                 </div>
                 
                 <div className="mb-3 flex flex-wrap  gap-y-2">
-                    {getFeatures().map((feature, index) => (
+                    {getFeatures().slice(0, 3).map((feature, index) => (
                         <Tag key={index} color="blue">{feature}</Tag>
                     ))}
-                    {getRoomAmenities().map((amenity, index) => (
+                    {getRoomAmenities().slice(0, 3).map((amenity, index) => (
                         <Tag key={`amenity-${index}`} color="green">{amenity}</Tag>
                     ))}
                 </div>

@@ -62,6 +62,18 @@ const roomService = {
             throw error;
         }
     },
+
+    addHiddenDates: async (roomId, hiddenDates) => {
+        try {
+            const res = await API.put(`/Room/addHiddenDates/${roomId}`, hiddenDates);
+            return res.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    
+    
 };
 
 export default roomService;

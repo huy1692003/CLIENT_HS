@@ -138,7 +138,7 @@ const ChatAppCard = ({ convertion, stateOpen, typeUser = 1, title = "Trao đổi
                         >
                             <Avatar size="large" className="mx-2 object-cover" src={avatar} />
                             <div
-                                className={`max-w-[70%] p-3 rounded-xl ${message.idUserSend === user ? 'bg-gray-100' : 'bg-blue-300'}`}
+                                className={`max-w-[70%] p-3 rounded-xl ${message.idUserSend === user ? 'bg-gray-100' : 'bg-blue-100'}`}
                             >
                                 <div className="mb-1 text-justify">{message.content}</div>
                                 <div className="text-xs text-gray-500 text-right">{convertDateTime(message.timestamp)}</div>

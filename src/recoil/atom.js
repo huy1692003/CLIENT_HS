@@ -69,6 +69,8 @@ export const initParamseach={
     hasBilliardTable: undefined, // Có bàn bi-a
     hasManyActivities: undefined, // Có nhiều hoạt động
     hasSpaciousGarden: undefined, // Có vườn rộng rãi
+    sortByPrice: 0, // Sắp xếp theo giá : -1: giảm dần, 0: không sắp xếp, 1: tăng dần
+    sortByRating: 0, // Sắp xếp theo đánh giá : -1: giảm dần, 0: không sắp xếp, 1: tăng dần
     isCallAPI: false // Cờ để kiểm tra nếu cần gọi API
 }
 export const paramSearchHT = atom({

@@ -1,10 +1,10 @@
-import { Breadcrumb, Empty, Card, Tag, Button, Steps, notification, Tabs, Modal, Input, InputNumber, Spin } from "antd";
+import { Breadcrumb, Empty, Card, Tag, Button, Steps, notification, Tabs, Modal, Input, InputNumber, Spin, Tooltip } from "antd";
 import React, { memo, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import bookingService from "../../services/bookingService";
 import { useRecoilValue } from "recoil";
 import { userState } from "../../recoil/atom";
-import { CheckCircleOutlined, CheckOutlined, CommentOutlined, DownSquareFilled, GlobalOutlined, HomeOutlined, Loading3QuartersOutlined, LoadingOutlined, LogoutOutlined, MailOutlined, MoneyCollectOutlined, PhoneOutlined, SearchOutlined, TeamOutlined } from "@ant-design/icons";
+import { CheckCircleOutlined, CheckOutlined, CommentOutlined, DownSquareFilled, FilePdfOutlined, GlobalOutlined, HomeOutlined, Loading3QuartersOutlined, LoadingOutlined, LogoutOutlined, MailOutlined, MoneyCollectOutlined, PhoneOutlined, SearchOutlined, TeamOutlined } from "@ant-design/icons";
 import { convertDate, convertDateTime } from "../../utils/convertDate";
 import { formatPrice } from "../../utils/formatPrice";
 import paymentMomoSerivce from "../../services/paymentMomoService";
@@ -13,6 +13,7 @@ import TabPane from "antd/es/tabs/TabPane";
 import { statusBooking } from "../owner/Booking/BookingManager";
 import CreateReview from "../../components/user/CreateReview";
 import useSignalR from "../../hooks/useSignaIR";
+import { URL_SERVER } from "../../constant/global";
 
 const BookingHistory = () => {
     const [bookings, setBookings] = useState([]);
@@ -21,7 +22,7 @@ const BookingHistory = () => {
     const [status, setStatus] = useState(10);
     const [selectedBooking, setSelectedBooking] = useState(null)
     const [showCreateReview, setShowCreateReview] = useState(false)
-    const [reason, setReason] = useState("")
+    const [reason, setReason] = useState("Tôi không còn nhu cầu đặt phòng.")
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -81,7 +82,6 @@ const BookingHistory = () => {
 
 
     const handleReject = (id) => {
-        setReason("")
         Modal.confirm({
             width: 700,
             title: 'Xác Nhận Hủy Đơn Đặt Phòng #' + id,
@@ -90,26 +90,31 @@ const BookingHistory = () => {
                     <p>Vui lòng nhập lý do hủy đơn</p>
                     <Input.TextArea className="w-full"
                         rows={6}
+                        value={reason}
                         onChange={(e) => setReason(e.target.value)}
                     />
                 </div>
             ),
             onOk: async () => {
-                setLoading(true);
+                if (!reason) {
+                    notification.error({ message: "Cần điền thông tin", description: "Bạn hãy nhập lý do hủy phòng" })
+                    return;
+                }
                 try {
+                    setLoading(true);
                     await bookingService.cancel(id, reason); // Truyền lý do từ chối vào service
                     notification.success({
                         message: "Đã hủy đơn đặt phòng",
                         description: `Hủy đơn đặt phòng #${id} thành công!`,
                     });
                     getBookingByUser();
+                    setLoading(false);
                 } catch (error) {
                     notification.error({
                         message: "Lỗi",
                         description: `Có lỗi khi hủy đơn đặt phòng #${id}. Hãy thử lại sau!`,
                     });
                 } finally {
-                    setLoading(false);
                 }
             },
             onCancel() { },
@@ -233,6 +238,18 @@ const BookingHistory = () => {
                                         {(booking.status < 3 && !booking.isCancel) && <Button type="primary" loading={loading} className="text-xl mt-auto p-5 rounded-3xl" onClick={() => { handleReject(booking.bookingID) }} danger>
                                             Hủy đơn đặt phòng
                                         </Button>}
+                                        {booking.linkBill &&
+                                            <a href={URL_SERVER + booking.linkBill} target="_blank" rel="noopener noreferrer">
+                                                <Button
+                                                className="text-xl mt-auto p-5 rounded-3xl"
+                                                    type="primary"
+                                                    icon={<FilePdfOutlined />}
+                                                >
+
+                                                    Xem hóa đơn
+                                                </Button>
+                                            </a>
+                                        }
                                     </div>}
 
                                 className="shadow-xl mb-4 rounded-lg border-2 border-gray-300"
@@ -252,7 +269,7 @@ const BookingHistory = () => {
                                                     <td className="px-4 py-2">{convertDateTime(booking.bookingTime)}</td>
                                                 </tr>
                                                 <tr className="border-b hover:bg-gray-50">
-                                                    <td className="px-4 py-2 font-medium">Tên khách hàng</td>
+                                                    <td className="px-4 py-2 font-medium">Tên người đại diện</td>
                                                     <td className="px-4 py-2">{booking.name}</td>
                                                 </tr>
                                                 <tr className="border-b hover:bg-gray-50">
@@ -275,20 +292,7 @@ const BookingHistory = () => {
                                                     <td className="px-4 py-2 font-medium">Ngày trả phòng</td>
                                                     <td className="px-4 py-2">{convertDate(booking.checkOutDate)}</td>
                                                 </tr>
-                                                <tr className="border-b hover:bg-gray-50">
-                                                    <td className="px-4 py-2 font-medium">  Số khách                                                 </td>
-                                                    <td className="flex px-4 py-2 gap-2">
-                                                        <span className="text-gray-800">
-                                                            <span className="font-semibold">{booking.numberAdults || 0}</span> người lớn
-                                                        </span>
-                                                        <span className="text-gray-800">
-                                                            <span className="font-semibold">{booking.numberChildren || 0}</span> trẻ em
-                                                        </span>
-                                                        <span className="text-gray-800">
-                                                            <span className="font-semibold">{booking.numberBaby || 0}</span> em bé
-                                                        </span>
-                                                    </td>
-                                                </tr>
+
                                                 <tr className="border-b hover:bg-gray-50">
                                                     <td className="px-4 py-2 font-medium">Giá gốc</td>
                                                     <td className="px-4 py-2">{formatPrice(booking.originalPrice)}</td>
@@ -338,8 +342,8 @@ const BookingHistory = () => {
                                                     },
                                                     {
                                                         title: 'Thanh toán tiền phòng',
-                                                        description: booking?.status === 2 ? <Button onClick={() => handlePayment(booking)} type="">Thanh toán ngay</Button> : "Đã thanh toán ngày : " + convertDateTime(booking?.bookingProcess.paymentTime),
-                                                        subTitle: booking?.bookingProcess.stepOrder === 0 && "- Số tiền phải thanh toán : " + formatPrice(booking.totalPrice),
+                                                        description: booking?.status === 2 ? <Button onClick={() => handlePayment(booking)} type="">Thanh toán ngay</Button> : "Đã thanh toán ngày : " + convertDateTime(booking?.bookingProcess?.paymentTime),
+                                                        subTitle: booking?.bookingProcess?.stepOrder === 0 && "- Số tiền phải thanh toán : " + formatPrice(booking.totalPrice),
                                                         icon: <MoneyCollectOutlined />,
 
                                                     },
@@ -351,13 +355,13 @@ const BookingHistory = () => {
                                                     },
                                                     {
                                                         title: 'Check-in',
-                                                        description: booking?.status > 4 ? "Hoàn thành thủ tục CheckIn vào : " + convertDateTime(booking?.bookingProcess.checkInTime) : 'Nhận phòng và làm thủ tục check-in',
+                                                        description: booking?.status > 4 ? "Hoàn thành thủ tục CheckIn vào : " + convertDateTime(booking?.bookingProcess?.checkInTime) : 'Nhận phòng và làm thủ tục check-in',
                                                         icon: <HomeOutlined />,
 
                                                     },
                                                     {
                                                         title: 'Check-out',
-                                                        description: booking?.status > 5 ? "Hoàn thành thủ tục CheckOut vào : " + convertDateTime(booking?.bookingProcess.checkOutTime) : 'Thực hiện Hoàn tất thủ tục trả phòng',
+                                                        description: booking?.status > 5 ? "Hoàn thành thủ tục CheckOut vào : " + convertDateTime(booking?.bookingProcess?.checkOutTime) : 'Thực hiện Hoàn tất thủ tục trả phòng',
                                                         icon: <LogoutOutlined />,
 
                                                     },

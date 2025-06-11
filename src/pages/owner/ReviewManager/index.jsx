@@ -1,10 +1,11 @@
 import { memo, useEffect, useState } from "react";
-import { Table, Tag, Rate, Input, Button, DatePicker, Space } from "antd";
+import { Table, Tag, Rate, Input, Button, DatePicker, Space, Select } from "antd";
 import { useRecoilValue } from "recoil";
 import { userState } from "../../../recoil/atom";
 import reviewRatingService from "../../../services/reviewRatingService";
 import dayjs from "dayjs";  // Thêm dayjs để xử lý ngày tháng
 import { SearchOutlined } from "@ant-design/icons";
+import { convertDate, convertDateTime } from "../../../utils/convertDate";
 
 const { RangePicker } = DatePicker;
 
@@ -17,7 +18,7 @@ const ReviewManager = () => {
         pageSize: 5,
     });
     const [searchFields, setSearchFields] = useState({
-        rating: "",
+        rating: 5,
         comment: "",
         reviewDate: [],
     });
@@ -46,6 +47,7 @@ const ReviewManager = () => {
         }
     }, [owner]);
 
+    console.log(reviews);
     const handleTableChange = (pagination) => {
         setPagination({
             current: pagination.current,
@@ -81,14 +83,9 @@ const ReviewManager = () => {
     );
 
     const columns = [
+       
         {
-            title: "Mã Đánh Giá",
-            dataIndex: "reviewID",
-            key: "reviewID",
-            render: (text) => <span className="text-blue-500">{text}</span>,
-        },
-        {
-            title: "Homestay ID",
+            title: "Mã Homestay",
             dataIndex: "homestayID",
             key: "homestayID",
         },
@@ -98,8 +95,7 @@ const ReviewManager = () => {
             key: "rating",
             render: (rating) => (
                 <>
-                    <Rate disabled defaultValue={rating} /> | 
-                    <span className="text-orange-600 text-base"> {rating} sao</span>
+                    <Rate disabled defaultValue={rating} /> 
                 </>
             ),
         },
@@ -113,7 +109,7 @@ const ReviewManager = () => {
             title: "Ngày Đánh Giá",
             dataIndex: "reviewDate",
             key: "reviewDate",
-            render: (date) => <Tag color="green">{new Date(date).toLocaleDateString()}</Tag>,
+            render: (date) => <Tag color="green">{convertDate(date)}</Tag>,
         },
     ];
 
@@ -123,11 +119,19 @@ const ReviewManager = () => {
             <div className="grid grid-cols-4 gap-4 mb-4">
                 <div>
                     <label className="block text-gray-700">Tìm theo Số Sao</label>
-                    <Input
-                        placeholder="Nhập số sao"
+                    <Select
+                        placeholder="Chọn số sao"
                         value={searchFields.rating}
-                        onChange={(e) => handleSearchChange("rating", e.target.value)}
-                    />
+                        className="w-full"
+                        onChange={(value) => handleSearchChange("rating", value)}
+                    >
+                        <Select.Option value={1}>Từ 1 sao đến 2 sao</Select.Option>
+                        <Select.Option value={2}>Từ 2 sao đến 3 sao</Select.Option>
+                        <Select.Option value={3}>Từ 3 sao đến 4 sao</Select.Option>
+                        <Select.Option value={4}>Từ 4 sao đến 5 sao</Select.Option>
+                        <Select.Option value={5}>Từ 5 sao</Select.Option>
+                    </Select>
+                    
                 </div>
                 <div>
                     <label className="block text-gray-700">Tìm theo Nội dung đánh giá</label>

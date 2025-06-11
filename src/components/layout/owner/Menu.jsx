@@ -47,8 +47,8 @@ const MenuOwner = () => {
 
     return (
         <Menu
-            style={{ fontWeight: '700', paddingTop: 20, width: "100%" }}
-
+            style={{ fontWeight: '700', paddingTop: 10, width: "100%" }}
+            className="sticky top-2"
 
             mode="inline"
 
@@ -56,40 +56,21 @@ const MenuOwner = () => {
             openKeys={openKeys} // Set SubMenu đang mở
             onOpenChange={handleOpenChange} // Xử lý khi mở hoặc đóng SubMenu
         >
-            <SubMenu key="sub1" icon={<BarChartOutlined />} title="Thống kê">
-                <Menu.Item key="1-1" onClick={() => handleMenuClick("1-1", "/owner/dashboard")}>
-                    Thống kê tổng quan
-                </Menu.Item>
+            <Menu.Item icon={<BarChartOutlined />} key="1-1" onClick={() => handleMenuClick("1-1", "/owner/dashboard")}>
+                Thống kê tổng quan
+            </Menu.Item>
 
-            </SubMenu>
 
-            <SubMenu key="sub2" icon={<HomeOutlined />} title="Quản lý HomeStay">
-                <Menu.Item key="2-2" onClick={() => handleMenuClick("2-2", "/owner/homestay")}>
-                    Thêm HomeStay mới
-                </Menu.Item>
-                <Menu.Item key="2-1" onClick={() => handleMenuClick("2-1", "/owner/homestay-waiting")}>
-                    Đang chờ phê duyệt
-                </Menu.Item>
-                <Menu.Item key="2-3" onClick={() => handleMenuClick("2-3", "/owner/homestay-current")}>
-                    HomeStay hiện hành
-                </Menu.Item>
-                <Menu.Item key="2-4" onClick={() => handleMenuClick("2-4", "/owner/homestay-reject")}>
-                    HomeStay bị từ chối
-                </Menu.Item>
-                <Menu.Item key="2-5" onClick={() => handleMenuClick("2-4", "/owner/homestay-maintenance")}>
-                    HomeStay đang bảo trì
-                </Menu.Item>
-            </SubMenu>
+            <Menu.Item key="sub2" icon={<HomeOutlined />} onClick={() => handleMenuClick("sub2", "/owner/homestay-list")} title="Quản lý HomeStay">
+                Quản lý HomeStay
+            </Menu.Item>
 
-            <SubMenu key="sub6" icon={<VideoCameraOutlined />} title="Quản lý quảng cáo">
-                <Menu.Item key="6-1" onClick={() => handleMenuClick("6-1", "/owner/advertisement/write")}>
-                    Tạo quảng cáo mới
-                </Menu.Item>
-                <Menu.Item key="6-2" onClick={() => handleMenuClick("6-2", "/owner/advertisement-manager")}>
-                    Danh sách
-                </Menu.Item>
 
-            </SubMenu>
+
+            <Menu.Item icon={<VideoCameraOutlined />} key="6-2" onClick={() => handleMenuClick("6-2", "/owner/advertisement-manager")}>
+                Quản lý quảng cáo
+            </Menu.Item>
+
             <Menu.Item icon={<AuditOutlined />} key="3-1" onClick={() => handleMenuClick("3-1", "/owner/booking-manager")}>
                 Quản lý đặt phòng
             </Menu.Item>

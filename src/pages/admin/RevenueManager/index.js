@@ -1,5 +1,5 @@
 import { memo, useEffect, useLayoutEffect, useState } from "react";
-import { Button, Form, Input, Table, notification, DatePicker, Select } from "antd";
+import { Button, Form, Input, Table, notification, DatePicker, Select, Modal } from "antd";
 import { useForm } from "antd/es/form/Form";
 import PaginateShared from "../../../components/shared/PaginateShared";
 import { formatPrice } from "../../../utils/formatPrice";
@@ -8,7 +8,8 @@ import { convertDate, convertTimezoneToVN } from "../../../utils/convertDate";
 import { FileExcelOutlined } from "@ant-design/icons";
 import { settingFormat } from "../../../recoil/selector";
 import { useRecoilValue } from "recoil";
-
+import { render } from "@testing-library/react";
+import BookingListTable from "./BookingListTable";
 const { RangePicker } = DatePicker;
 const { Option } = Select;
 
@@ -30,6 +31,10 @@ const RevenueManager = () => {
     const [isTimeFrameSelected, setIsTimeFrameSelected] = useState(false); // Trạng thái để kiểm soát vô hiệu hóa RangePicker
     const setting = useRecoilValue(settingFormat)
     const floorFee = setting["floorFee"]?.value || 10; // Lấy phí sàn từ setting, mặc định là 10 nếu không có giá trị
+
+
+    const [viewDetailListBK, setViewDetailListBK] = useState({ show: false, data: [] })
+
     useLayoutEffect(() => {
         const getData = async () => {
             setLoading(true);
@@ -52,21 +57,45 @@ const RevenueManager = () => {
         }
     }, [searchParams, paginate]);
 
+
     const handleSearch = (data) => {
         setPaginate({ ...paginate, page: 1 });
         let startDate = data.range ? data.range[0] : null;
         let endDate = data.range ? data.range[1] : null;
-
         if (data.timeFrame) {
             const today = new Date();
-            if (data.timeFrame === "1week") {
-                // Tính toán 1 tuần trước
-                startDate = new Date(today.setDate(today.getDate() - 7));
-                endDate = new Date();
-            } else if (data.timeFrame === "30days") {
-                // Tính toán 30 ngày trước
-                startDate = new Date(today.setDate(today.getDate() - 30));
-                endDate = new Date();
+            const currentYear = today.getFullYear();
+            const currentMonth = today.getMonth(); // 0-indexed (0 = Jan, 11 = Dec)
+
+            switch (data.timeFrame) {
+                case "1week":
+                    startDate = new Date(today);
+                    startDate.setDate(today.getDate() - 7);
+                    endDate = new Date();
+                    break;
+
+                case "30days":
+                    startDate = new Date(today);
+                    startDate.setDate(today.getDate() - 30);
+                    endDate = new Date();
+                    break;
+
+                case "thisMonth":
+                    startDate = new Date(currentYear, currentMonth, 1);
+                    endDate = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999); // ngày cuối cùng tháng này
+                    break;
+
+                case "lastMonth":
+                    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+                    const yearOfLastMonth = currentMonth === 0 ? currentYear - 1 : currentYear;
+                    startDate = new Date(yearOfLastMonth, lastMonth, 1);
+                    endDate = new Date(yearOfLastMonth, lastMonth + 1, 0, 23, 59, 59, 999); // ngày cuối tháng trước
+                    break;
+
+                case "thisYear":
+                    startDate = new Date(currentYear, 0, 1);
+                    endDate = new Date(currentYear, 11, 31, 23, 59, 59, 999);
+                    break;
             }
         }
 
@@ -111,26 +140,48 @@ const RevenueManager = () => {
             title: "Tên đối tác",
             dataIndex: "fullname",
             key: "fullName",
+            render: (vl) => <span style={{ width: 100 }} className="block w-52">{vl}</span>
         },
         {
             title: "Số điện thoại",
             dataIndex: "phone",
             key: "phone",
+            render: (vl) => <span className="inline-block min-w-10">{vl}</span>
+
         },
         {
             title: "Email",
             dataIndex: "email",
             key: "email",
+            render: (vl) => <span className="inline-block min-w-10">{vl}</span>
+
         },
         {
             title: "Tài khoản",
             dataIndex: "username",
             key: "username",
+            render: (vl) => <span className="inline-block min-w-10">{vl}</span>
+
         },
         {
             title: "Địa chỉ",
             dataIndex: "address",
             key: "address",
+        },
+        {
+            title: "Tên ngân hàng",
+            dataIndex: "nameBank",
+            key: "nameBank",
+        },
+        {
+            title: "Số tài khoản",
+            dataIndex: "numberBank",
+            key: "numberBank",
+        },
+        {
+            title: "Số lượng Booking",
+            dataIndex: "countBooking",
+            key: "countBooking",
         },
         {
             title: "Thực lĩnh tiền phòng từ đối tác",
@@ -150,10 +201,17 @@ const RevenueManager = () => {
             key: "revenue",
             render: (text) => (text ? formatPrice(text * (floorFee / 100)) : "Chưa rõ"),
         },
+        {
+            title: "Thao tác",
+            render: (value) => <>
+                <Button type="primary" onClick={() => setViewDetailListBK({ show: true, data: value.bookings })}>Xem chi tiết</Button>
+            </>
+        },
     ];
-
+  
+    console.log(revenues)
     return (
-        <>
+        <div className="max-w-full overflow-scroll">
             <div className="flex justify-between mb-4">
                 <h3 className="text-2xl font-bold">Kết toán doanh thu</h3>
                 {searchParams.start && searchParams.end && <Button loading={loadingExcel} onClick={handleExportExcel} className="text-white bg-green-700 rounded-2xl text-base py-2" icon={<FileExcelOutlined />}>Xuất Excel</Button>}
@@ -172,6 +230,9 @@ const RevenueManager = () => {
                     <Select placeholder="Chọn khoảng thời gian" allowClear onChange={handleTimeFrameChange}>
                         <Option value="1week">1 tuần gần nhất</Option>
                         <Option value="30days">30 ngày gần nhất</Option>
+                        <Option value="thisMonth">Tháng này</Option>
+                        <Option value="lastMonth">Tháng trước</Option>
+                        <Option value="thisYear">Năm nay</Option>
                     </Select>
                 </Form.Item>
                 <Form.Item label="Số điện thoại chủ sở hữu" name="phoneOwner">
@@ -200,24 +261,33 @@ const RevenueManager = () => {
                     </Button>
                 </div>
             </div>
+            <div className="w-full">
 
-            <Table
+                <Table
 
-                className="min-h-[50vh]"
-                bordered
-                dataSource={revenues}
-                loading={loading}
-                columns={columns}
-                pagination={false}
-            />
-            {totalRecord > 0 && <PaginateShared
-                align="end"
-                page={paginate.page}
-                pageSize={paginate.pageSize}
-                setPaginate={setPaginate}
-                totalRecord={totalRecord}
-            />}
-        </>
+                    className="min-h-[50vh] w-full overflow-x-scroll"
+                    bordered
+
+                    dataSource={revenues}
+                    loading={loading}
+                    columns={columns}
+                    pagination={false}
+                />
+                {totalRecord > 0 && <PaginateShared
+                    align="end"
+                    page={paginate.page}
+                    pageSize={paginate.pageSize}
+                    setPaginate={setPaginate}
+                    totalRecord={totalRecord}
+                />}
+            </div>
+            {
+                viewDetailListBK &&
+                <Modal  okButtonProps={false} cancelButtonProps={false} width={1000}  open={viewDetailListBK.show} onCancel={() => setViewDetailListBK((prev) => ({ ...prev, show: false, data: [] }))}>
+                    <BookingListTable bookings={viewDetailListBK.data??[]}/>
+                </Modal>
+            }
+        </div>
     );
 };
 

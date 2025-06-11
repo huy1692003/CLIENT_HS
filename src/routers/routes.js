@@ -15,7 +15,6 @@ import WriteHomeStay from "../pages/owner/HomeStay/WriteHomeStay";
 import PromotionManager from "../pages/owner/Promotion/PromotionManager";
 import About from "../pages/user/About";
 import Article from "../pages/user/Article";
-import Booking from "../pages/user/Booking";
 import DetailArticle from "../pages/user/DetailArticle";
 import DetailHomeStay from "../pages/user/DetailHomeStay";
 import Favorites from "../pages/user/Favorites";
@@ -53,7 +52,6 @@ export const routers = [
     { path: "/article", element: <Article /> },
     { path: "/detail-article", element: <DetailArticle /> },
     { path: "/partnership-reg", element: <PartnerShipReg /> },
-    { path: "/booking", element: <Booking /> },
     { path: "/favorites", element: <Favorites /> },
     { path: "/history-booking", element: <BookingHistory /> },
     { path: "/about", element: <About /> },
@@ -68,13 +66,9 @@ export const routers = [
     { path: "/admin/dashboard-overview", element: <AdminDashboard/> },
     { path: "/admin/partnership-manager", element: <PartnershipRegManager /> },
     { path: "/admin/amenities-manager", element: <AmenitiesManager /> },
-    { path: "/admin/homestay-censor-pending", element: <HomeStayCensor status={0} /> },
-    { path: "/admin/homestay-censor-current", element: <HomeStayCensor status={1} /> },
-    { path: "/admin/homestay-censor-reject", element: <HomeStayCensor status={-1} /> },
-    { path: "/admin/homestay-censor-maintenance", element: <HomeStayCensor status={2} /> },
+    { path: "/admin/homestay-censor", element: <HomeStayCensor /> },
     { path: "/admin/role-manager", element: <RoleManager /> },
     { path: "/admin/menu-manager", element: <MenuManager /> },
-    { path: "/admin/customer-manager", element: <HomeStayCensor status={2} /> },
     { path: "/admin/article-manager", element: <ArticleManager /> },
     { path: "/admin/category-article-manager", element: <CategoryArticleManager /> },
     { path: "/admin/adminstrator-manager", element: <AdminstratorManager /> },
@@ -86,13 +80,10 @@ export const routers = [
     { path: "/admin/transaction-management-advertisement", element: <TransactionManager type={2} /> },
     // Owner Layout
     { path: "/owner/dashboard", element: <Overview /> },
-    { path: "/owner/homestay-waiting", element: <HomeStayManager status={0} /> },
+    { path: "/owner/homestay-list", element: <HomeStayManager/> },
     { path: "/owner/homestay", element: <WriteHomeStay /> },
     { path: "/owner/promotion-manager", element: <PromotionManager /> },
     { path: "/owner/review-manager", element: <ReviewManager /> },
-    { path: "/owner/homestay-current", element: <HomeStayManager status={1} /> },
-    { path: "/owner/homestay-reject", element: <HomeStayManager status={-1} /> },
-    { path: "/owner/homestay-maintenance", element: <HomeStayManager status={2} /> },
     { path: "/owner/booking-manager", element: <BookingManager /> },
     { path: "/owner/advertisement/write", element: <CreateAdvertisement /> },
     { path: "/owner/advertisement-manager", element: <AdvetisementManager /> },

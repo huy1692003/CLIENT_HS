@@ -1,103 +1,130 @@
 import { memo, useState, useEffect } from "react"
 import { convertDateTime } from "../../utils/convertDate"
-import { CheckCircleOutlined, CheckOutlined, DownSquareFilled, HomeOutlined, Loading3QuartersOutlined, PlusOutlined } from "@ant-design/icons"
-import { Button, Steps, Tag, Modal, Form, InputNumber, Select, Input, Table, Space, Row, Col } from "antd"
-import roomService from "../../services/roomService"
+import { CheckCircleOutlined, CheckOutlined, DownSquareFilled, HomeOutlined, Loading3QuartersOutlined, PlusOutlined, InfoCircleOutlined } from "@ant-design/icons"
+import { Button, Steps, Tag, Modal, Form, InputNumber, Select, Input, Table, Row, Col, Alert, Card, Divider } from "antd"
 import serviceHomestayService from "../../services/serviceHomestayService"
 import { formatPrice } from "../../utils/formatPrice"
 
 const StepProcessBookingOwner = ({ selectedBooking, confirmCheckIn, confirmCheckOut }) => {
-    const [roomData, setRoomData] = useState(null)
     const [serviceData, setServiceData] = useState([])
     const [isModalVisible, setIsModalVisible] = useState(false)
     const [form] = Form.useForm()
-    const [extraCharges, setExtraCharges] = useState([])
+    // Mảng phòng với thông tin người phát sinh
+    const [roomExtraCharges, setRoomExtraCharges] = useState([])
     const [selectedServices, setSelectedServices] = useState([])
     const [otherCharges, setOtherCharges] = useState([])
     
     useEffect(() => {
-        roomService.getById(selectedBooking?.roomID).then(res => setRoomData(res))
-        serviceHomestayService.getAllServices(selectedBooking.ownerID).then(res => setServiceData(res))
+        if (selectedBooking?.ownerID) {
+            serviceHomestayService.getAllServices(selectedBooking.ownerID).then(res => setServiceData(res))
+        }
     }, [selectedBooking])
-
+    console.log(serviceData)
     const showModal = () => {
+        // Khởi tạo dữ liệu phòng với thông tin người phát sinh
+        const roomCharges = selectedBooking?.detailBooking?.map(room => {
+            const extraAdults = Math.max(0, room.numberAdults - room.maxAdults)
+            const extraChildren = Math.max(0, room.numberChildren - room.maxChildren)
+            const extraBabies = Math.max(0, room.numberBaby - room.maxBaby)
+            
+            return {
+                roomId: room.roomId,
+                roomName: room.roomName,
+                // Thông tin giới hạn
+                limits: {
+                    maxAdults: room.maxAdults,
+                    maxChildren: room.maxChildren,
+                    maxBaby: room.maxBaby
+                },
+                // Thông tin thực tế
+                actual: {
+                    numberAdults: room.numberAdults,
+                    numberChildren: room.numberChildren,
+                    numberBaby: room.numberBaby
+                },
+                // Thông tin phí
+                fees: {
+                    extraFeePerAdult: room.extraFeePerAdult,
+                    extraFeePerChild: room.extraFeePerChild,
+                    extraFeePerBaby: room.extraFeePerBaby
+                },
+                // Người thừa (có thể điều chỉnh)
+                extraPeople: {
+                    adults: {
+                        count: extraAdults,
+                        fee: room.extraFeePerAdult,
+                        total: extraAdults * room.extraFeePerAdult
+                    },
+                    children: {
+                        count: extraChildren,
+                        fee: room.extraFeePerChild,
+                        total: extraChildren * room.extraFeePerChild
+                    },
+                    babies: {
+                        count: extraBabies,
+                        fee: room.extraFeePerBaby,
+                        total: extraBabies * room.extraFeePerBaby
+                    }
+                }
+            }
+        }) || []
+        
+        setRoomExtraCharges(roomCharges)
         setIsModalVisible(true)
     }
 
     const handleCancel = () => {
         setIsModalVisible(false)
+        setRoomExtraCharges([])
+        setSelectedServices([])
+        setOtherCharges([])
     }
 
-    const handleSubmit = (values) => {
-        // Process and submit the extra charges
-        setIsModalVisible(false)
-        
-        // Prepare the JSON data structure for extra costs
+    const handleSubmit = () => {
+      
         const jsonDetailExtraCost = {
-            extraPersonCost: {
-                extraAdult: extraCharges.filter(item => item.type === 'adult').reduce((total, item) => {
-                    return {
-                        count: (total.count || 0) + item.count,
-                        fee: roomData?.extraFeePerAdult || 0,
-                        total: ((total.count || 0) + item.count) * (roomData?.extraFeePerAdult || 0)
-                    };
-                }, {}),
-                extraChild: extraCharges.filter(item => item.type === 'child').reduce((total, item) => {
-                    return {
-                        count: (total.count || 0) + item.count,
-                        fee: roomData?.extraFeePerChild || 0,
-                        total: ((total.count || 0) + item.count) * (roomData?.extraFeePerChild || 0)
-                    };
-                }, {}),
-                extraBaby: extraCharges.filter(item => item.type === 'baby').reduce((total, item) => {
-                    return {
-                        count: (total.count || 0) + item.count,
-                        fee: roomData?.extraFeePerBaby || 0,
-                        total: ((total.count || 0) + item.count) * (roomData?.extraFeePerBaby || 0)
-                    };
-                }, {})
-            },
+            
             serviceCost: selectedServices.map(service => {
-                const serviceItem = serviceData.find(s => s.serviceID === service.serviceId);
+                const serviceItem = serviceData.find(s => s.serviceID === service.serviceId)
                 return {
                     serviceId: service.serviceId,
                     serviceName: serviceItem?.serviceName || '',
                     quantity: service.quantity,
                     price: serviceItem?.price || 0,
                     total: (serviceItem?.price || 0) * service.quantity
-                };
+                }
             }),
             otherCost: otherCharges.map(charge => ({
                 name: charge.name,
                 amount: charge.amount
             })),
+            // Thêm thông tin chi tiết theo phòng
+            roomDetailCharges: roomExtraCharges,
             totalExtraCost: calculateTotal()
-        };
+        }
         
-        
-        confirmCheckOut(selectedBooking?.bookingID, jsonDetailExtraCost);
+        confirmCheckOut(selectedBooking?.bookingID, jsonDetailExtraCost)
+        setIsModalVisible(false)
     }
 
-    const addExtraPerson = () => {
-        setExtraCharges([...extraCharges, { key: Date.now(), type: 'adult', count: 1 }])
-    }
-
-    const removeExtraPerson = (key) => {
-        setExtraCharges(extraCharges.filter(item => item.key !== key))
-    }
-
-    const updateExtraPerson = (key, field, value) => {
-        setExtraCharges(extraCharges.map(item => 
-            item.key === key ? { ...item, [field]: value } : item
-        ))
+    // Cập nhật số lượng người thừa cho phòng
+    const updateRoomExtraPeople = (roomId, type, count) => {
+        setRoomExtraCharges(prev => prev.map(room => {
+            if (room.roomId === roomId) {
+                const updatedRoom = { ...room }
+                updatedRoom.extraPeople[type] = {
+                    ...updatedRoom.extraPeople[type],
+                    count: Math.max(0, count),
+                    total: Math.max(0, count) * updatedRoom.extraPeople[type].fee
+                }
+                return updatedRoom
+            }
+            return room
+        }))
     }
 
     const addService = () => {
         setSelectedServices([...selectedServices, { key: Date.now(), serviceId: null, quantity: 1 }])
-    }
-
-    const removeService = (key) => {
-        setSelectedServices(selectedServices.filter(item => item.key !== key))
     }
 
     const updateService = (key, field, value) => {
@@ -110,10 +137,6 @@ const StepProcessBookingOwner = ({ selectedBooking, confirmCheckIn, confirmCheck
         setOtherCharges([...otherCharges, { key: Date.now(), name: '', amount: 0 }])
     }
 
-    const removeOtherCharge = (key) => {
-        setOtherCharges(otherCharges.filter(item => item.key !== key))
-    }
-
     const updateOtherCharge = (key, field, value) => {
         setOtherCharges(otherCharges.map(item => 
             item.key === key ? { ...item, [field]: value } : item
@@ -121,34 +144,25 @@ const StepProcessBookingOwner = ({ selectedBooking, confirmCheckIn, confirmCheck
     }
 
     const calculateTotal = () => {
-        let total = 0;
+        const extraTotal = roomExtraCharges.reduce((sum, room) => 
+            sum + room.extraPeople.adults.total + room.extraPeople.children.total + room.extraPeople.babies.total, 0)
         
-        // Calculate extra person charges
-        extraCharges.forEach(charge => {
-            if (charge.type === 'adult') {
-                total += (roomData?.extraFeePerAdult || 0) * charge.count;
-            } else if (charge.type === 'child') {
-                total += (roomData?.extraFeePerChild || 0) * charge.count;
-            } else if (charge.type === 'baby') {
-                total += (roomData?.extraFeePerBaby || 0) * charge.count;
-            }
-        });
+        const serviceTotal = selectedServices.reduce((sum, service) => {
+            const serviceItem = serviceData.find(s => s.serviceID === service.serviceId)
+            return sum + ((serviceItem?.price || 0) * service.quantity)
+        }, 0)
         
-        // Calculate service charges
-        selectedServices.forEach(service => {
-            const serviceItem = serviceData.find(s => s.serviceID === service.serviceId);
-            if (serviceItem) {
-                total += serviceItem.price * service.quantity;
-            }
-        });
+        const otherTotal = otherCharges.reduce((sum, charge) => sum + charge.amount, 0)
         
-        // Add other charges
-        otherCharges.forEach(charge => {
-            total += charge.amount;
-        });
-        
-        return total;
-    };
+        return extraTotal + serviceTotal + otherTotal
+    }
+
+    // Kiểm tra có người vượt quá không
+    const hasExcessPeople = selectedBooking?.detailBooking?.some(room => 
+        room.numberAdults > room.maxAdults || 
+        room.numberChildren > room.maxChildren || 
+        room.numberBaby > room.maxBaby
+    )
 
     return (
         <>
@@ -197,112 +211,178 @@ const StepProcessBookingOwner = ({ selectedBooking, confirmCheckIn, confirmCheck
             />
 
             <Modal
-                title={<Tag className="text-lg" color="blue">Chi phí phát sinh</Tag>}
+                title="Chi phí phát sinh khi trả phòng"
                 open={isModalVisible}
                 onCancel={handleCancel}
-                width={800}
+                width={"95vw"}
                 footer={[
-                    <Button key="back" onClick={handleCancel}>
-                        Hủy
-                    </Button>,
-                    <Button key="submit" type="primary" onClick={() => form.submit()}>
-                        Xác nhận và hoàn thành
+                    <Button key="back" onClick={handleCancel}>Hủy</Button>,
+                    <Button key="submit" type="primary" onClick={handleSubmit}>
+                        Xác nhận và hoàn thành ({formatPrice(calculateTotal())})
                     </Button>,
                 ]}
             >
-                <Form form={form} layout="vertical" onFinish={handleSubmit}>
-                    <div className="mb-4">
-                        <h3 className="text-base font-medium mb-2">1. Phụ thu người ở vượt quá quy định</h3>
-                        <Table
-                            dataSource={extraCharges}
-                            pagination={false}
-                            className="mb-2"
-                            columns={[
-                                {
-                                    title: 'Loại',
-                                    dataIndex: 'type',
-                                    key: 'type',
-                                    render: (_, record) => (
-                                        <Select
-                                            value={record.type}
-                                            onChange={(value) => updateExtraPerson(record.key, 'type', value)}
-                                            style={{ width: '100%' }}
-                                        >
-                                            <Select.Option value="adult">Người lớn ({formatPrice(roomData?.extraFeePerAdult || 0)}/người)</Select.Option>
-                                            <Select.Option value="child">Trẻ em ({formatPrice(roomData?.extraFeePerChild || 0)}/người)</Select.Option>
-                                            <Select.Option value="baby">Em bé ({formatPrice(roomData?.extraFeePerBaby || 0)}/người)</Select.Option>
-                                        </Select>
-                                    ),
-                                },
-                                {
-                                    title: 'Số lượng',
-                                    dataIndex: 'count',
-                                    key: 'count',
-                                    render: (_, record) => (
-                                        <InputNumber
-                                            min={1}
-                                            value={record.count}
-                                            onChange={(value) => updateExtraPerson(record.key, 'count', value)}
-                                        />
-                                    ),
-                                },
-                                {
-                                    title: 'Thành tiền',
-                                    key: 'amount',
-                                    render: (_, record) => {
-                                        let fee = 0;
-                                        if (record.type === 'adult') fee = roomData?.extraFeePerAdult || 0;
-                                        else if (record.type === 'child') fee = roomData?.extraFeePerChild || 0;
-                                        else if (record.type === 'baby') fee = roomData?.extraFeePerBaby || 0;
-                                        return formatPrice(fee * record.count);
-                                    },
-                                },
-                                {
-                                    title: '',
-                                    key: 'action',
-                                    render: (_, record) => (
-                                        <Button type="text" danger onClick={() => removeExtraPerson(record.key)}>
-                                            Xóa
-                                        </Button>
-                                    ),
-                                },
-                            ]}
-                        />
-                        <Button type="dashed" onClick={addExtraPerson} block icon={<PlusOutlined />}>
-                            Thêm người
-                        </Button>
+                {hasExcessPeople && (
+                    <Alert
+                        message="Phát hiện số người vượt quá quy định"
+                        description="Hệ thống đã tính toán sẵn các khoản phụ thu theo từng phòng. Bạn có thể điều chỉnh số lượng nếu cần."
+                        type="info"
+                        icon={<InfoCircleOutlined />}
+                        className="mb-4"
+                        showIcon
+                    />
+                )}
+
+                <div className="space-y-6">
+                    {/* Phụ thu người theo phòng */}
+                    <div>
+                        <h3 className="text-base font-medium mb-3">1. Phụ thu người vượt quá quy định</h3>
+                        
+                        {roomExtraCharges.map((room, index) => {
+                            const hasExtraInRoom = room.extraPeople.adults.count > 0 || 
+                                                 room.extraPeople.children.count > 0 || 
+                                                 room.extraPeople.babies.count > 0
+                            
+                            return (
+                                <Card 
+                                    key={room.roomId} 
+                                    size="small" 
+                                    className="mb-3"
+                                    title={
+                                        <div className="flex justify-between items-center">
+                                            <span>{room.roomName}</span>
+                                            {hasExtraInRoom && (
+                                                <Tag color="orange">Có phụ thu</Tag>
+                                            )}
+                                        </div>
+                                    }
+                                >
+                                    <Row gutter={16}>
+                                        <Col span={8}>
+                                            <div className="text-sm text-gray-600 mb-2">Thông tin phòng:</div>
+                                            <div className="text-xs space-y-1">
+                                                <div>• Người lớn: {room.actual.numberAdults}/{room.limits.maxAdults}</div>
+                                                <div>• Trẻ em: {room.actual.numberChildren}/{room.limits.maxChildren}</div>
+                                                <div>• Em bé: {room.actual.numberBaby}/{room.limits.maxBaby}</div>
+                                            </div>
+                                        </Col>
+                                        
+                                        <Col span={16}>
+                                            <div className="text-sm text-gray-600 mb-2">Phụ thu (có thể điều chỉnh):</div>
+                                            <Row gutter={8}>
+                                                {/* Người lớn thừa */}
+                                                <Col span={8}>
+                                                    <div className="border p-2 rounded text-center">
+                                                        <div className="text-xs text-gray-500">Người lớn thừa</div>
+                                                        <InputNumber
+                                                            size="small"
+                                                            min={0}
+                                                            value={room.extraPeople.adults.count}
+                                                            onChange={(value) => updateRoomExtraPeople(room.roomId, 'adults', value)}
+                                                            className="w-full"
+                                                        />
+                                                        <div className="text-xs text-gray-500 mt-1">
+                                                            {formatPrice(room.extraPeople.adults.fee)}/người
+                                                        </div>
+                                                        <div className="font-medium text-red-600">
+                                                            {formatPrice(room.extraPeople.adults.total)}
+                                                        </div>
+                                                    </div>
+                                                </Col>
+                                                
+                                                {/* Trẻ em thừa */}
+                                                <Col span={8}>
+                                                    <div className="border p-2 rounded text-center">
+                                                        <div className="text-xs text-gray-500">Trẻ em thừa</div>
+                                                        <InputNumber
+                                                            size="small"
+                                                            min={0}
+                                                            value={room.extraPeople.children.count}
+                                                            onChange={(value) => updateRoomExtraPeople(room.roomId, 'children', value)}
+                                                            className="w-full"
+                                                        />
+                                                        <div className="text-xs text-gray-500 mt-1">
+                                                            {formatPrice(room.extraPeople.children.fee)}/người
+                                                        </div>
+                                                        <div className="font-medium text-red-600">
+                                                            {formatPrice(room.extraPeople.children.total)}
+                                                        </div>
+                                                    </div>
+                                                </Col>
+                                                
+                                                {/* Em bé thừa */}
+                                                <Col span={8}>
+                                                    <div className="border p-2 rounded text-center">
+                                                        <div className="text-xs text-gray-500">Em bé thừa</div>
+                                                        <InputNumber
+                                                            size="small"
+                                                            min={0}
+                                                            value={room.extraPeople.babies.count}
+                                                            onChange={(value) => updateRoomExtraPeople(room.roomId, 'babies', value)}
+                                                            className="w-full"
+                                                        />
+                                                        <div className="text-xs text-gray-500 mt-1">
+                                                            {formatPrice(room.extraPeople.babies.fee)}/người
+                                                        </div>
+                                                        <div className="font-medium text-red-600">
+                                                            {formatPrice(room.extraPeople.babies.total)}
+                                                        </div>
+                                                    </div>
+                                                </Col>
+                                            </Row>
+                                            
+                                            <div className="text-right mt-2">
+                                                <span className="text-sm text-gray-600">Tổng phụ thu phòng: </span>
+                                                <span className="font-medium text-red-600">
+                                                    {formatPrice(
+                                                        room.extraPeople.adults.total + 
+                                                        room.extraPeople.children.total + 
+                                                        room.extraPeople.babies.total
+                                                    )}
+                                                </span>
+                                            </div>
+                                        </Col>
+                                    </Row>
+                                </Card>
+                            )
+                        })}
                     </div>
 
-                    <div className="mb-4">
-                        <h3 className="text-base font-medium mb-2">2. Dịch vụ sử dụng</h3>
+                    <Divider />
+
+                    {/* Dịch vụ */}
+                    <div>
+                        <h3 className="text-base font-medium mb-3">2. Dịch vụ sử dụng</h3>
                         <Table
                             dataSource={selectedServices}
                             pagination={false}
-                            className="mb-2"
+                            size="small"
                             columns={[
                                 {
                                     title: 'Dịch vụ',
-                                    dataIndex: 'serviceId',
-                                    key: 'serviceId',
                                     render: (_, record) => (
                                         <Select
                                             value={record.serviceId}
                                             onChange={(value) => updateService(record.key, 'serviceId', value)}
-                                            style={{ width: '100%' }}
                                             placeholder="Chọn dịch vụ"
+                                            allowClear
+                                            showSearch
+                                            filterOption={(input, option) =>
+                                                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                                            }
+                                            style={{ width: "90%" }}
                                         >
                                             {serviceData.map(service => (
                                                 <Select.Option key={service.serviceID} value={service.serviceID}>
-                                                    {service.serviceName} ({formatPrice(service.price)}/{service.unit})
+                                                    {service.serviceName + " ("+"Đơn vị tính: " + service.unit + ")"}
                                                 </Select.Option>
                                             ))}
                                         </Select>
                                     ),
                                 },
+                                
                                 {
-                                    title: 'Số lượng',
-                                    dataIndex: 'quantity',
-                                    key: 'quantity',
+                                    title: 'SL',
                                     render: (_, record) => (
                                         <InputNumber
                                             min={1}
@@ -312,52 +392,60 @@ const StepProcessBookingOwner = ({ selectedBooking, confirmCheckIn, confirmCheck
                                     ),
                                 },
                                 {
-                                    title: 'Thành tiền',
-                                    key: 'amount',
+                                    title: 'Đơn giá',
                                     render: (_, record) => {
-                                        const service = serviceData.find(s => s.serviceID === record.serviceId);
-                                        return service ? formatPrice(service.price * record.quantity) : '0 VND';
+                                        const service = serviceData.find(s => s.serviceID === record.serviceId)
+                                        return service ? formatPrice(service.price) : '-'
+                                    },
+                                },
+                                {
+                                    title: 'Thành tiền',
+                                    render: (_, record) => {
+                                        const service = serviceData.find(s => s.serviceID === record.serviceId)
+                                        return service ? formatPrice(service.price * record.quantity) : '-'
                                     },
                                 },
                                 {
                                     title: '',
-                                    key: 'action',
                                     render: (_, record) => (
-                                        <Button type="text" danger onClick={() => removeService(record.key)}>
+                                        <Button 
+                                            type="text" 
+                                            danger 
+                                            size="small"
+                                            onClick={() => setSelectedServices(selectedServices.filter(item => item.key !== record.key))}
+                                        >
                                             Xóa
                                         </Button>
                                     ),
                                 },
                             ]}
                         />
-                        <Button type="dashed" onClick={addService} block icon={<PlusOutlined />}>
+                        <Button type="dashed" onClick={addService} block icon={<PlusOutlined />} className="mt-2">
                             Thêm dịch vụ
                         </Button>
                     </div>
 
-                    <div className="mb-4">
-                        <h3 className="text-base font-medium mb-2">3. Chi phí phát sinh khác</h3>
+                    {/* Chi phí khác */}
+                    <div>
+                        <h3 className="text-base font-medium mb-3">3. Chi phí khác</h3>
                         <Table
                             dataSource={otherCharges}
                             pagination={false}
-                            className="mb-2"
+                            size="small"
                             columns={[
                                 {
                                     title: 'Tên chi phí',
-                                    dataIndex: 'name',
-                                    key: 'name',
                                     render: (_, record) => (
                                         <Input
                                             value={record.name}
                                             onChange={(e) => updateOtherCharge(record.key, 'name', e.target.value)}
                                             placeholder="Nhập tên chi phí"
+                                            style={{ width: "90%" }}
                                         />
                                     ),
                                 },
                                 {
                                     title: 'Số tiền',
-                                    dataIndex: 'amount',
-                                    key: 'amount',
                                     render: (_, record) => (
                                         <InputNumber
                                             min={0}
@@ -365,35 +453,47 @@ const StepProcessBookingOwner = ({ selectedBooking, confirmCheckIn, confirmCheck
                                             onChange={(value) => updateOtherCharge(record.key, 'amount', value)}
                                             formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                                             parser={(value) => value.replace(/\$\s?|(,*)/g, '')}
-                                            style={{ width: '100%' }}
+                                            style={{ width: "90%" }}
                                         />
                                     ),
                                 },
                                 {
                                     title: '',
-                                    key: 'action',
                                     render: (_, record) => (
-                                        <Button type="text" danger onClick={() => removeOtherCharge(record.key)}>
+                                        <Button 
+                                            type="text" 
+                                            danger 
+                                            size="small"
+                                            onClick={() => setOtherCharges(otherCharges.filter(item => item.key !== record.key))}
+                                        >
                                             Xóa
                                         </Button>
                                     ),
                                 },
                             ]}
                         />
-                        <Button type="dashed" onClick={addOtherCharge} block icon={<PlusOutlined />}>
+                        <Button type="dashed" onClick={addOtherCharge} block icon={<PlusOutlined />} className="mt-2">
                             Thêm chi phí khác
                         </Button>
                     </div>
 
-                    <Row className="mt-6">
-                        <Col span={12} offset={12}>
-                            <div className="text-right">
-                                <div className="text-base font-medium">Tổng chi phí phát sinh: {formatPrice(calculateTotal())}</div>
-                                <div className="text-sm text-gray-500">Khách hàng sẽ thanh toán thêm khoản này khi trả phòng</div>
-                            </div>
-                        </Col>
-                    </Row>
-                </Form>
+                    {/* Tổng kết */}
+                    <div className="bg-gray-50 p-4 rounded">
+                        <Row justify="space-between" align="middle">
+                            <Col>
+                                <span className="text-gray-600">Tổng chi phí phát sinh:</span>
+                            </Col>
+                            <Col>
+                                <span className="text-xl font-semibold text-red-600">
+                                    {formatPrice(calculateTotal())}
+                                </span>
+                            </Col>
+                        </Row>
+                        <div className="text-sm text-gray-500 mt-1">
+                            Khách hàng phải thanh toán khi trả phòng
+                        </div>
+                    </div>
+                </div>
             </Modal>
         </>
     )

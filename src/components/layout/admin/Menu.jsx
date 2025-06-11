@@ -65,6 +65,7 @@ const MenuAdmin = () => {
             style={{ fontWeight: '700', marginTop: 30 }}
             theme="light"
             mode="inline"
+            className='sticky top-2'
             selectedKeys={[selectedKey]} // Set the selected key here
             openKeys={openKeys} // Set the open keys for submenu
             onOpenChange={handleOpenChange} // Handle opening/closing of submenu

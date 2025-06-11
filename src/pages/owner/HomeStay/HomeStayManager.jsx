@@ -1,16 +1,14 @@
 import { memo, useEffect, useState } from "react";
 import { Table, Tag, Tooltip, notification, message, Form, Input, InputNumber, Select, Button, Image, Modal } from "antd";
-import { ClearOutlined, DeleteFilled, EditOutlined, EyeOutlined, SearchOutlined, SettingOutlined, TwitterSquareFilled } from "@ant-design/icons";
+import { ClearOutlined, DeleteFilled, EditOutlined, EyeOutlined, PlusCircleOutlined, SearchOutlined, SettingOutlined, TwitterSquareFilled } from "@ant-design/icons";
 import { useRecoilValue } from "recoil";
 import { userState } from "../../../recoil/atom";
 import homestayService from "../../../services/homestayService";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { formatPrice } from "../../../utils/formatPrice";
-import { Option } from "antd/es/mentions";
 import PaginateShared from "../../../components/shared/PaginateShared";
 import { URL_SERVER } from "../../../constant/global";
 import CreateDetailBooking from "../../../components/user/CreateDetailBooking";
-import CardRoom from "../../../components/owner/CardRoom";
 
 const initSearch = {
     idHomeStay: "",
@@ -18,11 +16,14 @@ const initSearch = {
     priceRange: "", // Khoảng giá (ví dụ: "100000-500000")
     roomCount: undefined, // Số phòng
     averageRating: "", // Đánh giá trung bình
+    
 
 
 };
 
-const HomeStayManager = ({ status }) => {
+
+const HomeStayManager = () => {
+    const [status, setStatus] = useState(1); // Trạng thái HomeStay (1: Đang hiện hành, 0: Chờ phê duyệt, -1: Bị từ chối, 2: Bảo trì)
     const owner = useRecoilValue(userState);
     const [paramURL] = useSearchParams();
     const isCreateBooking = paramURL.get('isCreateBooking') || false;
@@ -35,8 +36,7 @@ const HomeStayManager = ({ status }) => {
     const [form] = Form.useForm();
 
     //Các state để tạo đơn đặt phòng tại quầy
-    const [dataCreateBooking, setDataCreateBooking] = useState({ visible: false, setVisible: () => { }, homeStay: null, roomCurrent: null })
-    const [showListRoom, setShowListRoom] = useState({ visible: false, rooms: [] })
+    const [onCreateBooking, setOnCreateBooking] = useState({ visible: false, homeStay: null , listRoom: [] , step: 0 })
     const fetchHomeStays = async () => {
         setLoading(true);
         try {
@@ -61,76 +61,6 @@ const HomeStayManager = ({ status }) => {
     };
 
     const columns = [
-        {
-            title: 'Hành động',
-            key: 'action',
-            render: (_, record) => (
-                <>
-                    {
-                        isCreateBooking ? (
-                            <div className="text-center" style={{ width: 120 }}>
-                                <Button type="primary" onClick={() => {
-                                    setDataCreateBooking((prev) => ({ ...prev, homeStay: record }))
-                                    setShowListRoom({ visible: true, rooms: record.rooms })
-                                }}> Tạo đơn  </Button>
-                            </div>
-                        ) : (
-                            <div className="text-center" style={{ width: 120 }}>
-
-
-                                <Tooltip title="Chỉnh sửa">
-                                    <Button
-                                        size="middle"
-                                        type="default"
-                                        shape="circle"
-                                        className="ml-1"
-                                        icon={<EditOutlined />}
-                                        onClick={() => handleEdit(record)}
-                                    />
-                                </Tooltip>
-
-                                {status === 1 && (
-                                    <Tooltip title="Bảo trì">
-                                        <Button
-                                            size="middle"
-                                            type="default"
-                                            shape="circle"
-                                            className="ml-1"
-                                            icon={<SettingOutlined />}
-                                            onClick={() => handleApproval(record, 2)}
-                                        />
-                                    </Tooltip>
-                                )}
-
-                                {status === 2 && (
-                                    <Tooltip title="Bảo trì hoàn tất">
-                                        <Button
-                                            size="middle"
-                                            type="default"
-                                            shape="circle"
-                                            className="ml-1"
-                                            icon={<TwitterSquareFilled />}
-                                            onClick={() => handleApproval(record, 1)}
-                                        />
-                                    </Tooltip>
-                                )}
-
-                                <Tooltip title="Xóa HomeStay">
-                                    <Button
-                                        size="middle"
-                                        type="default"
-                                        shape="circle"
-                                        className="ml-1"
-                                        danger
-                                        icon={<DeleteFilled />}
-                                        onClick={() => handleDelete(record)}
-                                    />
-                                </Tooltip>
-                            </div>
-                        )}
-                </>
-            ),
-        },
         {
             title: 'ID Homestay',
             key: 'homestayID',
@@ -233,6 +163,76 @@ const HomeStayManager = ({ status }) => {
             key: 'viewCount',
             render: (h) => <span>{h.homeStay.viewCount} <i className="fas fa-eye text-blue-500 ml-1"></i></span>,
         },
+        {
+            title: 'Hành động',
+            key: 'action',
+            fixed: 'right',
+            render: (_, record) => (
+                <>
+                    {
+                        isCreateBooking ? (
+                            <div className="text-center" style={{ width: 120 }}>
+                                <Button type="primary" onClick={() => {
+                                    setOnCreateBooking((prev) => ({ ...prev, visible: true, homeStay: record, listRoom: record.rooms }))
+                                }}> Tạo đơn  </Button>
+                            </div>
+                        ) : (
+                            <div className="text-center" style={{ width: 120 }}>
+
+
+                                <Tooltip title="Chỉnh sửa">
+                                    <Button
+                                        size="middle"
+                                        type="default"
+                                        shape="circle"
+                                        className="ml-1"
+                                        icon={<EditOutlined />}
+                                        onClick={() => handleEdit(record)}
+                                    />
+                                </Tooltip>
+
+                                {status === 1 && (
+                                    <Tooltip title="Bảo trì">
+                                        <Button
+                                            size="middle"
+                                            type="default"
+                                            shape="circle"
+                                            className="ml-1"
+                                            icon={<SettingOutlined />}
+                                            onClick={() => handleApproval(record, 2)}
+                                        />
+                                    </Tooltip>
+                                )}
+
+                                {status === 2 && (
+                                    <Tooltip title="Bảo trì hoàn tất">
+                                        <Button
+                                            size="middle"
+                                            type="default"
+                                            shape="circle"
+                                            className="ml-1"
+                                            icon={<TwitterSquareFilled />}
+                                            onClick={() => handleApproval(record, 1)}
+                                        />
+                                    </Tooltip>
+                                )}
+
+                                <Tooltip title="Xóa HomeStay">
+                                    <Button
+                                        size="middle"
+                                        type="default"
+                                        shape="circle"
+                                        className="ml-1"
+                                        danger
+                                        icon={<DeleteFilled />}
+                                        onClick={() => handleDelete(record)}
+                                    />
+                                </Tooltip>
+                            </div>
+                        )}
+                </>
+            ),
+        },
     ];
 
     const handleApproval = async (record, status) => {
@@ -255,6 +255,7 @@ const HomeStayManager = ({ status }) => {
         }
     };
 
+    
     const handleEdit = (record) => {
         // Xử lý hành động chỉnh sửa
         navigate(`/owner/homestay?idHomeStay=${record.homeStay.homestayID}`)
@@ -266,7 +267,7 @@ const HomeStayManager = ({ status }) => {
             let res = await homestayService.deleteHomeStay(record.homeStay.homestayID)
             res && notification.success({ message: "Thông báo", description: res })
         } catch (error) {
-            message.error("Có lỗi xảy ra khi xóa HomeStay")
+            notification.error({ message: "Thông báo", description: "Bạn không thể xóa HomeStay vì đang có đơn đặt phòng" })
         }
     };
 
@@ -340,13 +341,32 @@ const HomeStayManager = ({ status }) => {
                     {/* Nút tìm kiếm */}
                     <div className="col-span-5 mb-2 mt-4">
                         <div className="w-full flex gap-3 justify-between">
-                            <span className="text-2xl font-bold">Danh sách</span>
+                            <span>
+                                <span className="text-base font-medium inline-block mr-2">Trạng thái </span>
+                                <Select onChange={(vl) => {
+                                    setStatus(vl)
+                                    setPaginate({ ...paginate, page: 1 })
+                                }} placeholder="Chọn trạng thái HomeStay" className="ml-2">
+                                    <Select.Option value={0}>Đang chờ phê duyệt</Select.Option>
+                                    <Select.Option value={1}>Đang hiện hành</Select.Option>
+                                    <Select.Option value={-1}>Bị từ chối duyệt</Select.Option>
+                                    <Select.Option value={2}>Đang bảo trì</Select.Option>
+                                </Select>
+                            </span>
                             <span className="flex gap-2">
+                                <Form.Item className="mb-2">
+                                    <Button className="bg-green-600 text-write" type="primary"
+                                        onClick={() => navigate("/owner/homestay")} block icon={<PlusCircleOutlined />}>
+                                        Thêm mới
+                                    </Button>
+                                </Form.Item>
+
                                 <Form.Item className="mb-2">
                                     <Button type="primary" htmlType="submit" block icon={<SearchOutlined />}>
                                         Tìm kiếm
                                     </Button>
                                 </Form.Item>
+
                                 <Form.Item className="mb-2">
                                     <Button
                                         type="primary"
@@ -374,11 +394,12 @@ const HomeStayManager = ({ status }) => {
                 columns={columns}
                 dataSource={homeStays}
                 pagination={false}
+                
                 className="w-full overflow-x-scroll"
                 rowKey={(record) => record.homeStay.homestayID}
             />
 
-            {dataCreateBooking.visible && <CreateDetailBooking visible={dataCreateBooking.visible} onClose={setDataCreateBooking} data={dataCreateBooking.homeStay} room={dataCreateBooking.roomCurrent} isOwnerCreate={true} />}
+            {onCreateBooking.visible && <CreateDetailBooking visible={onCreateBooking.visible} setVisible={() => setOnCreateBooking((prev) => ({ ...prev, visible: false }))} data={onCreateBooking.homeStay} listroom={onCreateBooking.listRoom} currentStep={onCreateBooking.step} setCurrentStep={(vl)=>setOnCreateBooking((prev)=>({...prev, step: vl}))} isOwnerCreate={true} />}
             <PaginateShared
                 align="end"
                 page={paginate.page}
@@ -386,29 +407,7 @@ const HomeStayManager = ({ status }) => {
                 setPaginate={setPaginate}
                 totalRecord={total}
             />
-            {showListRoom.visible && showListRoom.rooms.length > 0 && showListRoom.rooms.map((room, index) => (
-                <Modal
-                    title={<Tag color="green" className='text-xl font-bold mb-5 p-2' style={{ width: "97%" }}>Chọn phòng</Tag>}
-                    visible={showListRoom.visible}
-                    onCancel={() => setShowListRoom((prev) => ({ ...prev, visible: false }))}
-                    footer={null}
-                    width={1000}
-                >
-                    <div key={index} >
-                        <CardRoom
-                            room={room}
-                            ButtonAction={<>
-                                <Button type="primary" size="small" className="flex items-center"
-                                    onClick={() => {
-                                        const setHideCreateBooking = (state) => setShowListRoom((prev) => ({ ...prev, visible: state }))
-                                        setDataCreateBooking((prev) => ({ ...prev, visible: true, setVisible: setHideCreateBooking, roomCurrent: room }))
-                                    }}> Chọn</Button>
-                            </>
-                            }
-                        />
-                    </div>
-                </Modal>
-            ))}
+
         </>
     );
 };

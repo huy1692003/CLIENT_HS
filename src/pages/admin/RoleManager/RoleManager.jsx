@@ -4,9 +4,12 @@ import { PlusOutlined, EditOutlined, DeleteOutlined, MenuOutlined } from '@ant-d
 import roleService from '../../../services/roleService';
 import menuService from '../../../services/menuService';
 import { useNavigate } from 'react-router-dom';
+import { useRecoilState } from 'recoil';
+import { adminState, userState } from '../../../recoil/atom';
 
 const RoleManager = () => {
     const [roles, setRoles] = useState([]);
+    const [admin, setAdmin] = useRecoilState(adminState); // Biến để kiểm tra quyền admin
     const [menus, setMenus] = useState([]);
     const [isRoleModalVisible, setIsRoleModalVisible] = useState(false); // Modal cho thêm/sửa chức vụ
     const [isMenuModalVisible, setIsMenuModalVisible] = useState(false); // Modal cho gán menu
@@ -19,16 +22,19 @@ const RoleManager = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetchRoles();
-        fetchMenus(); // Lấy danh sách menu
-    }, []);
+        if (admin) {
+
+            fetchRoles();
+            fetchMenus(); // Lấy danh sách menu
+        }
+    }, [admin]);
 
     const fetchRoles = async () => {
         try {
             const data = await roleService.getAll(); // Gọi API để lấy danh sách chức vụ
             setRoles(data);
         } catch (error) {
-            
+
             notification.error({ message: 'Lỗi khi tải danh sách chức vụ' });
         }
     };
@@ -178,7 +184,7 @@ const RoleManager = () => {
                         width: '80px'
                     },
                     { title: 'Tên chức vụ', dataIndex: 'nameRole', key: 'nameRole' },
-                 
+
                     {
                         title: 'Hành Động',
                         key: 'action',

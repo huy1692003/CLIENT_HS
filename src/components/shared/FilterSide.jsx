@@ -177,6 +177,36 @@ const FilterSide = ({ showSideFilter, setShowSideFilter, refeshData, setPaginate
                 </Row>
             </div>
 
+            {/* Sắp xếp theo giá */}
+            <div className="filter-section my-6">
+                <h4 className="text-xl font-bold mb-4">
+                    <i className="fas fa-money-bill-wave mr-2 text-blue-600"></i>Sắp xếp theo giá
+                </h4>
+                <Radio.Group
+                    value={searchParam.sortByPrice}
+                    onChange={(e) => handleNumberFilter('sortByPrice', e.target.value)}
+                >
+                    <Radio value={0}><i className="fas fa-sort mr-2 text-blue-600"></i>Không sắp xếp</Radio>
+                    <Radio value={-1}><i className="fas fa-sort-amount-down mr-2 text-blue-600"></i>Giảm dần</Radio>
+                    <Radio value={1}><i className="fas fa-sort-amount-up mr-2 text-blue-600"></i>Tăng dần</Radio>
+                </Radio.Group>
+            </div>
+
+            {/* Sắp xếp theo đánh giá */}
+            <div className="filter-section my-6">
+                <h4 className="text-xl font-bold mb-4">
+                    <i className="fas fa-star mr-2 text-yellow-500"></i>Sắp xếp theo đánh giá
+                </h4>
+                <Radio.Group
+                    value={searchParam.sortByRating}
+                    onChange={(e) => handleNumberFilter('sortByRating', e.target.value)}
+                >
+                    <Radio value={0}><i className="fas fa-sort mr-2 text-yellow-500"></i>Không sắp xếp</Radio>
+                    <Radio value={-1}><i className="fas fa-sort-amount-down mr-2 text-yellow-500"></i>Giảm dần</Radio>
+                    <Radio value={1}><i className="fas fa-sort-amount-up mr-2 text-yellow-500"></i>Tăng dần</Radio>
+                </Radio.Group>
+            </div>
+
             {/* Khoảng giá */}
             <div className="filter-section my-6">
                 <h4 className="text-xl font-bold mb-4">

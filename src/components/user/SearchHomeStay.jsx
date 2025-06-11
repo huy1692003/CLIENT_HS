@@ -11,14 +11,20 @@ import { useDebouncedValue } from "../../hooks/useDebouce";
 const placeHolders = ["Nhập địa điểm muốn đến", "Hà Nội", "Hải Phòng", "Hồ Chí Minh", "Đà Nẵng"];
 
 const SearchComponent = ({ title = "Tìm kiếm Homestay lý tưởng cho chuyến đi của bạn" }) => {
+    // State for search parameters using Recoil for global state management
     const [formSearch, setFormSearch] = useRecoilState(paramSearchHT);
+    // Track the total number of nights for the stay
     const [totalNight, setTotalNight] = useState(1);
+    // Navigation hook for redirecting after search
     const navigate = useNavigate();
+    // Store autocomplete location suggestions
     const [dataAutocomplete, setDataAutoComplete] = useState([]);
+    // Control visibility of the guest selection popover
     const [guestPopoverVisible, setGuestPopoverVisible] = useState(false);
+    // Debounced location query to prevent excessive API calls
     const debouncedQuery = useDebouncedValue(formSearch.location, 900);
 
-   
+
 
     useEffect(() => {
         const getAuto = async () => {
@@ -26,13 +32,13 @@ const SearchComponent = ({ title = "Tìm kiếm Homestay lý tưởng cho chuy�
             setDataAutoComplete(res)
         }
         debouncedQuery && debouncedQuery !== '' && getAuto()
-        if(!debouncedQuery) {
+        if (!debouncedQuery) {
             setDataAutoComplete([])
         }
     }, [debouncedQuery])
 
     const handleSearch = () => {
-        if (formSearch.location || (formSearch.dateOut && formSearch.dateIn) || formSearch.numberAdults || formSearch.name) {
+        if (formSearch.location || formSearch.name || (formSearch.dateIn && formSearch.dateOut) || formSearch.numberAdults || formSearch.numberChildren || formSearch.numberBaby) {
             setFormSearch({
                 ...formSearch,
                 dateIn: formSearch.dateIn || null,
@@ -42,7 +48,7 @@ const SearchComponent = ({ title = "Tìm kiếm Homestay lý tưởng cho chuy�
 
             navigate('/result-homestay-search?location=' + formSearch.location)
         } else {
-            message.error("Vui lòng nhập thông tin để tìm kiếm", 5)
+            message.error("Vui lòng nhập thông tin để tìm kiếm hợp lệ", 5)
         }
     };
 
@@ -61,13 +67,13 @@ const SearchComponent = ({ title = "Tìm kiếm Homestay lý tưởng cho chuy�
         if (type === 'numberAdults' && value < 1) {
             newCounts.numberAdults = 1; // Minimum 1 adult
         }
-        setFormSearch({ ...formSearch, ...newCounts, isCallAPI: false });
+        setFormSearch((prev) => ({ ...prev, ...newCounts, isCallAPI: false }));
     }, [formSearch.numberAdults, formSearch.numberChildren, formSearch.numberBaby, setFormSearch]);
 
     // Total guests calculation
     const totalGuests = formSearch.numberAdults + formSearch.numberChildren + formSearch.numberBaby;
 
-    
+
     // Guest popover content
     const guestPopoverContent = useMemo(() => (
         <div className="w-80 p-4">
@@ -79,8 +85,8 @@ const SearchComponent = ({ title = "Tìm kiếm Homestay lý tưởng cho chuy�
                         <div className="text-xs text-gray-500 mt-0.5">Từ 13 tuổi trở lên</div>
                     </div>
                     <div className="flex items-center space-x-4">
-                        <Button 
-                            size="small" 
+                        <Button
+                            size="small"
                             type="text"
                             onClick={() => handleGuestCountChange('numberAdults', formSearch.numberAdults - 1)}
                             disabled={formSearch.numberAdults <= 1}
@@ -89,8 +95,8 @@ const SearchComponent = ({ title = "Tìm kiếm Homestay lý tưởng cho chuy�
                             <span className="text-base font-medium">−</span>
                         </Button>
                         <span className="w-8 text-center text-base font-semibold text-gray-800">{formSearch.numberAdults}</span>
-                        <Button 
-                            size="small" 
+                        <Button
+                            size="small"
                             type="text"
                             onClick={() => handleGuestCountChange('numberAdults', formSearch.numberAdults + 1)}
                             className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-gray-200 hover:border-blue-500 hover:text-blue-500 transition-all duration-200"
@@ -107,8 +113,8 @@ const SearchComponent = ({ title = "Tìm kiếm Homestay lý tưởng cho chuy�
                         <div className="text-xs text-gray-500 mt-0.5">Từ 2-12 tuổi</div>
                     </div>
                     <div className="flex items-center space-x-4">
-                        <Button 
-                            size="small" 
+                        <Button
+                            size="small"
                             type="text"
                             onClick={() => handleGuestCountChange('numberChildren', formSearch.numberChildren - 1)}
                             disabled={formSearch.numberChildren <= 0}
@@ -117,8 +123,8 @@ const SearchComponent = ({ title = "Tìm kiếm Homestay lý tưởng cho chuy�
                             <span className="text-base font-medium">−</span>
                         </Button>
                         <span className="w-8 text-center text-base font-semibold text-gray-800">{formSearch.numberChildren}</span>
-                        <Button 
-                            size="small" 
+                        <Button
+                            size="small"
                             type="text"
                             onClick={() => handleGuestCountChange('numberChildren', formSearch.numberChildren + 1)}
                             className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-gray-200 hover:border-blue-500 hover:text-blue-500 transition-all duration-200"
@@ -135,8 +141,8 @@ const SearchComponent = ({ title = "Tìm kiếm Homestay lý tưởng cho chuy�
                         <div className="text-xs text-gray-500 mt-0.5">Dưới 2 tuổi</div>
                     </div>
                     <div className="flex items-center space-x-4">
-                        <Button 
-                            size="small" 
+                        <Button
+                            size="small"
                             type="text"
                             onClick={() => handleGuestCountChange('numberBaby', formSearch.numberBaby - 1)}
                             disabled={formSearch.numberBaby <= 0}
@@ -145,8 +151,8 @@ const SearchComponent = ({ title = "Tìm kiếm Homestay lý tưởng cho chuy�
                             <span className="text-base font-medium">−</span>
                         </Button>
                         <span className="w-8 text-center text-base font-semibold text-gray-800">{formSearch.numberBaby}</span>
-                        <Button 
-                            size="small" 
+                        <Button
+                            size="small"
                             type="text"
                             onClick={() => handleGuestCountChange('numberBaby', formSearch.numberBaby + 1)}
                             className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-gray-200 hover:border-blue-500 hover:text-blue-500 transition-all duration-200"
@@ -156,11 +162,11 @@ const SearchComponent = ({ title = "Tìm kiếm Homestay lý tưởng cho chuy�
                     </div>
                 </div>
             </div>
-            
+
             <div className="mt-6 pt-4 border-t border-gray-100">
-                <Button 
-                    type="primary" 
-                    block 
+                <Button
+                    type="primary"
+                    block
                     size="middle"
                     onClick={() => setGuestPopoverVisible(false)}
                     className="rounded-3xl h-10 bg-gradient-to-r from-blue-500 to-indigo-600 border-0 font-medium shadow-lg hover:shadow-xl transition-all duration-300"
@@ -169,15 +175,15 @@ const SearchComponent = ({ title = "Tìm kiếm Homestay lý tưởng cho chuy�
                 </Button>
             </div>
         </div>
-    ),[formSearch.numberAdults, formSearch.numberChildren, formSearch.numberBaby, handleGuestCountChange]);
+    ), [formSearch.numberAdults, formSearch.numberChildren, formSearch.numberBaby, handleGuestCountChange]);
 
     return (
         <div className="relative">
             {/* Background with modern gradient */}
             <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 rounded-3xl"></div>
-            
+
             <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl p-4 sm:p-6 lg:p-5 my-5 border border-white/40 shadow-2xl shadow-blue-500/10 hover:shadow-3xl hover:shadow-blue-500/15 transition-all duration-500 mx-auto max-w-7xl">
-                
+
                 {/* Title */}
                 <div className="text-center mb-5 lg:mb-5">
                     <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-gray-800 via-blue-800 to-indigo-800 bg-clip-text text-transparent mb-2">
@@ -186,17 +192,17 @@ const SearchComponent = ({ title = "Tìm kiếm Homestay lý tưởng cho chuy�
                     <p className="text-gray-600 text-sm md:text-base">Khám phá hàng ngàn Homestay tuyệt vời trên khắp Việt Nam  <i className="flex justify-center mt-2 text-blue-500 text-xl">
                         <CompassOutlined className="mr-2" />
                         <HomeOutlined className="mr-2" />
-                        <HeartOutlined /> 
+                        <HeartOutlined />
                     </i></p>
-                   
+
                 </div>
 
                 {/* Main Search Container */}
                 <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 sm:p-6 shadow-xl border border-gray-100">
-                    
+
                     {/* Responsive Layout */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 xl:grid-cols-6 gap-4 items-end">
-                        
+
                         {/* Location Input */}
                         <div className="sm:col-span-1 lg:col-span-1 xl:col-span-1 h-full">
                             <div className="rounded-3xl p-3 border-2 border-gray-200 h-full hover:border-blue-300 hover:shadow-md transition-all duration-300">
@@ -212,9 +218,9 @@ const SearchComponent = ({ title = "Tìm kiếm Homestay lý tưởng cho chuy�
                                     value={formSearch.location}
                                     onChange={(value) => setFormSearch({ ...formSearch, location: value, isCallAPI: false })}
                                 >
-                                    <Input 
-                                        className="w-full h-10 rounded-lg border-0 bg-white placeholder:text-gray-400 focus:ring-0 focus:ring-blue-500/20" 
-                                        
+                                    <Input
+                                        className="w-full h-10 rounded-lg border-0 bg-white placeholder:text-gray-400 focus:ring-0 focus:ring-blue-500/20"
+
                                     />
                                 </AutoComplete>
                             </div>
@@ -244,27 +250,21 @@ const SearchComponent = ({ title = "Tìm kiếm Homestay lý tưởng cho chuy�
                                     <CalendarOutlined className="text-purple-500 mr-2 text-lg" />
                                     <label className="text-sm font-semibold text-gray-700">Thời gian</label>
                                 </div>
-                                <div className="flex ">
-                                    <DatePicker
-                                        className="flex-1 h-10 rounded-lg border-0 bg-white hover:bg-white transition-all duration-200"
-                                        placeholder="Ngày đến"
-                                        value={formSearch.dateIn}
-                                        onChange={(date) => setFormSearch({ ...formSearch, dateIn: date, isCallAPI: false })}
-                                        format={"DD/MM"}
-                                        disabledDate={(current) => current && current <= dayjs().startOf('day')}
-                                        style={{ fontSize: '16px', fontWeight: '500' }}
-                                    />
-                                    <div className="h-8 w-[2px] bg-gray-200 mx-2"></div>
-                                    <DatePicker
-                                        className="flex-1 h-10 rounded-lg border-0 bg-white hover:bg-white transition-all duration-200"
-                                        placeholder="Ngày về"
-                                        value={formSearch.dateOut}
-                                        onChange={(date) => setFormSearch({ ...formSearch, dateOut: date, isCallAPI: false })}
-                                        format={"DD/MM"}
-                                        disabledDate={(current) => current && current <= dayjs().startOf('day')}
-                                        style={{ fontSize: '16px', fontWeight: '500' }}
-                                    />
-                                </div>
+                                <DatePicker.RangePicker
+                                    className="w-full h-10 rounded-lg border-0 bg-white hover:bg-white transition-all duration-200"
+                                    placeholder={['Ngày đến', 'Ngày về']}
+                                    value={[formSearch.dateIn, formSearch.dateOut]}
+                                    onChange={(dates) => setFormSearch({
+                                        ...formSearch,
+                                        dateIn: dates ? dates[0] : null,
+                                        dateOut: dates ? dates[1] : null,
+                                        isCallAPI: false
+                                    })}
+                                    format="DD/MM"
+                                    disabledDate={(current) => current && current <= dayjs().startOf('day')}
+                                    style={{ fontSize: '16px', fontWeight: '500' }}
+                                    separator={<div className="h-4 w-[2px] bg-gray-200 mx-1"></div>}
+                                />
                             </div>
                         </div>
 
@@ -284,7 +284,7 @@ const SearchComponent = ({ title = "Tìm kiếm Homestay lý tưởng cho chuy�
                                     placement="bottomLeft"
                                     overlayClassName="guest-popover"
                                 >
-                                    <Button 
+                                    <Button
                                         className="w-full h-10 rounded-lg text-left flex items-center justify-between border-0 bg-white hover:bg-white transition-all duration-200"
                                         style={{ fontSize: '16px', fontWeight: '500' }}
                                         onClick={() => setGuestPopoverVisible(true)}
@@ -310,7 +310,7 @@ const SearchComponent = ({ title = "Tìm kiếm Homestay lý tưởng cho chuy�
                         </div>
                     </div>
                 </div>
-                    
+
 
                 {/* Night Count Display */}
                 {totalNight > 0 && (
@@ -323,8 +323,8 @@ const SearchComponent = ({ title = "Tìm kiếm Homestay lý tưởng cho chuy�
                     </div>
                 )}
             </div>
-            
-            
+
+
         </div>
     );
 };
