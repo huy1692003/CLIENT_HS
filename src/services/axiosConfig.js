@@ -3,7 +3,7 @@ import { URL_SERVER } from "../constant/global";
 import { notification } from "antd";
 
 // Lấy URL API từ global constant
-export const URL_API = URL_SERVER + 'api';
+export const URL_API = URL_SERVER + '/api';
 
 // Tạo một instance Axios
 const API = axios.create({
